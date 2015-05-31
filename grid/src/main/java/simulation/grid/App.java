@@ -36,7 +36,7 @@ public class App
 	            // the name of a report file to be written. We don't want to write
 	            // anything here. See other examples of using the
 	            // ReportWriter class
-	            String report_name = null;
+	            String report_name = "test_report";
 
 	            // Initialize the GridSim package
 	            System.out.println("Initializing GridSim package");
@@ -48,8 +48,10 @@ public class App
 	            // The code is commented below:
 	            // GridSim.init(num_user, calendar, trace_flag); 
 
-	            // Second step: Create one Grid resource
-	            GridResource gridResource = createGridResource();
+	            // !!!!!!!! Initializing resources
+		        int mipsRating = 377; //change this
+	            GridResource gridResource = createGridResource("RCF", 16000, mipsRating);
+	            
 	            System.out.println("Finish the 1st example");
 
 	            // NOTE: we do not need to call GridSim.startGridSimulation()
@@ -73,16 +75,15 @@ public class App
 	     * Machines that contains one or more PEs.
 	     * @return a GridResource object
 	     */
-	    private static GridResource createGridResource()
+	    private static GridResource createGridResource(String name, int Ncpu, int mipsRating)
 	    {
-	        System.out.println("Starting to create one Grid resource with " +
-	                "3 Machines ...");
+	        System.out.println("Starting to create new Resource: " + name);
 
 	        // Here are the steps needed to create a Grid resource:
 	        // 1. We need to create an object of MachineList to store one or more
 	        //    Machines
 	        MachineList mList = new MachineList();
-	        System.out.println("Creates a Machine list");
+	        //System.out.println("Creates a Machine list");
 
 	        // 2. Create one Machine with its id, number of PEs and MIPS rating per PE
 	        //    In this example, we are using a resource from
@@ -90,44 +91,30 @@ public class App
 	        //    Note: these data are taken the from GridSim paper, page 25.
 	        //          In this example, all PEs has the same MIPS (Millions
 	        //          Instruction Per Second) Rating for a Machine.
-	        int mipsRating = 377;
-	        mList.add( new Machine(0, 4, mipsRating));   // First Machine
-	        System.out.println("Creates the 1st Machine that has 4 PEs and " +
-	                "stores it into the Machine list");
 
-	        // 3. Repeat the process from 2 if we want to create more Machines
-	        //    In this example, the AIST in Japan has 3 Machines with same
-	        //    MIPS Rating but different PEs.
-	        // NOTE: if you only want to create one Machine for one Grid resource,
-	        //       then you could skip this step.
-	        mList.add( new Machine(1, 4, mipsRating));   // Second Machine
-	        System.out.println("Creates the 2nd Machine that has 4 PEs and " +
-	                "stores it into the Machine list");
-
-	        mList.add( new Machine(2, 2, mipsRating));   // Third Machine
-	        System.out.println("Creates the 3rd Machine that has 2 PEs and " +
-	                "stores it into the Machine list");
+	        mList.add( new Machine(0, Ncpu, mipsRating));   // First Machine
+	        System.out.println("Creates the 1st Machine that has " + Integer.toString(Ncpu) +
+	                " PEs and stores it into the Machine list");
 
 	        // 4. Create a ResourceCharacteristics object that stores the
 	        //    properties of a Grid resource: architecture, OS, list of
 	        //    Machines, allocation policy: time- or space-shared, time zone
 	        //    and its price (G$/PE time unit).
-	        String arch = "Sun Ultra";      // system architecture
-	        String os = "Solaris";          // operating system
-	        double time_zone = 9.0;         // time zone this resource located
-	        double cost = 3.0;              // the cost of using this resource
+	        String arch = "x86";      // system architecture
+	        String os = "Linus";          // operating system
+	        double time_zone = 0.0;         // time zone this resource located
+	        double cost = 0.0;              // the cost of using this resource
 
 	        ResourceCharacteristics resConfig = new ResourceCharacteristics(
-	                arch, os, mList, ResourceCharacteristics.TIME_SHARED,
+	                arch, os, mList, ResourceCharacteristics.SPACE_SHARED,	//jobs are not sharing the same cpu
 	                time_zone, cost);
 
-	        System.out.println();
-	        System.out.println("Creates the properties of a Grid resource and " +
+	        //System.out.println();
+	        //System.out.println("Creates the properties of a Grid resource and " +
 	                "stores the Machine list");
 
 	        // 5. Finally, we need to create a GridResource object.
-	        String name = "Resource_0";         // resource name
-	        double baud_rate = 100.0;           // communication speed
+	        double baud_rate = 100.0;           // communication speed //!!!!!!!!!! edit this
 	        long seed = 11L*13*17*19*23+1;
 	        double peakLoad = 0.0;        // the resource load during peak hour
 	        double offPeakLoad = 0.0;     // the resource load during off-peak hr

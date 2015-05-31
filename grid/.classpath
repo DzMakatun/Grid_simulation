@@ -22,7 +22,7 @@
 			<attribute name="maven.pomderived" value="true"/>
 		</attributes>
 	</classpathentry>
-	<classpathentry kind="lib" path="C:/Users/Dima/workspace/grid/lib/gridsim.jar"/>
-	<classpathentry kind="lib" path="C:/Users/Dima/workspace/grid/lib/simjava2.jar"/>
+	<classpathentry kind="lib" path="F:/git/Grid_simulation/grid/lib/gridsim.jar"/>
+	<classpathentry kind="lib" path="F:/git/Grid_simulation/grid/lib/simjava2.jar"/>
 	<classpathentry kind="output" path="target/classes"/>
 </classpath>
