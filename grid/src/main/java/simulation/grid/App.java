@@ -1,6 +1,7 @@
 package simulation.grid;
 import java.util.Calendar;
 import java.util.LinkedList;
+import java.util.Random;
 
 import gridsim.*;
 
@@ -12,8 +13,7 @@ public class App
 {
 	 public static void main(String[] args)
 	    {
-	        System.out.println("Starting example of how to create one Grid " +
-	                "resource");
+	        System.out.println("Creating Grid resources");
 
 	        try
 	        {
@@ -52,7 +52,22 @@ public class App
 		        int mipsRating = 377; //change this
 	            GridResource gridResource = createGridResource("RCF", 16000, mipsRating);
 	            
-	            System.out.println("Finish the 1st example");
+	            // !!!!!!!!Creates a list of Gridlets (JOBS)
+	            GridletList list = createGridlet(10);
+	            System.out.println("Creating " + list.size() + " Gridlets");
+	            
+	            
+	            //!!!!!!!!!!!!!Create  Users
+	            System.out.println("Creating users");
+	            ResourceUserList userList = createGridUser(list);
+	            System.out.println("Creating " + userList.size() + " Grid users");
+	            
+	            // print the Gridlets
+	            printGridletList(list);
+	            
+	            System.out.println("Finish the example");
+	            
+	            
 
 	            // NOTE: we do not need to call GridSim.startGridSimulation()
 	            // as there are no user entities to send their jobs to this
@@ -63,6 +78,9 @@ public class App
 	            e.printStackTrace();
 	            System.out.println("Unwanted error happens");
 	        }
+	        
+	        
+	        
 	    }
 
 
@@ -109,10 +127,6 @@ public class App
 	                arch, os, mList, ResourceCharacteristics.SPACE_SHARED,	//jobs are not sharing the same cpu
 	                time_zone, cost);
 
-	        //System.out.println();
-	        //System.out.println("Creates the properties of a Grid resource and " +
-	                "stores the Machine list");
-
 	        // 5. Finally, we need to create a GridResource object.
 	        double baud_rate = 100.0;           // communication speed //!!!!!!!!!! edit this
 	        long seed = 11L*13*17*19*23+1;
@@ -144,4 +158,74 @@ public class App
 
 	        return gridRes;
 	    }
+	    private static GridletList createGridlet(int Njobs)
+	    {
+	        // Creates a container to store Gridlets
+	        GridletList list = new GridletList();
+	        
+	        // We create three Gridlets or jobs/tasks manually without the help
+	        // of GridSimRandom
+	        int id = 0;
+	        double length = 3500.0;
+	        long file_size = 300;
+	        long output_size = 300;
+	        Gridlet gridlet1 = null;
+	        for (int i = 0; i < Njobs; i++){
+	        	gridlet1 = new Gridlet(id, length, file_size, output_size);
+	        	list.add(gridlet1);
+	        	id++;
+	        }
+	        		
+	        
+	        return list;
+	    }
+
+	    
+	    /**
+	     * Creates Grid users. In this example, we create 3 users. Then assign
+	     * these users to Gridlets.
+	     * @return a list of Grid users
+	     */
+	    private static ResourceUserList createGridUser(GridletList list)
+	    {
+	        ResourceUserList userList = new ResourceUserList();
+	        
+	        userList.add(0);    // user ID starts from 0
+
+	        int userSize = userList.size();
+	        int gridletSize = list.size();
+	        int id = 0;//all jobs belong to the same user
+	        
+	        // assign user ID to particular Gridlets
+	        for (int i = 0; i < gridletSize; i++)
+	        {
+	            ( (Gridlet) list.get(i) ).setUserID(id);
+	        }
+	        
+	        return userList;
+	    }
+
+	    
+	    private static void printGridletList(GridletList list)
+	    {
+	        int size = list.size();
+	        Gridlet gridlet;
+	        
+	        String indent = "    ";
+	        System.out.println();
+	        System.out.println("Gridlet ID" + indent + "User ID" + indent +
+	                "length" + indent + " file size" + indent +
+	                "output size");
+	        
+	        for (int i = 0; i < size; i++)
+	        {
+	            gridlet = (Gridlet) list.get(i);
+	            System.out.println(indent + gridlet.getGridletID() + indent + 
+	                    indent + indent + gridlet.getUserID() + indent + indent +
+	                    (int) gridlet.getGridletLength() + indent + indent +
+	                    (int) gridlet.getGridletFileSize() + indent + indent +
+	                    (int) gridlet.getGridletOutputSize() );
+	        }
+	    }
+	    
 }
