@@ -2,6 +2,7 @@ package simulation.grid;
 
 
 import java.util.*;
+
 import gridsim.*;
 import gridsim.net.*;
 import gridsim.util.SimReport;
@@ -70,54 +71,94 @@ class NetUser extends GridSim
         int totalResource = resList.size();
         int resourceID[] = new int[totalResource];
         String resourceName[] = new String[totalResource];
-
-        // a loop to get all the resources available
-        int i = 0;
+        
+        //get characteristics of resources
+        ResourceCharacteristics resChar;
+        double resourceCost[] = new double[totalResource];
+        double resourcePEs[] = new double[totalResource];
+        int i = 0 ;
         for (i = 0; i < totalResource; i++)
         {
-            // Resource list contains list of resource IDs
-            resourceID[i] = ( (Integer) resList.get(i) ).intValue();
+            // Resource list contains list of resource IDs not grid resource
+            // objects.
+            resourceID[i] = ( (Integer)resList.get(i) ).intValue();
 
-            // get their names as well
-            resourceName[i] = GridSim.getEntityName( resourceID[i] );
+            // Requests to resource entity to send its characteristics
+            super.send(resourceID[i], GridSimTags.SCHEDULE_NOW,
+                       GridSimTags.RESOURCE_CHARACTERISTICS, this.myId_);
+
+            // waiting to get a resource characteristics
+            resChar = (ResourceCharacteristics) super.receiveEventObject();
+            resourceName[i] = resChar.getResourceName();
+            resourceCost[i] = resChar.getCostPerSec();
+            resChar.getNumFreePE();
+            resourcePEs[i] = resChar.getNumPE();
+
+            System.out.println("Received ResourceCharacteristics from " +
+                    resourceName[i] + ", with id = " + resourceID[i] + " with  " + resourcePEs[i] + " PEs");
+
+            // record this event into "stat.txt" file
+            super.recordStatistics("\"Received ResourceCharacteristics " +
+                    "from " + resourceName[i] + "\"", "");
         }
+        
+        //total PE number
+        double totalPEs = 0;
+        for(i = 0; i < totalResource; i++){
+        	totalPEs += resourcePEs[i];
+        }
+
 
         ////////////////////////////////////////////////
         // SUBMIT Gridlets
-
-        // determines which GridResource to send to
-        int index = myId_ % totalResource;
-        if (index >= totalResource) {
-            index = 0;
-        }
-
-        // sends all the Gridlets
         Gridlet gl = null;
         boolean success;
-        for (i = 0; i < list_.size(); i++)
-        {
-            gl = (Gridlet) list_.get(i);
-            write(name_ + "Sending Gridlet #" + i + " to " + resourceName[index] + " at time " + GridSim.clock());
-            success = super.gridletSubmit(gl, resourceID[index]);
-
-            
+        
+        //initial populating of PEs
+        
+        int j = 0; //number of gridlet
+        int k = 0; // number of PE
+        for(i = 0; i <  totalResource; i++){ 
+        	for(k = 0; k < resourcePEs[i] && j < list_.size(); k++){
+        		gl = (Gridlet) list_.get(j);
+                write(name_ + "Sending Gridlet #" + j + " to PE " + k + " at " + resourceName[i] + " at time " + GridSim.clock());
+                success = super.gridletSubmit(gl, resourceID[i]);
+                j++;
+        	}
         }
-
+        
+        write(name_ +"%%%%%%%%%%%" + (list_.size() - j) + " gridlets left after initial submision");
+        
         ////////////////////////////////////////////////////////
-        // RECEIVES Gridlets back
+        // RECEIVES Gridlets and submit new
 
         // hold for few period - few seconds since the Gridlets length are
         // quite huge for a small bandwidth
         super.gridSimHold(5);
-
+        
+        int resourceFromID = 0;
+        String resourceFromName = null;
+        
         // receives the gridlet back
-        for (i = 0; i < list_.size(); i++)
-        {
+        for (i = 0; i < list_.size(); i++){ //loop over received gridlets
             gl = (Gridlet) super.receiveEventObject();  // gets the Gridlet
             receiveList_.add(gl);   // add into the received list
-
+            resourceFromID = gl.getResourceID(); //resource which has a free PE
+            resourceFromName = GridSim.getEntityName(resourceFromID);
             write(name_ + ": Receiving Gridlet #" +
-                  gl.getGridletID() + " at time = " + GridSim.clock() );
+                  gl.getGridletID() + "from: " + resourceFromName + " at time = " + GridSim.clock() );
+            
+            
+            if(j < list_.size()){ //if not all gridlets are submitted
+            	//submit next gridlet
+            	gl = (Gridlet) list_.get(j);
+                write(name_ + "Sending next Gridlet #" + j + " to " + resourceFromName + " at time " + GridSim.clock());
+                success = super.gridletSubmit(gl, resourceFromID);
+                j++;
+                if (j == list_.size()){
+                	write(name_ + " ALL GRIDLETS SUBMITTED");
+                }
+            }            
         }
 
         ////////////////////////////////////////////////////////
@@ -132,7 +173,7 @@ class NetUser extends GridSim
         //pkt = super.getPingResult();  // (iii) get the result back
 
         // b. blocking call, i.e. ping and wait for a result
-        pkt = super.pingBlockingCall(resourceID[index], size);
+        pkt = super.pingBlockingCall(resourceID[0], size);
 
         // print the result
         write("\n-------- " + name_ + " ----------------");
