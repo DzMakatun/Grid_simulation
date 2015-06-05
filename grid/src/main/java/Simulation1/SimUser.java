@@ -1,4 +1,4 @@
-package datagrid.example04;
+package Simulation1;
 
 /*
  * Title:        GridSim Toolkit
@@ -8,13 +8,22 @@ package datagrid.example04;
  */
 
 import gridsim.GridSim;
+import gridsim.GridSimTags;
+import gridsim.Gridlet;
+import gridsim.GridletList;
+import gridsim.ResourceCharacteristics;
 import gridsim.datagrid.DataGridUser;
 import gridsim.datagrid.File;
 import gridsim.datagrid.FileAttribute;
+import gridsim.net.InfoPacket;
 import gridsim.net.SimpleLink;
+
 import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.LinkedList;
+
 import gridsim.net.flow.*;  // To use the new flow network package - GridSim 4.2
+import gridsim.util.SimReport;
 
 /**
  * This class defines a user which executes a set of commands.
@@ -22,36 +31,167 @@ import gridsim.net.flow.*;  // To use the new flow network package - GridSim 4.2
  */
 class SimUser extends DataGridUser {
     private String name_;
-    private ArrayList tasks;
+    private int myId_;
+    private int totalGridlet;
+    private GridletList list_;          // list of submitted Gridlets
+    private GridletList receiveList_;   // list of received Gridlets
+    private SimReport report_;  // logs every events
+    boolean trace_flag;
+    
 
     // constructor
     SimUser(String name, double baud_rate, double delay, int MTU) throws Exception {
-
-        super(name, new SimpleLink(name + "_link", baud_rate, delay, MTU));
+    	
+    	super(name, new SimpleLink(name + "_link", baud_rate, delay, MTU));
 
         // NOTE: uncomment this if you want to use the new Flow extension
         //super(name, new FlowLink(name + "_link", baud_rate, delay, MTU));
-
+    	trace_flag = true;
         this.name_ = name;
-        this.tasks = new ArrayList();
+        this.receiveList_ = new GridletList();
+        this.list_ = new GridletList();
+        totalGridlet = 100;
+
+        // creates a report file
+        if (trace_flag == true) {
+            report_ = new SimReport(name);
+        }
 
         // Gets an ID for this entity
-        System.out.println("Creating a grid user entity with name = " + name);
+        this.myId_ = super.getEntityId(name);
+        write("Creating a grid user entity with name = " +
+              name + ", and id = " + this.myId_);
+
+        // Creates a list of Gridlets or Tasks for this grid user
+        write(name + ":Creating " + totalGridlet +" Gridlets");
+        this.createGridlet(myId_, totalGridlet);
     }
 
     /**
      * The core method that handles communications among GridSim entities.
      */
     public void body() {
+    	 // wait for a little while for about 3 seconds.
+        // This to give a time for GridResource entities to register their
+        // services to GIS (GridInformationService) entity.
+        super.gridSimHold(1000.0);
+        System.out.println(name_ + ": retrieving GridResourceList");
+        LinkedList resList = super.getGridResourceList();
+        
+        // initialises all the containers
+        int totalResource = resList.size();
+        System.out.println(name_ + ": obtained " + totalResource + " resource IDs in GridResourceList");
+        int resourceID[] = new int[totalResource];
+        String resourceName[] = new String[totalResource];
+        
+        //get characteristics of resources
+        ResourceCharacteristics resChar;
+        double resourceCost[] = new double[totalResource];
+        double resourcePEs[] = new double[totalResource];
+        int i = 0 ;
+        for (i = 0; i < totalResource; i++)
+        {
+            // Resource list contains list of resource IDs not grid resource
+            // objects.
+            resourceID[i] = ( (Integer)resList.get(i) ).intValue();
 
-        //wait for all the entities to register
-        super.gridSimHold(100.0);
+            // Requests to resource entity to send its characteristics
+            super.send(resourceID[i], GridSimTags.SCHEDULE_NOW,
+                       GridSimTags.RESOURCE_CHARACTERISTICS, this.myId_);
 
-        //execute all tasks
-        Iterator it = tasks.iterator();
-        while (it.hasNext()) {
-            this.executeTask((Object[]) it.next());
+            // waiting to get a resource characteristics
+            resChar = (ResourceCharacteristics) super.receiveEventObject();
+            resourceName[i] = resChar.getResourceName();
+            resourceCost[i] = resChar.getCostPerSec();
+            resChar.getNumFreePE();
+            resourcePEs[i] = resChar.getNumPE();
+
+            System.out.println("Received ResourceCharacteristics from " +
+                    resourceName[i] + ", with id = " + resourceID[i] + " with  " + resourcePEs[i] + " PEs");
+
+            // record this event into "stat.txt" file
+            super.recordStatistics("\"Received ResourceCharacteristics " +
+                    "from " + resourceName[i] + "\"", "");
         }
+        
+        //total PE number
+        double totalPEs = 0;
+        for(i = 0; i < totalResource; i++){
+        	totalPEs += resourcePEs[i];
+        }
+
+
+        ////////////////////////////////////////////////
+        // SUBMIT Gridlets
+        Gridlet gl = null;
+        boolean success;
+        
+        //initial populating of PEs
+        
+        int j = 0; //number of gridlet
+        int k = 0; // number of PE
+        for(i = 0; i <  totalResource; i++){ 
+        	for(k = 0; k < resourcePEs[i] && j < list_.size(); k++){
+        		gl = (Gridlet) list_.get(j);
+                write(name_ + "Sending Gridlet #" + j + " to PE " + k + " at " + resourceName[i] + " at time " + GridSim.clock());
+                success = super.gridletSubmit(gl, resourceID[i]);
+                j++;
+        	}
+        }
+        
+        write(name_ +"%%%%%%%%%%%" + (list_.size() - j) + " gridlets left after initial submision");
+        
+        ////////////////////////////////////////////////////////
+        // RECEIVES Gridlets and submit new
+
+        // hold for few period - few seconds since the Gridlets length are
+        // quite huge for a small bandwidth
+        //super.gridSimHold(5);
+        
+        int resourceFromID = 0;
+        String resourceFromName = null;
+        
+        // receives the gridlet back
+        for (i = 0; i < list_.size(); i++){ //loop over received gridlets
+            gl = (Gridlet) super.receiveEventObject();  // gets the Gridlet
+            receiveList_.add(gl);   // add into the received list
+            resourceFromID = gl.getResourceID(); //resource which has a free PE
+            resourceFromName = GridSim.getEntityName(resourceFromID);
+            write(name_ + ": Receiving Gridlet #" +
+                  gl.getGridletID() + "from: " + resourceFromName + " at time = " + GridSim.clock() );
+            
+            
+            if(j < list_.size()){ //if not all gridlets are submitted
+            	//submit next gridlet
+            	gl = (Gridlet) list_.get(j);
+                write(name_ + "Sending next Gridlet #" + j + " to " + resourceFromName + " at time " + GridSim.clock());
+                success = super.gridletSubmit(gl, resourceFromID);
+                j++;
+                if (j == list_.size()){
+                	write(name_ + " ALL GRIDLETS SUBMITTED");
+                }
+            }            
+        }
+
+        ////////////////////////////////////////////////////////
+        //ping resources
+        for(i = 0; i <  totalResource; i++){ 
+        	pingRes(resourceID[i]);
+        }
+
+        ////////////////////////////////////////////////////////
+        // shut down I/O ports
+        shutdownUserEntity();
+        terminateIOEntities();
+
+        // don't forget to close the file
+        if (report_ != null) {
+            report_.finalWrite();
+        }
+
+        write(this.name_ + ": sending and receiving of Gridlets" +
+              " complete at " + GridSim.clock() );
+    
 
         ////////////////////////////////////////////////////////
         // shut down I/O ports
@@ -61,97 +201,52 @@ class SimUser extends DataGridUser {
             GridSim.clock());
     }
 
-    /**
-     * Execute a user task, which can be one of the following:<br>
-     * Get a file<br>
-     * Replicate a file<br>
-     * Delete a file<br>
-     * Or get the attribute of a file
-     * @param task the task to be executed
-     */
-    private void executeTask(Object[] task) {
-        int taskID = ((Integer) task[0]).intValue();
-        File f = null;
-        int location = -1;
+   private void pingRes(int resourceID){
+	// ping functionality
+       InfoPacket pkt = null;
+       int size = 500000;
 
-        switch (taskID) {
-        case 0: //getFile
+       // There are 2 ways to ping an entity:
+       // a. non-blocking call, i.e.
+       //super.ping(resourceID[index], size);    // (i)   ping
+       //super.gridSimHold(10);        // (ii)  do something else
+       //pkt = super.getPingResult();  // (iii) get the result back
 
-            String name = getFullFilename((String) task[1]);
-            if (name != null) {
-                location = this.getReplicaLocation(name);
+       // b. blocking call, i.e. ping and wait for a result
+       pkt = super.pingBlockingCall(resourceID, size);
 
-                if (location != -1) {
-                    f = this.getFile(name, location);
-                    System.out.println(this.get_name() +
-                        ":- Transfer of file " + name + " succesful");
-                }
-            } else {
-                System.out.println("No such file: " + (String) task[1]);
-            }
+       // print the result
+       write("\n-------- " + name_ + " ----------------");
+       write(pkt.toString());
+       write("-------- " + name_ + " ----------------\n");
+   }
 
-            break;
+    private void createGridlet(int userID, int numGridlet)
+    {
+        int data = 500000;
+        for (int i = 0; i < numGridlet; i++)
+        {
+            // Creates a Gridlet
+            Gridlet gl = new Gridlet(i, data, data, data);
+            gl.setUserID(userID);
 
-        case 1: //replicateFile
-            name = getFullFilename((String) task[1]);
-            String resourceName = (String) task[2];
-
-            if (name != null) {
-                location = this.getReplicaLocation(name);
-            } else {
-                location = -1;
-            }
-
-            if (location != -1) {
-                f = this.getFile(name, location);
-
-                if (f != null) {
-                    replicateFile(f, GridSim.getEntityId(resourceName));
-                }
-            }
-
-            break;
-
-        case 2: //deleteReplica
-            name = getFullFilename((String) task[1]);
-            resourceName = (String) task[2];
-
-            if (name != null) {
-                this.deleteFile(name, GridSim.getEntityId(resourceName));
-            } else {
-                System.out.println("Could not delete " + (String) task[1]);
-            }
-
-            break;
-
-        case 3: //getAttribute
-            name = getFullFilename((String) task[1]);
-
-            if (name != null) {
-                FileAttribute attr = this.getFileAttribute(name);
-                System.out.println(this.get_name() +
-                    ":- Received attribute for file " + attr.getName());
-            } else {
-                System.out.println("Could not retrieve attribute for " +
-                    (String) task[1]);
-            }
-
-            break;
-
-        default:
-            System.out.println("Not a valid task for the user");
-            break;
+            // add this gridlet into a list
+            this.list_.add(gl);
         }
     }
+    
 
     /**
-     * Setter method for the array of tasks, which need to be executed.
-     *
-     * @param l the array of tasks which the user has to execute during
-     *          the simulation
+     * Prints out the given message into stdout.
+     * In addition, writes it into a file.
+     * @param msg   a message
      */
-    public void setTasks(ArrayList l) {
-        tasks = l;
+    private void write(String msg)
+    {
+        System.out.println(msg);
+        if (report_ != null) {
+            report_.write(msg);
+        }
     }
-
+    
 } // end class

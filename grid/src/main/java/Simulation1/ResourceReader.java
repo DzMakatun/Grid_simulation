@@ -1,4 +1,4 @@
-package datagrid.example04;
+package Simulation1;
 
 /*
  * Title:        GridSim Toolkit
@@ -79,6 +79,8 @@ public class ResourceReader {
         String routerName;
         String resourceName;
         String regionalRC;
+        int PEs;
+        int MIPSrate;
         double storage_size;
         double bandwidth;
 
@@ -94,6 +96,8 @@ public class ResourceReader {
             resourceName = str.nextToken();
 
             if (!(resourceName.startsWith("#"))) {
+                PEs = Integer.parseInt(str.nextToken());
+                MIPSrate = Integer.parseInt(str.nextToken());
                 storage_size = Double.parseDouble(str.nextToken());
                 bandwidth = Double.parseDouble(str.nextToken());
                 routerName = str.nextToken(); // read the router name
@@ -104,7 +108,7 @@ public class ResourceReader {
                     regionalRC = str.nextToken();
                 }
 
-                r1 = createStandardResource(resourceName, storage_size,
+                r1 = createStandardResource(resourceName, PEs, MIPSrate, storage_size,
                         bandwidth, regionalRC);
 
                 // attach the resource to a router
@@ -174,11 +178,9 @@ public class ResourceReader {
      *            a Grid Resource name
      * @return a GridResource object
      */
-    private static DataGridResource createStandardResource(String name,
+    private static DataGridResource createStandardResource(String name, int PEs, int processingMIPSRate,
         double storage_size, double bandwidth, String regionalRC) {
         System.out.println();
-        System.out.println("Starting to create one Grid resource with " +
-            "3 Machines");
 
         // Here are the steps needed to create a Grid resource:
         // 1. We need to create an object of MachineList to store one or more
@@ -189,75 +191,23 @@ public class ResourceReader {
         // 2. A Machine contains one or more PEs or CPUs. Therefore, should
         // create an object of PEList to store these PEs before creating
         // a Machine.
-        PEList peList1 = new PEList();
 
-        // System.out.println("Creates a PE list for the 1st Machine");
-        // 3. Create PEs and add these into an object of PEList.
-        // In this example, we are using a resource from
-        // hpc420.hpcc.jp, AIST, Tokyo, Japan
-        // Note: these data are taken the from GridSim paper, page 25.
-        // In this example, all PEs has the same MIPS (Millions
-        // Instruction Per Second) Rating for a Machine.
-        peList1.add(new PE(0, 377)); // need to store PE id and MIPS Rating
-        peList1.add(new PE(1, 377));
-        peList1.add(new PE(2, 377));
-        peList1.add(new PE(3, 377));
-
-        // System.out.println("Creates 4 PEs with same MIPS Rating and put
-        // them"+
-        // " into the PE list");
         // 4. Create one Machine with its id and list of PEs or CPUs
-        mList.add(new Machine(0, peList1)); // First Machine
+        mList.add(new Machine(0, PEs, processingMIPSRate)); // First Machine
 
-        // System.out.println("Creates the 1st Machine that has 4 PEs and " +
-        // "stores it into the Machine list");
-        // System.out.println();
-        // 5. Repeat the process from 2 if we want to create more Machines
-        // In this example, the AIST in Japan has 3 Machines with same
-        // MIPS Rating but different PEs.
-        // NOTE: if you only want to create one Machine for one Grid resource,
-        // then you could skip this step.
-        PEList peList2 = new PEList();
-
-        // System.out.println("Creates a PE list for the 2nd Machine");
-        peList2.add(new PE(0, 377));
-        peList2.add(new PE(1, 377));
-        peList2.add(new PE(2, 377));
-        peList2.add(new PE(3, 377));
-
-        // System.out.println("Creates 4 PEs with same MIPS Rating and put
-        // them"+
-        // " into the PE list");
-        mList.add(new Machine(1, peList2)); // Second Machine
-
-        // System.out.println("Creates the 2nd Machine that has 4 PEs and " +
-        // "stores it into the Machine list");
-        // System.out.println();
-        PEList peList3 = new PEList();
-
-        // System.out.println("Creates a PE list for the 3rd Machine");
-        peList3.add(new PE(0, 377));
-        peList3.add(new PE(1, 377));
-
-        // System.out.println("Creates 2 PEs with same MIPS Rating and put
-        // them"+
-        // " into the PE list");
-        mList.add(new Machine(2, peList3)); // Third Machine
-
-        // System.out.println("Creates the 3rd Machine that has 2 PEs and " +
-        // "stores it into the Machine list");
-        // System.out.println();
+        //5. not needed
+       
         // 6. Create a ResourceCharacteristics object that stores the
         // properties of a Grid resource: architecture, OS, list of
         // Machines, allocation policy: time- or space-shared, time zone
         // and its price (G$/PE time unit).
-        String arch = "Sun Ultra"; // system architecture
-        String os = "Solaris"; // operating system
-        double time_zone = 9.0; // time zone this resource located
-        double cost = 3.0; // the cost of using this resource
+        String arch = "x86"; // system architecture
+        String os = "Linux"; // operating system
+        double time_zone = 0.0; // time zone this resource located
+        double cost = 0.0; // the cost of using this resource
 
         ResourceCharacteristics resConfig = new ResourceCharacteristics(arch,
-                os, mList, ResourceCharacteristics.TIME_SHARED, time_zone, cost);
+                os, mList, ResourceCharacteristics.SPACE_SHARED, time_zone, cost); // 1 job per CPU !!!!!
 
         // System.out.println("Creates the properties of a Grid resource and " +
         // "stores the Machine list");
@@ -311,8 +261,8 @@ public class ResourceReader {
             e.printStackTrace();
         }
 
-        System.out.println("Finally, creates one Grid resource (name: " + name +
-            " - id: " + gridRes.get_id() + ")");
+        System.out.println("Ceates Grid resource (name: " + name + " - id: " + gridRes.get_id() +"PEs: "  + mList.getNumPE() +
+        		"processing rate: " + processingMIPSRate + "storage: " +gridRes.getTotalStorageCapacity()  + ")");
         System.out.println();
 
         return gridRes;

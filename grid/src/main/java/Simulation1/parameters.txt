@@ -1,5 +1,5 @@
 #WARNING numUsers should be the same as the number of users in the user configuration file
-numUsers=2
+numUsers=1
 files=files.txt
 resources=resources.txt
 network=network.txt

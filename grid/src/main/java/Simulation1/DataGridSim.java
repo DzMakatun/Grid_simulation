@@ -1,4 +1,4 @@
-package datagrid.example04;
+package Simulation1;
 
 /*
  * Title:        GridSim Toolkit

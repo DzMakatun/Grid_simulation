@@ -1,4 +1,4 @@
-package datagrid.example04;
+package Simulation1;
 
 /*
  * Title:        GridSim Toolkit
@@ -94,7 +94,7 @@ public class UserReader {
                     }
                 }
 
-                dUser.setTasks(tasks);
+                //dUser.setTasks(tasks);
                 users.add(dUser);
             }
         }
