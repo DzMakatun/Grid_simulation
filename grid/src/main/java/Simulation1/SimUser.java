@@ -46,11 +46,16 @@ class SimUser extends DataGridUser {
 
         // NOTE: uncomment this if you want to use the new Flow extension
         //super(name, new FlowLink(name + "_link", baud_rate, delay, MTU));
+    	
     	trace_flag = true;
         this.name_ = name;
         this.receiveList_ = new GridletList();
-        this.list_ = new GridletList();
+        GridletReader gridletReader = new GridletReader();
+        
         totalGridlet = 100;
+        this.list_ = new GridletList();
+        
+        
 
         // creates a report file
         if (trace_flag == true) {
@@ -64,7 +69,8 @@ class SimUser extends DataGridUser {
 
         // Creates a list of Gridlets or Tasks for this grid user
         write(name + ":Creating " + totalGridlet +" Gridlets");
-        this.createGridlet(myId_, totalGridlet);
+        //this.createGridlet(myId_, totalGridlet);
+        this.list_ = GridletReader.getGridletList("KISTIlogFilerred.csv", totalGridlet, myId_);
     }
 
     /**
@@ -133,7 +139,7 @@ class SimUser extends DataGridUser {
         for(i = 0; i <  totalResource; i++){ 
         	for(k = 0; k < resourcePEs[i] && j < list_.size(); k++){
         		gl = (Gridlet) list_.get(j);
-                write(name_ + "Sending Gridlet #" + j + " to PE " + k + " at " + resourceName[i] + " at time " + GridSim.clock());
+                write(name_ + "Sending Gridlet #" + j + "with id " + gl.getGridletID() + " to PE " + k + " at " + resourceName[i] + " at time " + GridSim.clock());
                 success = super.gridletSubmit(gl, resourceID[i]);
                 j++;
         	}
@@ -164,7 +170,7 @@ class SimUser extends DataGridUser {
             if(j < list_.size()){ //if not all gridlets are submitted
             	//submit next gridlet
             	gl = (Gridlet) list_.get(j);
-                write(name_ + "Sending next Gridlet #" + j + " to " + resourceFromName + " at time " + GridSim.clock());
+                write(name_ + "Sending next Gridlet #" + j + "with id " + gl.getGridletID() + " to " + resourceFromName + " at time " + GridSim.clock());
                 success = super.gridletSubmit(gl, resourceFromID);
                 j++;
                 if (j == list_.size()){

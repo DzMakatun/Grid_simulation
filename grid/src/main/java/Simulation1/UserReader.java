@@ -38,7 +38,7 @@ public class UserReader {
             BufferedReader b = new BufferedReader(fRead);
             userList = createUsers(b, routers);
         } catch (Exception exp) {
-            System.out.println("User file not found");
+            System.out.println("User file not found: " + filename );
         }
 
         return userList;

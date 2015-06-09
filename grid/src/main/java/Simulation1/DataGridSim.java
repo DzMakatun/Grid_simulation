@@ -15,8 +15,10 @@ import gridsim.net.Link;
 import gridsim.net.Router;
 import gridsim.net.SimpleLink;
 import gridsim.util.NetworkReader;
+
 import java.util.Calendar;
 import java.util.LinkedList;
+
 import gridsim.net.flow.*;  // To use the new flow network package - GridSim 4.2
 
 /**
@@ -43,7 +45,7 @@ public class DataGridSim {
             Calendar calendar = Calendar.getInstance();
             boolean trace_flag = false; // means trace GridSim events
             boolean gisFlag = false; // means using DataGIS instead
-
+           
             // Initialize the GridSim package
             System.out.println("Initializing GridSim package");
             GridSim.init(num_user, calendar, trace_flag, gisFlag);
