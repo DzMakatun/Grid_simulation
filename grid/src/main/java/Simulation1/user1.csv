@@ -1,0 +1,258 @@
+0.0 Creating a grid user entity with name = user1, and id = 35
+0.0 user1:Creating 100 Gridlets
+1000.0900567935996 user1Sending Gridlet #0 to PE 0 at KISTI at time 1000.0900567935996
+1000.0900567935996 user1Sending Gridlet #1 to PE 1 at KISTI at time 1000.0900567935996
+1000.0900567935996 user1Sending Gridlet #2 to PE 2 at KISTI at time 1000.0900567935996
+1000.0900567935996 user1Sending Gridlet #3 to PE 3 at KISTI at time 1000.0900567935996
+1000.0900567935996 user1Sending Gridlet #4 to PE 4 at KISTI at time 1000.0900567935996
+1000.0900567935996 user1Sending Gridlet #5 to PE 5 at KISTI at time 1000.0900567935996
+1000.0900567935996 user1Sending Gridlet #6 to PE 6 at KISTI at time 1000.0900567935996
+1000.0900567935996 user1Sending Gridlet #7 to PE 7 at KISTI at time 1000.0900567935996
+1000.0900567935996 user1Sending Gridlet #8 to PE 8 at KISTI at time 1000.0900567935996
+1000.0900567935996 user1Sending Gridlet #9 to PE 9 at KISTI at time 1000.0900567935996
+1000.0900567935996 user1Sending Gridlet #10 to PE 0 at RCF at time 1000.0900567935996
+1000.0900567935996 user1Sending Gridlet #11 to PE 1 at RCF at time 1000.0900567935996
+1000.0900567935996 user1Sending Gridlet #12 to PE 2 at RCF at time 1000.0900567935996
+1000.0900567935996 user1Sending Gridlet #13 to PE 3 at RCF at time 1000.0900567935996
+1000.0900567935996 user1Sending Gridlet #14 to PE 4 at RCF at time 1000.0900567935996
+1000.0900567935996 user1Sending Gridlet #15 to PE 5 at RCF at time 1000.0900567935996
+1000.0900567935996 user1Sending Gridlet #16 to PE 6 at RCF at time 1000.0900567935996
+1000.0900567935996 user1Sending Gridlet #17 to PE 7 at RCF at time 1000.0900567935996
+1000.0900567935996 user1Sending Gridlet #18 to PE 8 at RCF at time 1000.0900567935996
+1000.0900567935996 user1Sending Gridlet #19 to PE 9 at RCF at time 1000.0900567935996
+1000.0900567935996 user1Sending Gridlet #20 to PE 0 at PDSF at time 1000.0900567935996
+1000.0900567935996 user1Sending Gridlet #21 to PE 1 at PDSF at time 1000.0900567935996
+1000.0900567935996 user1Sending Gridlet #22 to PE 2 at PDSF at time 1000.0900567935996
+1000.0900567935996 user1Sending Gridlet #23 to PE 3 at PDSF at time 1000.0900567935996
+1000.0900567935996 user1Sending Gridlet #24 to PE 4 at PDSF at time 1000.0900567935996
+1000.0900567935996 user1Sending Gridlet #25 to PE 5 at PDSF at time 1000.0900567935996
+1000.0900567935996 user1Sending Gridlet #26 to PE 6 at PDSF at time 1000.0900567935996
+1000.0900567935996 user1Sending Gridlet #27 to PE 7 at PDSF at time 1000.0900567935996
+1000.0900567935996 user1Sending Gridlet #28 to PE 8 at PDSF at time 1000.0900567935996
+1000.0900567935996 user1Sending Gridlet #29 to PE 9 at PDSF at time 1000.0900567935996
+1000.0900567935996 user1%%%%%%%%%%%70 gridlets left after initial submision
+2673.8105391936706 user1: Receiving Gridlet #0from: KISTI at time = 2673.8105391936706
+2673.8105391936706 user1Sending next Gridlet #30 to KISTI at time 2673.8105391936706
+2680.4905391938164 user1: Receiving Gridlet #1from: KISTI at time = 2680.4905391938164
+2680.4905391938164 user1Sending next Gridlet #31 to KISTI at time 2680.4905391938164
+2687.170539193962 user1: Receiving Gridlet #2from: KISTI at time = 2687.170539193962
+2687.170539193962 user1Sending next Gridlet #32 to KISTI at time 2687.170539193962
+2693.850539194108 user1: Receiving Gridlet #3from: KISTI at time = 2693.850539194108
+2693.850539194108 user1Sending next Gridlet #33 to KISTI at time 2693.850539194108
+2700.530539194254 user1: Receiving Gridlet #4from: KISTI at time = 2700.530539194254
+2700.530539194254 user1Sending next Gridlet #34 to KISTI at time 2700.530539194254
+2707.2105391943996 user1: Receiving Gridlet #5from: KISTI at time = 2707.2105391943996
+2707.2105391943996 user1Sending next Gridlet #35 to KISTI at time 2707.2105391943996
+2713.860539194545 user1: Receiving Gridlet #10from: RCF at time = 2713.860539194545
+2713.860539194545 user1Sending next Gridlet #36 to RCF at time 2713.860539194545
+2713.910539194546 user1: Receiving Gridlet #6from: KISTI at time = 2713.910539194546
+2713.910539194546 user1Sending next Gridlet #37 to KISTI at time 2713.910539194546
+2722.400539194731 user1: Receiving Gridlet #11from: RCF at time = 2722.400539194731
+2722.400539194731 user1Sending next Gridlet #38 to RCF at time 2722.400539194731
+2726.92053919483 user1: Receiving Gridlet #7from: KISTI at time = 2726.92053919483
+2726.92053919483 user1Sending next Gridlet #39 to KISTI at time 2726.92053919483
+2727.250539194837 user1: Receiving Gridlet #12from: RCF at time = 2727.250539194837
+2727.250539194837 user1Sending next Gridlet #40 to RCF at time 2727.250539194837
+2740.580539195128 user1: Receiving Gridlet #13from: RCF at time = 2740.580539195128
+2740.580539195128 user1Sending next Gridlet #41 to RCF at time 2740.580539195128
+2740.630539195129 user1: Receiving Gridlet #8from: KISTI at time = 2740.630539195129
+2740.630539195129 user1Sending next Gridlet #42 to KISTI at time 2740.630539195129
+2746.810539195264 user1: Receiving Gridlet #14from: RCF at time = 2746.810539195264
+2746.810539195264 user1Sending next Gridlet #43 to RCF at time 2746.810539195264
+2748.220539195295 user1: Receiving Gridlet #9from: KISTI at time = 2748.220539195295
+2748.220539195295 user1Sending next Gridlet #44 to KISTI at time 2748.220539195295
+2753.9705391954203 user1: Receiving Gridlet #15from: RCF at time = 2753.9705391954203
+2753.9705391954203 user1Sending next Gridlet #45 to RCF at time 2753.9705391954203
+2760.650539195566 user1: Receiving Gridlet #16from: RCF at time = 2760.650539195566
+2760.650539195566 user1Sending next Gridlet #46 to RCF at time 2760.650539195566
+2767.330539195712 user1: Receiving Gridlet #17from: RCF at time = 2767.330539195712
+2767.330539195712 user1Sending next Gridlet #47 to RCF at time 2767.330539195712
+2770.670539195785 user1: Receiving Gridlet #18from: RCF at time = 2770.670539195785
+2770.670539195785 user1Sending next Gridlet #48 to RCF at time 2770.670539195785
+2777.3005391959296 user1: Receiving Gridlet #19from: RCF at time = 2777.3005391959296
+2777.3005391959296 user1Sending next Gridlet #49 to RCF at time 2777.3005391959296
+2780.670539196003 user1: Receiving Gridlet #20from: PDSF at time = 2780.670539196003
+2780.670539196003 user1Sending next Gridlet #50 to PDSF at time 2780.670539196003
+2787.3705391961494 user1: Receiving Gridlet #21from: PDSF at time = 2787.3705391961494
+2787.3705391961494 user1Sending next Gridlet #51 to PDSF at time 2787.3705391961494
+2794.050539196295 user1: Receiving Gridlet #22from: PDSF at time = 2794.050539196295
+2794.050539196295 user1Sending next Gridlet #52 to PDSF at time 2794.050539196295
+2800.730539196441 user1: Receiving Gridlet #23from: PDSF at time = 2800.730539196441
+2800.730539196441 user1Sending next Gridlet #53 to PDSF at time 2800.730539196441
+2804.890539196532 user1: Receiving Gridlet #24from: PDSF at time = 2804.890539196532
+2804.890539196532 user1Sending next Gridlet #54 to PDSF at time 2804.890539196532
+2810.7505391966597 user1: Receiving Gridlet #25from: PDSF at time = 2810.7505391966597
+2810.7505391966597 user1Sending next Gridlet #55 to PDSF at time 2810.7505391966597
+2817.4305391968055 user1: Receiving Gridlet #26from: PDSF at time = 2817.4305391968055
+2817.4305391968055 user1Sending next Gridlet #56 to PDSF at time 2817.4305391968055
+2821.5905391968963 user1: Receiving Gridlet #27from: PDSF at time = 2821.5905391968963
+2821.5905391968963 user1Sending next Gridlet #57 to PDSF at time 2821.5905391968963
+2828.270539197042 user1: Receiving Gridlet #28from: PDSF at time = 2828.270539197042
+2828.270539197042 user1Sending next Gridlet #58 to PDSF at time 2828.270539197042
+2834.13053919717 user1: Receiving Gridlet #29from: PDSF at time = 2834.13053919717
+2834.13053919717 user1Sending next Gridlet #59 to PDSF at time 2834.13053919717
+4355.01065919398 user1: Receiving Gridlet #30from: KISTI at time = 4355.01065919398
+4355.01065919398 user1Sending next Gridlet #60 to KISTI at time 4355.01065919398
+4367.5306591942535 user1: Receiving Gridlet #31from: KISTI at time = 4367.5306591942535
+4367.5306591942535 user1Sending next Gridlet #61 to KISTI at time 4367.5306591942535
+4377.550659194472 user1: Receiving Gridlet #32from: KISTI at time = 4377.550659194472
+4377.550659194472 user1Sending next Gridlet #62 to KISTI at time 4377.550659194472
+4387.570659194691 user1: Receiving Gridlet #33from: KISTI at time = 4387.570659194691
+4387.570659194691 user1Sending next Gridlet #63 to KISTI at time 4387.570659194691
+4394.250659194837 user1: Receiving Gridlet #34from: KISTI at time = 4394.250659194837
+4394.250659194837 user1Sending next Gridlet #64 to KISTI at time 4394.250659194837
+4400.930659194983 user1: Receiving Gridlet #35from: KISTI at time = 4400.930659194983
+4400.930659194983 user1Sending next Gridlet #65 to KISTI at time 4400.930659194983
+4410.9007791952 user1: Receiving Gridlet #36from: RCF at time = 4410.9007791952
+4410.9007791952 user1Sending next Gridlet #66 to RCF at time 4410.9007791952
+4410.950779195201 user1: Receiving Gridlet #37from: KISTI at time = 4410.950779195201
+4410.950779195201 user1Sending next Gridlet #67 to KISTI at time 4410.950779195201
+4422.8908191954615 user1: Receiving Gridlet #38from: RCF at time = 4422.8908191954615
+4422.8908191954615 user1Sending next Gridlet #68 to RCF at time 4422.8908191954615
+4437.130724394253 user1: Receiving Gridlet #39from: KISTI at time = 4437.130724394253
+4437.130724394253 user1Sending next Gridlet #69 to KISTI at time 4437.130724394253
+4437.45072439426 user1: Receiving Gridlet #40from: RCF at time = 4437.45072439426
+4437.45072439426 user1Sending next Gridlet #70 to RCF at time 4437.45072439426
+4451.050899196076 user1: Receiving Gridlet #41from: RCF at time = 4451.050899196076
+4451.050899196076 user1Sending next Gridlet #71 to RCF at time 4451.050899196076
+4457.7310191962215 user1: Receiving Gridlet #42from: KISTI at time = 4457.7310191962215
+4457.7310191962215 user1Sending next Gridlet #72 to KISTI at time 4457.7310191962215
+4464.411139196367 user1: Receiving Gridlet #43from: RCF at time = 4464.411139196367
+4464.411139196367 user1Sending next Gridlet #73 to RCF at time 4464.411139196367
+4471.0912591965125 user1: Receiving Gridlet #44from: KISTI at time = 4471.0912591965125
+4471.0912591965125 user1Sending next Gridlet #74 to KISTI at time 4471.0912591965125
+4477.80081919666 user1: Receiving Gridlet #45from: RCF at time = 4477.80081919666
+4477.80081919666 user1Sending next Gridlet #75 to RCF at time 4477.80081919666
+4486.000819196839 user1: Receiving Gridlet #46from: RCF at time = 4486.000819196839
+4486.000819196839 user1Sending next Gridlet #76 to RCF at time 4486.000819196839
+4494.500819197025 user1: Receiving Gridlet #47from: RCF at time = 4494.500819197025
+4494.500819197025 user1Sending next Gridlet #77 to RCF at time 4494.500819197025
+4501.20117919717 user1: Receiving Gridlet #48from: RCF at time = 4501.20117919717
+4501.20117919717 user1Sending next Gridlet #78 to RCF at time 4501.20117919717
+4507.8812991973155 user1: Receiving Gridlet #49from: RCF at time = 4507.8812991973155
+4507.8812991973155 user1Sending next Gridlet #79 to RCF at time 4507.8812991973155
+4514.561299197461 user1: Receiving Gridlet #50from: PDSF at time = 4514.561299197461
+4514.561299197461 user1Sending next Gridlet #80 to PDSF at time 4514.561299197461
+4517.901299197534 user1: Receiving Gridlet #51from: PDSF at time = 4517.901299197534
+4517.901299197534 user1Sending next Gridlet #81 to PDSF at time 4517.901299197534
+4524.58129919768 user1: Receiving Gridlet #52from: PDSF at time = 4524.58129919768
+4524.58129919768 user1Sending next Gridlet #82 to PDSF at time 4524.58129919768
+4531.261299197826 user1: Receiving Gridlet #53from: PDSF at time = 4531.261299197826
+4531.261299197826 user1Sending next Gridlet #83 to PDSF at time 4531.261299197826
+4537.941299197972 user1: Receiving Gridlet #54from: PDSF at time = 4537.941299197972
+4537.941299197972 user1Sending next Gridlet #84 to PDSF at time 4537.941299197972
+4544.621299198117 user1: Receiving Gridlet #55from: PDSF at time = 4544.621299198117
+4544.621299198117 user1Sending next Gridlet #85 to PDSF at time 4544.621299198117
+4551.301299198263 user1: Receiving Gridlet #56from: PDSF at time = 4551.301299198263
+4551.301299198263 user1Sending next Gridlet #86 to PDSF at time 4551.301299198263
+4557.981299198409 user1: Receiving Gridlet #57from: PDSF at time = 4557.981299198409
+4557.981299198409 user1Sending next Gridlet #87 to PDSF at time 4557.981299198409
+4564.661299198555 user1: Receiving Gridlet #58from: PDSF at time = 4564.661299198555
+4564.661299198555 user1Sending next Gridlet #88 to PDSF at time 4564.661299198555
+4571.341299198701 user1: Receiving Gridlet #59from: PDSF at time = 4571.341299198701
+4571.341299198701 user1Sending next Gridlet #89 to PDSF at time 4571.341299198701
+6028.731141594126 user1: Receiving Gridlet #60from: KISTI at time = 6028.731141594126
+6028.731141594126 user1Sending next Gridlet #90 to KISTI at time 6028.731141594126
+6041.251141594399 user1: Receiving Gridlet #61from: KISTI at time = 6041.251141594399
+6041.251141594399 user1Sending next Gridlet #91 to KISTI at time 6041.251141594399
+6051.271141594618 user1: Receiving Gridlet #62from: KISTI at time = 6051.271141594618
+6051.271141594618 user1Sending next Gridlet #92 to KISTI at time 6051.271141594618
+6067.930779194982 user1: Receiving Gridlet #63from: KISTI at time = 6067.930779194982
+6067.930779194982 user1Sending next Gridlet #93 to KISTI at time 6067.930779194982
+6074.620820395128 user1: Receiving Gridlet #64from: KISTI at time = 6074.620820395128
+6074.620820395128 user1Sending next Gridlet #94 to KISTI at time 6074.620820395128
+6081.321061595274 user1: Receiving Gridlet #65from: KISTI at time = 6081.321061595274
+6081.321061595274 user1Sending next Gridlet #95 to KISTI at time 6081.321061595274
+6088.00106159542 user1: Receiving Gridlet #66from: RCF at time = 6088.00106159542
+6088.00106159542 user1Sending next Gridlet #96 to RCF at time 6088.00106159542
+6094.681061595566 user1: Receiving Gridlet #67from: KISTI at time = 6094.681061595566
+6094.681061595566 user1Sending next Gridlet #97 to KISTI at time 6094.681061595566
+6101.361061595711 user1: Receiving Gridlet #68from: RCF at time = 6101.361061595711
+6101.361061595711 user1Sending next Gridlet #98 to RCF at time 6101.361061595711
+6111.191086794406 user1: Receiving Gridlet #69from: KISTI at time = 6111.191086794406
+6111.191086794406 user1Sending next Gridlet #99 to KISTI at time 6111.191086794406
+6111.191086794406 user1 ALL GRIDLETS SUBMITTED
+6117.8510867945515 user1: Receiving Gridlet #70from: RCF at time = 6117.8510867945515
+6124.751379196221 user1: Receiving Gridlet #71from: RCF at time = 6124.751379196221
+6131.451501596367 user1: Receiving Gridlet #72from: KISTI at time = 6131.451501596367
+6138.111619196512 user1: Receiving Gridlet #73from: RCF at time = 6138.111619196512
+6144.811741596658 user1: Receiving Gridlet #74from: KISTI at time = 6144.811741596658
+6151.501299196805 user1: Receiving Gridlet #75from: RCF at time = 6151.501299196805
+6159.701299196984 user1: Receiving Gridlet #76from: RCF at time = 6159.701299196984
+6169.061299197188 user1: Receiving Gridlet #77from: RCF at time = 6169.061299197188
+6178.241659197388 user1: Receiving Gridlet #78from: RCF at time = 6178.241659197388
+6181.641659197462 user1: Receiving Gridlet #79from: RCF at time = 6181.641659197462
+6201.5910455979 user1: Receiving Gridlet #80from: PDSF at time = 6201.5910455979
+6212.451045598137 user1: Receiving Gridlet #81from: PDSF at time = 6212.451045598137
+6221.631045598338 user1: Receiving Gridlet #82from: PDSF at time = 6221.631045598338
+6224.9710455984105 user1: Receiving Gridlet #83from: PDSF at time = 6224.9710455984105
+6228.331177598484 user1: Receiving Gridlet #84from: PDSF at time = 6228.331177598484
+6231.671177598557 user1: Receiving Gridlet #85from: PDSF at time = 6231.671177598557
+6235.031190798631 user1: Receiving Gridlet #86from: PDSF at time = 6235.031190798631
+6240.3016855987435 user1: Receiving Gridlet #87from: PDSF at time = 6240.3016855987435
+6245.081685598848 user1: Receiving Gridlet #88from: PDSF at time = 6245.081685598848
+6248.421685598921 user1: Receiving Gridlet #89from: PDSF at time = 6248.421685598921
+7702.451623994271 user1: Receiving Gridlet #90from: KISTI at time = 7702.451623994271
+7714.971623994545 user1: Receiving Gridlet #91from: KISTI at time = 7714.971623994545
+7724.991623994763 user1: Receiving Gridlet #92from: KISTI at time = 7724.991623994763
+7744.991061595201 user1: Receiving Gridlet #93from: KISTI at time = 7744.991061595201
+7751.671261595347 user1: Receiving Gridlet #94from: KISTI at time = 7751.671261595347
+7758.431423995494 user1: Receiving Gridlet #95from: KISTI at time = 7758.431423995494
+7770.16142159575 user1: Receiving Gridlet #96from: RCF at time = 7770.16142159575
+7771.681421595783 user1: Receiving Gridlet #97from: KISTI at time = 7771.681421595783
+7775.061541595856 user1: Receiving Gridlet #98from: RCF at time = 7775.061541595856
+7784.981368394554 user1: Receiving Gridlet #99from: KISTI at time = 7784.981368394554
+7791.7018507947 
+-------- user1 ----------------
+7791.7018507947 Ping information for user1
+Entity Name	Entry Time	Exit Time	 Bandwidth
+----------------------------------------------------------
+user1		7784.9814        7785.0214        100000000.000
+router1		7788.3215        7788.3215        10000000000.000
+router2		7788.3315        7788.3315        100000000.000
+KISTI		7788.3416        7788.3817        100000000.000
+router2		7791.6817        7791.6817        10000000000.000
+router1		7791.6917        7791.6918        100000000.000
+user1		7791.7019            N/A            N/A
+
+Round Trip Time : 6.6804 seconds
+Number of Hops  : 3
+Bottleneck Bandwidth : 1.0E8 bits/s
+7791.7018507947 -------- user1 ----------------
+
+7798.402330794845 
+-------- user1 ----------------
+7798.402330794845 Ping information for user1
+Entity Name	Entry Time	Exit Time	 Bandwidth
+----------------------------------------------------------
+user1		7791.7019        7791.7419        100000000.000
+router1		7795.042        7795.042        100000000.000
+RCF		7795.0521        7795.0922        100000000.000
+router1		7798.3922        7798.3923        100000000.000
+user1		7798.4023            N/A            N/A
+
+Round Trip Time : 6.6604 seconds
+Number of Hops  : 2
+Bottleneck Bandwidth : 1.0E8 bits/s
+7798.402330794845 -------- user1 ----------------
+
+7805.142837194991 
+-------- user1 ----------------
+7805.142837194991 Ping information for user1
+Entity Name	Entry Time	Exit Time	 Bandwidth
+----------------------------------------------------------
+user1		7798.4023        7798.4424        100000000.000
+router1		7801.7425        7801.7425        10000000000.000
+router2		7801.7525        7801.7525        1000000000.000
+router5		7801.7625        7801.7625        100000000.000
+PDSF		7801.7726        7801.8127        100000000.000
+router5		7805.1127        7805.1127        1000000000.000
+router2		7805.1227        7805.1227        10000000000.000
+router1		7805.1327        7805.1328        100000000.000
+user1		7805.1428            N/A            N/A
+
+Round Trip Time : 6.7004 seconds
+Number of Hops  : 4
+Bottleneck Bandwidth : 1.0E8 bits/s
+7805.142837194991 -------- user1 ----------------
+
