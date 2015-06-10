@@ -53,6 +53,7 @@ class SimUser extends DataGridUser {
         GridletReader gridletReader = new GridletReader();
         
         totalGridlet = 100;
+        String gridletFilename = "KISTI_st_physics_1307_.csv";
         this.list_ = new GridletList();
         
         
@@ -70,7 +71,7 @@ class SimUser extends DataGridUser {
         // Creates a list of Gridlets or Tasks for this grid user
         write(name + ":Creating " + totalGridlet +" Gridlets");
         //this.createGridlet(myId_, totalGridlet);
-        this.list_ = GridletReader.getGridletList("KISTIlogFilerred.csv", totalGridlet, myId_);
+        this.list_ = GridletReader.getGridletList(gridletFilename, totalGridlet, myId_);
     }
 
     /**

@@ -1,0 +1,142 @@
+--------------Statistics--------------------------------
+Input filename prefix: 
+105633 jobs were red from a file,7158lies were written
+             Value	             Total 	           Average	               Min	               Max
+Duration (s)			  752805609.000000	     105169.825231	        141.000000	     227581.000000
+InputFileSize (Mb)		          27004842	              3772	                 4	              5004
+OutputFileSize (Mb)		          15015472	              2097	                 1	              3644
+InputTransferDuration (s)	    2411737.000000	        336.928891	          8.000000	       2497.000000
+OutputTransferDuration (s)	    3867074.000000	        540.245041	         33.000000	       2681.000000
+InputTransferSpeed (Mb/s)	                 -	         11.197258	          0.178082	         13.513514
+OutputTransferSpeed (Mb/s)	                 -	          3.882903	          0.028571	          6.865643
+Alpha duration/inSize (s/Mb)	                 -	         27.876690	          0.905201	         73.250000
+Beta out/in (Mb/Mb)		                 -	          0.556029	          0.028571	          6.865643
+
+--------------Statistics--------------------------------
+Input filename prefix: st_physics_
+105633 jobs were red from a file,5569lies were written
+             Value	             Total 	           Average	               Min	               Max
+Duration (s)			  702200226.000000	     126090.900700	        223.000000	     227581.000000
+InputFileSize (Mb)		          24173734	              4340	                 4	              5004
+OutputFileSize (Mb)		          13853477	              2487	                 1	              3644
+InputTransferDuration (s)	    2154246.000000	        386.828156	          8.000000	       2497.000000
+OutputTransferDuration (s)	    3495668.000000	        627.701203	         34.000000	       2681.000000
+InputTransferSpeed (Mb/s)	                 -	         11.221436	          0.500000	         13.513514
+OutputTransferSpeed (Mb/s)	                 -	          3.963041	          0.029412	          6.865643
+Alpha duration/inSize (s/Mb)	                 -	         29.048066	          1.125000	         73.250000
+Beta out/in (Mb/Mb)		                 -	          0.573080	          0.029412	          6.865643
+
+--------------Statistics--------------------------------
+Input filename prefix: st_physics_130
+105633 jobs were red from a file, 4473 lines were written
+             Value	             Total 	           Average	               Min	               Max
+Duration (s)			  692167108.000000	     154743.373128	        293.000000	     227581.000000
+InputFileSize (Mb)		          19553836	              4371	                 4	              5000
+OutputFileSize (Mb)		          13646010	              3050	                 3	              3644
+InputTransferDuration (s)	    1739037.000000	        388.785379	          8.000000	       2497.000000
+OutputTransferDuration (s)	    3358755.000000	        750.895372	         35.000000	       2681.000000
+InputTransferSpeed (Mb/s)	                 -	         11.244060	          0.500000	         13.513514
+OutputTransferSpeed (Mb/s)	                 -	          4.062818	          0.085714	          6.865643
+Alpha duration/inSize (s/Mb)	                 -	         35.398022	          5.305732	         73.250000
+Beta out/in (Mb/Mb)		                 -	          0.697869	          0.085714	          6.865643
+
+--------------Statistics--------------------------------
+Input filename prefix: st_physics_1307
+105633 jobs were red from a file, 2249 lines were written
+             Value	             Total 	           Average	               Min	               Max
+Duration (s)			  397551744.000000	     176768.227657	       4671.000000	     217370.000000
+InputFileSize (Mb)		          10380811	              4615	               129	              5000
+OutputFileSize (Mb)		           7436031	              3306	                94	              3644
+InputTransferDuration (s)	     913352.000000	        406.114718	         21.000000	       1662.000000
+OutputTransferDuration (s)	    2042252.000000	        908.071143	         53.000000	       2681.000000
+InputTransferSpeed (Mb/s)	                 -	         11.365619	          2.590952	         13.477089
+OutputTransferSpeed (Mb/s)	                 -	          3.641094	          0.863636	          6.865643
+Alpha duration/inSize (s/Mb)	                 -	         38.296790	         33.877060	         43.474000
+Beta out/in (Mb/Mb)		                 -	          0.716325	          0.863636	          6.865643
+
+
+--------------Statistics--------------------------------
+Input filename prefix: st_physics_adc_
+105633 jobs were red from a file,1096lies were written
+             Value	             Total 	           Average	               Min	               Max
+Duration (s)			   10033118.000000	       9154.304745	        223.000000	      14657.000000
+InputFileSize (Mb)		           4619898	              4215	                28	              5004
+OutputFileSize (Mb)		            207467	               189	                 1	               269
+InputTransferDuration (s)	     415209.000000	        378.840328	         11.000000	       1655.000000
+OutputTransferDuration (s)	     136913.000000	        124.920620	         34.000000	        950.000000
+InputTransferSpeed (Mb/s)	                 -	         11.126681	          0.569196	         13.482480
+OutputTransferSpeed (Mb/s)	                 -	          1.515320	          0.029412	          3.661972
+Alpha duration/inSize (s/Mb)	                 -	          2.171719	          1.125000	          9.357143
+Beta out/in (Mb/Mb)		                 -	          0.044907	          0.029412	          3.661972
+
+
+--------------Statistics--------------------------------
+Input filename prefix: st_zerobias_adc_
+105633 jobs were red from a file,311lies were written
+             Value	             Total 	           Average	               Min	               Max
+Duration (s)			     792715.000000	       2548.922830	        585.000000	       6144.000000
+InputFileSize (Mb)		            393695	              1265	               286	              2577
+OutputFileSize (Mb)		             16865	                54	                10	               127
+InputTransferDuration (s)	      34092.000000	        109.620579	         32.000000	        239.000000
+OutputTransferDuration (s)	      19031.000000	         61.192926	         35.000000	        272.000000
+InputTransferSpeed (Mb/s)	                 -	         11.548017	          8.356250	         13.087179
+OutputTransferSpeed (Mb/s)	                 -	          0.886186	          0.116129	          2.346154
+Alpha duration/inSize (s/Mb)	                 -	          2.013526	          0.905201	          2.862069
+Beta out/in (Mb/Mb)		                 -	          0.042838	          0.116129	          2.346154
+
+--------------Statistics--------------------------------
+Input filename prefix: st_fgt_
+105633 jobs were red from a file, 300 lines were written
+             Value	             Total 	           Average	               Min	               Max
+Duration (s)			    4521864.000000	      15072.880000	        242.000000	      65189.000000
+InputFileSize (Mb)		            270974	               903	                50	              2864
+OutputFileSize (Mb)		             91907	               306	                 1	              1185
+InputTransferDuration (s)	      33740.000000	        112.466667	         14.000000	       1144.000000
+OutputTransferDuration (s)	      41984.000000	        139.946667	         33.000000	        810.000000
+InputTransferSpeed (Mb/s)	                 -	          8.031239	          0.530086	         12.771605
+OutputTransferSpeed (Mb/s)	                 -	          2.189096	          0.030303	          5.637681
+Alpha duration/inSize (s/Mb)	                 -	         16.687446	          1.094385	         37.510040
+Beta out/in (Mb/Mb)		                 -	          0.339173	          0.030303	          5.637681
+
+--------------Statistics--------------------------------
+Input filename prefix: st_mtd_
+105633 jobs were red from a file, 226 lines were written
+             Value	             Total 	           Average	               Min	               Max
+Duration (s)			   17791041.000000	      78721.420354	        626.000000	     214244.000000
+InputFileSize (Mb)		            542183	              2399	               189	              5000
+OutputFileSize (Mb)		            335831	              1485	                 9	              3617
+InputTransferDuration (s)	      47000.000000	        207.964602	         22.000000	        924.000000
+OutputTransferDuration (s)	      87562.000000	        387.442478	         36.000000	       1452.000000
+InputTransferSpeed (Mb/s)	                 -	         11.535809	          3.918831	         13.331250
+OutputTransferSpeed (Mb/s)	                 -	          3.835351	          0.191729	          6.856322
+Alpha duration/inSize (s/Mb)	                 -	         32.813720	          2.402883	         42.848800
+Beta out/in (Mb/Mb)		                 -	          0.619405	          0.191729	          6.856322
+
+--------------Statistics--------------------------------
+Input filename prefix: st_fms_
+105633 jobs were red from a file, 323 lines were written
+             Value	             Total 	           Average	               Min	               Max
+Duration (s)			    8475059.000000	      26238.572755	        220.000000	      62621.000000
+InputFileSize (Mb)		            790453	              2447	                22	              5000
+OutputFileSize (Mb)		            356412	              1103	                 1	              1922
+InputTransferDuration (s)	      65996.000000	        204.321981	         10.000000	        457.000000
+OutputTransferDuration (s)	     112654.000000	        348.773994	         34.000000	       1167.000000
+InputTransferSpeed (Mb/s)	                 -	         11.977287	          2.000000	         13.368984
+OutputTransferSpeed (Mb/s)	                 -	          3.163776	          0.028571	          6.406897
+Alpha duration/inSize (s/Mb)	                 -	         10.721775	          3.355932	         15.212801
+Beta out/in (Mb/Mb)		                 -	          0.450896	          0.028571	          6.406897
+
+--------------Statistics--------------------------------
+Input filename prefix: st_hlt_
+105633 jobs were red from a file, 275 lines were written
+             Value	             Total 	           Average	               Min	               Max
+Duration (s)			   18211185.000000	      66222.490909	       1307.000000	     141831.000000
+InputFileSize (Mb)		            803819	              2922	               203	              5000
+OutputFileSize (Mb)		            343848	              1250	                22	              2427
+InputTransferDuration (s)	      68851.000000	        250.367273	         24.000000	        512.000000
+OutputTransferDuration (s)	      98490.000000	        358.145455	         39.000000	       1715.000000
+InputTransferSpeed (Mb/s)	                 -	         11.674761	          6.345455	         13.440860
+OutputTransferSpeed (Mb/s)	                 -	          3.491197	          0.166667	          6.629121
+Alpha duration/inSize (s/Mb)	                 -	         22.655828	          2.362464	         28.380412
+Beta out/in (Mb/Mb)		                 -	          0.427768	          0.166667	          6.629121
+

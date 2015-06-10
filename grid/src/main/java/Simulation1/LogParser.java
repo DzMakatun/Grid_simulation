@@ -16,9 +16,9 @@ public class LogParser {
 
 	public static void main(String[] args) {
 		int maxJobs = Integer.MAX_VALUE;
-		String prefix = "st_physics_"; //only jobs with input file starting with this prefix are included into results
+		String prefix = "st_physics_1307"; //only jobs with input file starting with this prefix are included into results
 		String csvFile = "KISTIlog1.csv";
-		String outputFile = "KISTIlogFilerred.csv";		
+		String outputFile = "KISTI_st_physics_1307_.csv";		
 
 		
 		BufferedReader br = null;
@@ -214,7 +214,7 @@ public class LogParser {
 		System.out.println("");
 		System.out.println("--------------Statistics--------------------------------");
 		System.out.println("Input filename prefix: " + prefix);
-		System.out.println(totalCounter + " jobs were red from a file," + goodCounter + "lies were written" );
+		System.out.println(totalCounter + " jobs were red from a file, " + goodCounter + " lines were written" );
 		System.out.println(String.format("%18s	%18s 	%18s	%18s	%18s", "Value","Total","Average","Min","Max"));
 		System.out.println(String.format("Duration (s)			%18f	%18f	%18f	%18f",totalDuration, totalDuration / goodCounter, minDuration, maxDuration));
 		System.out.println(String.format("InputFileSize (Mb)		%18d	%18d	%18d	%18d",totalInputSize, totalInputSize / goodCounter, minInputSize, maxInputSize));
