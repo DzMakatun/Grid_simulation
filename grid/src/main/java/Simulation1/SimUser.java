@@ -179,6 +179,13 @@ class SimUser extends DataGridUser {
                 }
             }            
         }
+        
+        ////////////print statistics
+        printGridletList(receiveList_, name_);
+        for (i = 0; i < list_.size(); i += list_.size() / 5){
+        	gl = (Gridlet) list_.get(i);
+        	printGridletHist(gl);
+        }
 
         ////////////////////////////////////////////////////////
         //ping resources
@@ -256,4 +263,51 @@ class SimUser extends DataGridUser {
         }
     }
     
+
+    /**
+     * Prints the Gridlet objects
+     */
+    private static void printGridletList(GridletList list, String name)
+    {
+        int size = list.size();
+        Gridlet gridlet = null;
+
+        String indent = "    ";
+        System.out.println();
+        System.out.println("============= OUTPUT for " + name + " ==========");
+        System.out.println("Gridlet ID" + indent + "STATUS" + indent +
+                "Resource ID" + indent + "Cost");
+
+        // a loop to print the overall result
+        int i = 0;
+        for (i = 0; i < size; i++)
+        {
+            gridlet = (Gridlet) list.get(i);
+            System.out.print(indent + gridlet.getGridletID() + indent
+                    + indent);
+
+            System.out.print( gridlet.getGridletStatusString() );
+
+            System.out.println( indent + indent + gridlet.getResourceID() +
+                    indent + indent + gridlet.getProcessingCost() );
+        }
+    }
+        
+
+    private static void printGridletHist(Gridlet gridlet){
+        System.out.println( gridlet.getGridletHistory() );
+
+        System.out.print("Gridlet #" + gridlet.getGridletID() );
+        System.out.println(", length = " + gridlet.getGridletLength()
+                + ", finished so far = " +
+                gridlet.getGridletFinishedSoFar() );
+        System.out.println("======================================\n");	  	
+    	
+    }
+
+
+
 } // end class
+
+
+    
