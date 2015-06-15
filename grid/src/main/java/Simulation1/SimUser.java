@@ -42,19 +42,22 @@ class SimUser extends DataGridUser {
     // constructor
     SimUser(String name, double baud_rate, double delay, int MTU) throws Exception {
     	
-    	super(name, new SimpleLink(name + "_link", baud_rate, delay, MTU));
+    	//super(name, new SimpleLink(name + "_link", baud_rate, delay, MTU));
 
         // NOTE: uncomment this if you want to use the new Flow extension
-        //super(name, new FlowLink(name + "_link", baud_rate, delay, MTU));
+        super(name, new FlowLink(name + "_link", baud_rate, delay, MTU));
+
     	
     	trace_flag = true;
         this.name_ = name;
         this.receiveList_ = new GridletList();
         GridletReader gridletReader = new GridletReader();
         
-        totalGridlet = 100;
+        totalGridlet = 1000;
         String gridletFilename = "KISTI_st_physics_1307_.csv";
         this.list_ = new GridletList();
+
+        
         
         
 
@@ -84,6 +87,8 @@ class SimUser extends DataGridUser {
         super.gridSimHold(1000.0);
         System.out.println(name_ + ": retrieving GridResourceList");
         LinkedList resList = super.getGridResourceList();
+        double[] sendTime = new double[totalGridlet];
+        double[] receiveTime = new double[totalGridlet];
         
         // initialises all the containers
         int totalResource = resList.size();
@@ -141,7 +146,9 @@ class SimUser extends DataGridUser {
         	for(k = 0; k < resourcePEs[i] && j < list_.size(); k++){
         		gl = (Gridlet) list_.get(j);
                 write(name_ + "Sending Gridlet #" + j + "with id " + gl.getGridletID() + " to PE " + k + " at " + resourceName[i] + " at time " + GridSim.clock());
+                //write(gridletToString(gl));
                 success = super.gridletSubmit(gl, resourceID[i]);
+                sendTime[j]=  GridSim.clock(); //remember the time when the gridlet was submited
                 j++;
         	}
         }
@@ -160,8 +167,10 @@ class SimUser extends DataGridUser {
         
         // receives the gridlet back
         for (i = 0; i < list_.size(); i++){ //loop over received gridlets
-            gl = (Gridlet) super.receiveEventObject();  // gets the Gridlet
+            gl = (Gridlet) super.receiveEventObject();  // gets the Gridlet            
+            receiveTime[list_.indexOf(gl)]=  GridSim.clock(); //remember the time when the gridlet was received
             receiveList_.add(gl);   // add into the received list
+            
             resourceFromID = gl.getResourceID(); //resource which has a free PE
             resourceFromName = GridSim.getEntityName(resourceFromID);
             write(name_ + ": Receiving Gridlet #" +
@@ -173,6 +182,7 @@ class SimUser extends DataGridUser {
             	gl = (Gridlet) list_.get(j);
                 write(name_ + "Sending next Gridlet #" + j + "with id " + gl.getGridletID() + " to " + resourceFromName + " at time " + GridSim.clock());
                 success = super.gridletSubmit(gl, resourceFromID);
+                sendTime[j]=  GridSim.clock(); //remember the time when the gridlet was submited
                 j++;
                 if (j == list_.size()){
                 	write(name_ + " ALL GRIDLETS SUBMITTED");
@@ -181,11 +191,80 @@ class SimUser extends DataGridUser {
         }
         
         ////////////print statistics
-        printGridletList(receiveList_, name_);
+        //printGridletList(receiveList_, name_);
         for (i = 0; i < list_.size(); i += list_.size() / 5){
         	gl = (Gridlet) list_.get(i);
         	printGridletHist(gl);
         }
+        
+        ////print transfer times 
+        System.out.println("-------------gridlet log--------------");
+        System.out.println("getGridletID getResourceID getGridletLength 	getGridletFileSize	 getGridletOutputSize	 	inTransfer	 		outTransfer		 getWallClockTime		totalTime 			slowdown");
+
+        double inTransfer, outTransfer, totalTime, slowdown; 
+        String indent = "		";
+        for (i = 0; i < list_.size(); i += list_.size() / 5){
+        	gl = (Gridlet) list_.get(i);
+        	inTransfer = gl.getExecStartTime() - sendTime[i];
+        	outTransfer = receiveTime[i] - gl.getFinishTime();
+        	totalTime = receiveTime[i] - sendTime[i];
+        	slowdown = totalTime / gl.getWallClockTime();
+        	System.out.println(gl.getGridletID() + indent + gl.getResourceID() + indent + gl.getGridletLength() + indent + gl.getGridletFileSize() + indent + gl.getGridletOutputSize() + indent +
+        			inTransfer + indent + outTransfer + indent + gl.getWallClockTime() + indent + totalTime + indent + slowdown);
+        	
+        }
+        
+        ///calculate computational efficiency 
+        double[] firstJobSend = new double[totalResource];
+        double[] lastJobReceived = new double[totalResource];
+        double[] work = new double[totalResource];
+        int[] jobs = new int[totalResource];
+        //initialize values
+        for(i = 0; i <  totalResource; i++){
+        	firstJobSend[i] = Double.MAX_VALUE;
+        	lastJobReceived[i] = 0.0;
+        	work[i] = 0.0;
+        	jobs[i] = 0;
+        }
+        
+        
+        for (j = 0; j < list_.size(); j++){ //loop over gridlets
+        	gl = (Gridlet) list_.get(j);
+        	for(i = 0; i <  totalResource; i++){ //loop over resources
+        		if(gl.getResourceID() == resourceID[i]){
+        			jobs[i]++;
+        			work[i] += gl.getActualCPUTime();
+        			if(firstJobSend[i] > sendTime[j]) { firstJobSend[i] = sendTime[j]; } //serch for the first job submited to the resource 
+        			if( lastJobReceived[i] < receiveTime[j] ) { lastJobReceived[i] = receiveTime[j]; } //search for the last job arrived from the resource 
+        			break;
+        			
+        		}
+        	}
+        }
+        
+        //print computational efficiency        
+        double cost = 1.0;
+        double efficiency = 0.0;
+        indent = "	";
+        System.out.println("#####################Computational efficiency######################");
+        System.out.println("Name	PEs	jobs		firstJobSend		lastJobReceived		cost		work		efficiency");
+        for(i = 0; i <  totalResource; i++){ //loop over resources
+        	cost = (lastJobReceived[i] - firstJobSend[i]) * resourcePEs[i] ;
+        	efficiency = work[i] / cost;        	
+        	
+        	System.out.print(resourceName[i] + indent);
+        	System.out.print(resourcePEs[i]  + indent);
+        	System.out.print(jobs[i]  + indent);
+        	System.out.print(firstJobSend[i] + indent);
+        	System.out.print(lastJobReceived[i] + indent);
+        	System.out.print(cost + indent);
+        	System.out.print(work[i] + indent);        	
+        	System.out.print(efficiency + indent);
+        
+        	System.out.println();
+        
+        }
+        
 
         ////////////////////////////////////////////////////////
         //ping resources
@@ -275,22 +354,52 @@ class SimUser extends DataGridUser {
         String indent = "    ";
         System.out.println();
         System.out.println("============= OUTPUT for " + name + " ==========");
-        System.out.println("Gridlet ID" + indent + "STATUS" + indent +
-                "Resource ID" + indent + "Cost");
+        System.out.println("Gridlet ID" + indent + "getResourceID" + "STATUS" + indent +
+                "Resource ID" + " getGridletLength  getGridletFileSize getGridletOutputSize getGridletOutputSize getSubmissionTime getWaitingTime getWallClockTime getExecStartTime");
 
         // a loop to print the overall result
         int i = 0;
         for (i = 0; i < size; i++)
         {
             gridlet = (Gridlet) list.get(i);
-            System.out.print(indent + gridlet.getGridletID() + indent
-                    + indent);
+            printGridlet(gridlet);
+            
 
-            System.out.print( gridlet.getGridletStatusString() );
-
-            System.out.println( indent + indent + gridlet.getResourceID() +
-                    indent + indent + gridlet.getProcessingCost() );
+            System.out.println();
         }
+    }
+    
+    private static void printGridlet(Gridlet gridlet)
+    {
+    	String indent = "    ";
+    	System.out.print(indent + gridlet.getGridletID() + indent);
+        System.out.print( gridlet.getResourceID() + indent );
+        System.out.print( gridlet.getGridletStatusString() + indent );
+        System.out.print( gridlet.getGridletLength() + indent);
+        System.out.print( gridlet.getGridletFileSize() + indent);            
+        System.out.print( gridlet.getGridletOutputSize() + indent);
+        System.out.print( gridlet.getSubmissionTime() + indent);
+        System.out.print( gridlet.getWaitingTime() + indent);
+        System.out.print( gridlet.getWallClockTime() + indent);
+        System.out.print( gridlet.getExecStartTime() + indent);
+    }
+    
+    private static String gridletToString(Gridlet gridlet){
+    	StringBuffer  br = new StringBuffer();;
+    	String indent = " ";
+    	
+    	br.append("ID=" + gridlet.getGridletID() + indent);
+    	br.append( "ResId=" + gridlet.getResourceID() + indent );
+    	br.append( "Stat=" + gridlet.getGridletStatusString() + indent );
+    	br.append( "Length=" + gridlet.getGridletLength() + indent);
+    	br.append( "inSize=" +gridlet.getGridletFileSize() + indent);            
+    	br.append( "outSize=" +gridlet.getGridletOutputSize() + indent);
+    	br.append( "SubTime=" +gridlet.getSubmissionTime() + indent);
+    	br.append( "WaitTime=" +gridlet.getWaitingTime() + indent);
+    	br.append( "Wallclock=" +gridlet.getWallClockTime() + indent);
+    	br.append( "ExecStart=" +gridlet.getExecStartTime());
+    	
+        return br.toString();
     }
         
 

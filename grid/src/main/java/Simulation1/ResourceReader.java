@@ -241,12 +241,12 @@ public class ResourceReader {
             Storage storage = new HarddriveStorage("storage",
                     storage_size * 1000);
 
+            //DEFAULT NETWORK PARAMETERS for resources
             // create a grid resource, connected to a router. The bandwith is
-            // defined as bit/s, but we
-            // get the bandwidth ad GB/s (multiply by 10^9)
+            // defined as bit/s 
             gridRes = new DataGridResource(name,
-                    new SimpleLink(name + "_link", bandwidth * 1000000000, 10,
-                        1500), resConfig, cal, rm);
+                    new SimpleLink(name + "_link", bandwidth, 1,
+                        Integer.MAX_VALUE), resConfig, cal, rm);
             gridRes.addStorage(storage);
 
             // create a local replica catalogue if needed
@@ -261,8 +261,8 @@ public class ResourceReader {
             e.printStackTrace();
         }
 
-        System.out.println("Ceates Grid resource (name: " + name + " - id: " + gridRes.get_id() +"PEs: "  + mList.getNumPE() +
-        		"processing rate: " + processingMIPSRate + "storage: " +gridRes.getTotalStorageCapacity()  + ")");
+        System.out.println("Ceates Grid resource (name: " + gridRes.get_name() + ", id: " + gridRes.get_id() +", PEs: "  + mList.getNumPE() +
+        		", processing rate: " + processingMIPSRate + ", storage: " +gridRes.getTotalStorageCapacity()  + ", Link bandwidth: " + gridRes.getLink().getBaudRate()  + ")");
         System.out.println();
 
         return gridRes;

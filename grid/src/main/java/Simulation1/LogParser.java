@@ -113,8 +113,8 @@ public class LogParser {
 					//read the parameters
 					id = Integer.parseInt(jobData[0]);
 					InputFileName = jobData[8].replace("\"", "");
-					inputFileSize = Long.parseLong(jobData[10]) / (1000 * 1000); //in MB
-					outputFileSize = Long.parseLong(jobData[31]) / (1000 * 1000); //in MB		
+					inputFileSize = Long.parseLong(jobData[10]) / (1024 * 1024); //in MB
+					outputFileSize = Long.parseLong(jobData[31]) / (1024 * 1024); //in MB		
 					
 					jobStart = formatter.parseDateTime(jobData[16].replace("\"", ""));
 					jobFinish = formatter.parseDateTime(jobData[17].replace("\"", ""));				

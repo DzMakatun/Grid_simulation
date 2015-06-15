@@ -33,7 +33,7 @@ public class GridletReader {
 			if(gridlet != null){ //add only valid records from log
 				gridletList.add(gridlet);
 				jobCounter++;
-				System.out.println(String.format("Created a gridlet. id %s, length: %f (s), inputSize: %d (Mb), outputSize: %d (Mb)", gridlet.getGridletID(), gridlet.getGridletLength(), gridlet.getGridletFileSize(), gridlet.getGridletOutputSize()));
+				System.out.println(String.format("Created a gridlet. id %s, length: %f (s), inputSize: %d (bytes), outputSize: %d (bytes)", gridlet.getGridletID(), gridlet.getGridletLength(), gridlet.getGridletFileSize(), gridlet.getGridletOutputSize()));
 			}
 			if(linesCounter % 100 == 0){
 				System.out.println("GridletReader: " + linesCounter + " lines processed, " + jobCounter + "gridlets created");
@@ -85,8 +85,8 @@ private static Gridlet readGridlet(String line, int userId) {
 		//read the parameters
 		id = Integer.parseInt(jobData[0]);
 		InputFileName = jobData[9].replace("\"", "");
-		inputFileSize = Long.parseLong(jobData[10]) / (1000 * 1000); //in MB
-		outputFileSize = Long.parseLong(jobData[31])/ (1000 * 1000); //in MB
+		inputFileSize = Long.parseLong(jobData[10]); //in bytes
+		outputFileSize = Long.parseLong(jobData[31]);  //in bytes
 		
 		
 		

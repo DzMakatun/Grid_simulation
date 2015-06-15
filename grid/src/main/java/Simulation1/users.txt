@@ -1,7 +1,7 @@
-#user_name router_name rc_name baud_rate list_of_grid_tasks
+#user_name router_name rc_name baud_rate (Mb/s) list_of_grid_tasks
 #grid tasks can be: 
 #get filename
 #attribute filename
 #replicate filename resource
 #delete filename resource
-user1 router1 RCF 100.0 get testFile2 get testFile1 attribute testFile1 get fileF
+user1 router1 RCF 10000.0 get testFile2 get testFile1 attribute testFile1 get fileF

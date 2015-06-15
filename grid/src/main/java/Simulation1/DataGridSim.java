@@ -43,7 +43,7 @@ public class DataGridSim {
 
             int num_user = ParameterReader.numUsers; // number of grid users
             Calendar calendar = Calendar.getInstance();
-            boolean trace_flag = false; // means trace GridSim events
+            boolean trace_flag = true; // means trace GridSim events
             boolean gisFlag = false; // means using DataGIS instead
            
             // Initialize the GridSim package
@@ -51,32 +51,34 @@ public class DataGridSim {
             GridSim.init(num_user, calendar, trace_flag, gisFlag);
 
             // NOTE: uncomment this if you want to use the new Flow extension
-            //GridSim.initNetworkType(GridSimTags.NET_FLOW_LEVEL);
+            GridSim.initNetworkType(GridSimTags.NET_FLOW_LEVEL);
 
             // set the GIS into DataGIS that handles specifically for data grid
             // scenarios
             DataGIS gis = new DataGIS();
             GridSim.setGIS(gis);
 
+            
+            //SETUP NETWORK DEFAULTS
             //some default values
-            double baud_rate = 100000000; // 100MB/sec
-            double propDelay = 10; // propagation delay in millisecond
-            int mtu = 1500; // max. transmission unit in bytes
+            double baud_rate = 10000000000.0; // bits/s
+            double propDelay = 1; // propagation delay in millisecond
+            int mtu = Integer.MAX_VALUE; // max. transmission unit in bytes
 
             //read available files
             LinkedList files = FilesReader.read(ParameterReader.filesFilename);
 
             //-------------------------------------------
             //read topology
-            LinkedList routerList = NetworkReader.createFIFO(ParameterReader.networkFilename);
+            //LinkedList routerList = NetworkReader.createFIFO(ParameterReader.networkFilename);
 
             //attach central RC entity to one of the routers
             //Create a central RC
-            Link l = new SimpleLink("rc_link", baud_rate, propDelay, mtu);
+            //Link l = new SimpleLink("rc_link", baud_rate, propDelay, mtu);
 
             // NOTE: uncomment this if you want to use the new Flow extension
-            //LinkedList routerList = NetworkReader.createFlow(ParameterReader.networkFilename);
-            //Link l = new FlowLink("rc_link", baud_rate, propDelay, mtu);
+            LinkedList routerList = NetworkReader.createFlow(ParameterReader.networkFilename);
+            Link l = new FlowLink("rc_link", baud_rate, propDelay, mtu);
             //-------------------------------------------
 
             TopRegionalRC rc = new TopRegionalRC(l);
