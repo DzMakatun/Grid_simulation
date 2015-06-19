@@ -32,11 +32,14 @@ import gridsim.util.SimReport;
 class SimUser extends DataGridUser {
     private String name_;
     private int myId_;
-    private int totalGridlet;
+    int maxGridlet; //how many records to read from log
+    private int totalGridlet; //how many gridlet were red from file
     private GridletList list_;          // list of submitted Gridlets
     private GridletList receiveList_;   // list of received Gridlets
     private SimReport report_;  // logs every events
     boolean trace_flag;
+    double startTime, saturationStart, saturationFinish, finishTime ;
+    int chunkSize; //for monitoring
     
 
     // constructor
@@ -53,8 +56,8 @@ class SimUser extends DataGridUser {
         this.receiveList_ = new GridletList();
         GridletReader gridletReader = new GridletReader();
         
-        totalGridlet = 1000;
-        String gridletFilename = "KISTI_st_physics_1307_.csv";
+        maxGridlet = 10000;
+        String gridletFilename = "KISTI_all_filtered.csv";
         this.list_ = new GridletList();
 
         
@@ -72,9 +75,12 @@ class SimUser extends DataGridUser {
               name + ", and id = " + this.myId_);
 
         // Creates a list of Gridlets or Tasks for this grid user
-        write(name + ":Creating " + totalGridlet +" Gridlets");
+        write(name + ":Reading " + maxGridlet +" Gridlets");
         //this.createGridlet(myId_, totalGridlet);
-        this.list_ = GridletReader.getGridletList(gridletFilename, totalGridlet, myId_);
+        this.list_ = GridletReader.getGridletList(gridletFilename, maxGridlet, myId_);
+        write(name + ": " + maxGridlet +" Gridlets were red");
+        totalGridlet = list_.size();
+        chunkSize = totalGridlet / 20;
     }
 
     /**
@@ -92,7 +98,7 @@ class SimUser extends DataGridUser {
         
         // initialises all the containers
         int totalResource = resList.size();
-        System.out.println(name_ + ": obtained " + totalResource + " resource IDs in GridResourceList");
+        write(name_ + ": obtained " + totalResource + " resource IDs in GridResourceList");
         int resourceID[] = new int[totalResource];
         String resourceName[] = new String[totalResource];
         
@@ -118,7 +124,7 @@ class SimUser extends DataGridUser {
             resChar.getNumFreePE();
             resourcePEs[i] = resChar.getNumPE();
 
-            System.out.println("Received ResourceCharacteristics from " +
+            write("Received ResourceCharacteristics from " +
                     resourceName[i] + ", with id = " + resourceID[i] + " with  " + resourcePEs[i] + " PEs");
 
             // record this event into "stat.txt" file
@@ -142,18 +148,21 @@ class SimUser extends DataGridUser {
         
         int j = 0; //number of gridlet
         int k = 0; // number of PE
+        startTime = GridSim.clock(); ///Start time of the submission;
         for(i = 0; i <  totalResource; i++){ 
         	for(k = 0; k < resourcePEs[i] && j < list_.size(); k++){
         		gl = (Gridlet) list_.get(j);
-                write(name_ + "Sending Gridlet #" + j + "with id " + gl.getGridletID() + " to PE " + k + " at " + resourceName[i] + " at time " + GridSim.clock());
-                //write(gridletToString(gl));
+        		if(j % chunkSize == 0){
+        			System.out.println("   ." + j + " / " + totalGridlet );
+        			//write(name_ + "Sending Gridlet #" + j + "with id " + gl.getGridletID() + " to PE " + k + " at " + resourceName[i] + " at time " + GridSim.clock());
+        		}
+        			//write(gridletToString(gl));
                 success = super.gridletSubmit(gl, resourceID[i]);
                 sendTime[j]=  GridSim.clock(); //remember the time when the gridlet was submited
                 j++;
         	}
         }
-        
-        write(name_ +"%%%%%%%%%%%" + (list_.size() - j) + " gridlets left after initial submision");
+        write(name_ +"%%%%%%%%%%% " + j + "gridlets submitted,  " +  (list_.size() - j) + " gridlets left after initial submision");
         
         ////////////////////////////////////////////////////////
         // RECEIVES Gridlets and submit new
@@ -166,29 +175,38 @@ class SimUser extends DataGridUser {
         String resourceFromName = null;
         
         // receives the gridlet back
-        for (i = 0; i < list_.size(); i++){ //loop over received gridlets
-            gl = (Gridlet) super.receiveEventObject();  // gets the Gridlet            
+        for (i = 0; i < totalGridlet; i++){ //loop over received gridlets
+            gl = (Gridlet) super.receiveEventObject();  // gets the Gridlet
+            if( i==0 ) { saturationStart = GridSim.clock();} //first gridlet received            
             receiveTime[list_.indexOf(gl)]=  GridSim.clock(); //remember the time when the gridlet was received
-            receiveList_.add(gl);   // add into the received list
-            
+            receiveList_.add(gl);   // add into the received list            
             resourceFromID = gl.getResourceID(); //resource which has a free PE
             resourceFromName = GridSim.getEntityName(resourceFromID);
-            write(name_ + ": Receiving Gridlet #" +
-                  gl.getGridletID() + "from: " + resourceFromName + " at time = " + GridSim.clock() );
+            //if(j % (list_.size() / 100) == 0){
+            	//write(name_ + ": Receiving Gridlet #" +
+                  //gl.getGridletID() + "from: " + resourceFromName + " at time = " + GridSim.clock() );
+            //}
             
-            
-            if(j < list_.size()){ //if not all gridlets are submitted
+            if(j < totalGridlet){ //if not all gridlets are submitted
             	//submit next gridlet
             	gl = (Gridlet) list_.get(j);
-                write(name_ + "Sending next Gridlet #" + j + "with id " + gl.getGridletID() + " to " + resourceFromName + " at time " + GridSim.clock());
-                success = super.gridletSubmit(gl, resourceFromID);
+            	//if(j % (list_.size() / 100) == 0){
+            		//write(name_ + "Sending next Gridlet #" + j + "with id " + gl.getGridletID() + " to " + resourceFromName + " at time " + GridSim.clock());
+            	//}
+            	
+        		if(j % chunkSize == 0){
+        			System.out.println("   ." + j + " / " + totalGridlet );
+        		}
+            		success = super.gridletSubmit(gl, resourceFromID);
                 sendTime[j]=  GridSim.clock(); //remember the time when the gridlet was submited
                 j++;
-                if (j == list_.size()){
+                if (j == totalGridlet){
                 	write(name_ + " ALL GRIDLETS SUBMITTED");
+                	saturationFinish = GridSim.clock();
                 }
             }            
         }
+        finishTime = GridSim.clock();
         
         ////////////print statistics
         //printGridletList(receiveList_, name_);
@@ -203,74 +221,127 @@ class SimUser extends DataGridUser {
 
         double inTransfer, outTransfer, totalTime, slowdown; 
         String indent = "		";
-        for (i = 0; i < list_.size(); i += list_.size() / 5){
+        for (i = 0; i < list_.size(); i += chunkSize / 5){
         	gl = (Gridlet) list_.get(i);
         	inTransfer = gl.getExecStartTime() - sendTime[i];
         	outTransfer = receiveTime[i] - gl.getFinishTime();
         	totalTime = receiveTime[i] - sendTime[i];
         	slowdown = totalTime / gl.getWallClockTime();
-        	System.out.println(gl.getGridletID() + indent + gl.getResourceID() + indent + gl.getGridletLength() + indent + gl.getGridletFileSize() + indent + gl.getGridletOutputSize() + indent +
+        	write(gl.getGridletID() + indent + gl.getResourceID() + indent + gl.getGridletLength() + indent + gl.getGridletFileSize() + indent + gl.getGridletOutputSize() + indent +
         			inTransfer + indent + outTransfer + indent + gl.getWallClockTime() + indent + totalTime + indent + slowdown);
         	
         }
-        
-        ///calculate computational efficiency 
-        double[] firstJobSend = new double[totalResource];
-        double[] lastJobReceived = new double[totalResource];
-        double[] work = new double[totalResource];
-        int[] jobs = new int[totalResource];
-        //initialize values
-        for(i = 0; i <  totalResource; i++){
-        	firstJobSend[i] = Double.MAX_VALUE;
-        	lastJobReceived[i] = 0.0;
-        	work[i] = 0.0;
-        	jobs[i] = 0;
-        }
-        
-        
-        for (j = 0; j < list_.size(); j++){ //loop over gridlets
-        	gl = (Gridlet) list_.get(j);
-        	for(i = 0; i <  totalResource; i++){ //loop over resources
-        		if(gl.getResourceID() == resourceID[i]){
-        			jobs[i]++;
-        			work[i] += gl.getActualCPUTime();
-        			if(firstJobSend[i] > sendTime[j]) { firstJobSend[i] = sendTime[j]; } //serch for the first job submited to the resource 
-        			if( lastJobReceived[i] < receiveTime[j] ) { lastJobReceived[i] = receiveTime[j]; } //search for the last job arrived from the resource 
-        			break;
-        			
-        		}
-        	}
-        }
-        
-        //print computational efficiency        
-        double cost = 1.0;
-        double efficiency = 0.0;
-        indent = "	";
-        System.out.println("#####################Computational efficiency######################");
-        System.out.println("Name	PEs	jobs		firstJobSend		lastJobReceived		cost		work		efficiency");
-        for(i = 0; i <  totalResource; i++){ //loop over resources
-        	cost = (lastJobReceived[i] - firstJobSend[i]) * resourcePEs[i] ;
-        	efficiency = work[i] / cost;        	
-        	
-        	System.out.print(resourceName[i] + indent);
-        	System.out.print(resourcePEs[i]  + indent);
-        	System.out.print(jobs[i]  + indent);
-        	System.out.print(firstJobSend[i] + indent);
-        	System.out.print(lastJobReceived[i] + indent);
-        	System.out.print(cost + indent);
-        	System.out.print(work[i] + indent);        	
-        	System.out.print(efficiency + indent);
-        
-        	System.out.println();
-        
-        }
-        
+
 
         ////////////////////////////////////////////////////////
         //ping resources
         for(i = 0; i <  totalResource; i++){ 
         	pingRes(resourceID[i]);
         }
+        
+      ///calculate computational efficiency per resource
+        double[] firstJobSend = new double[totalResource];
+        double[] lastJobReceived = new double[totalResource];
+        double[] work = new double[totalResource];
+        int[] jobs = new int[totalResource];
+        
+        double[] outminTransferTime = new double[totalResource];
+        double[] outmaxTransferTime = new double[totalResource];
+        double[] outtransferTime = new double[totalResource];
+        
+        double[] minTransferTime = new double[totalResource];
+        double[] maxTransferTime = new double[totalResource];
+        double[] transferTime = new double[totalResource];
+        //initialize values
+        for(i = 0; i <  totalResource; i++){
+        	firstJobSend[i] = Double.MAX_VALUE;
+        	lastJobReceived[i] = 0.0;
+        	work[i] = 0.0;
+        	jobs[i] = 0;
+        	minTransferTime[i] = Double.MAX_VALUE;
+        	maxTransferTime[i] = 0.0;
+        	transferTime[i] = 0.0;
+        	
+        	outminTransferTime[i] = Double.MAX_VALUE;
+        	outmaxTransferTime[i] = 0.0;
+        	outtransferTime[i] = 0.0;
+        }
+        
+        double gridletTransferTime;
+        double outgridletTransferTime;
+        for (j = 0; j < list_.size(); j++){ //loop over gridlets
+        	gl = (Gridlet) list_.get(j);
+        	for(i = 0; i <  totalResource; i++){ //loop over resources
+        		if(gl.getResourceID() == resourceID[i]){
+        			jobs[i]++;
+        			work[i] += gl.getActualCPUTime();
+        			gridletTransferTime = gl.getSubmissionTime() - sendTime[j];
+        			outgridletTransferTime = receiveTime[j] - gl.getFinishTime();
+        			transferTime[i] += gridletTransferTime;
+        			outtransferTime[i] += outgridletTransferTime;
+        			if(firstJobSend[i] > sendTime[j]) { firstJobSend[i] = sendTime[j]; } //serch for the first job submited to the resource 
+        			if( lastJobReceived[i] < receiveTime[j] ) { lastJobReceived[i] = receiveTime[j]; } //search for the last job arrived from the resource 
+        			if( minTransferTime[i] > gridletTransferTime ) { minTransferTime[i] = gridletTransferTime; }
+        			if( maxTransferTime[i]  < gridletTransferTime ) { maxTransferTime[i]  = gridletTransferTime; }
+        			if( outminTransferTime[i] > outgridletTransferTime ) { outminTransferTime[i] = outgridletTransferTime; }
+        			if( outmaxTransferTime[i]  < outgridletTransferTime ) { outmaxTransferTime[i]  = outgridletTransferTime; }
+        			
+        			break;
+        			
+        		}
+        	}
+        }
+        
+        ///////////////////////////////////////
+        //print computational efficiency        
+        double cost = 1.0;
+        double efficiency = 0.0;
+        indent = "	";
+        System.out.println("#####################Computational efficiency######################");
+        System.out.println("Name  PEs	jobs	firstJobSend	lastJobReceived	cost		work	efficiency	minTransfer	maxTransfer	"
+        		+ "averageTransfer	outminTrans	outmaxTrans	averageOutTrans");
+        for(i = 0; i <  totalResource; i++){ //loop over resources
+        	cost = (lastJobReceived[i] - firstJobSend[i]) * resourcePEs[i] ;
+        	efficiency = work[i] / cost;        	
+        	
+        	System.out.print(String.format("%6s	", resourceName[i]));
+        	System.out.print(String.format("%5.0f	",resourcePEs[i]  ));
+        	System.out.print(String.format("%d	",jobs[i] ));
+        	System.out.print(String.format("%10.3f	",firstJobSend[i]));
+        	System.out.print(String.format("%10.3f	",lastJobReceived[i]));
+        	System.out.print(String.format("%10.3f	",cost));
+        	System.out.print(String.format("%10.3f	",work[i]));        	
+        	System.out.print(String.format("%2.3f	",efficiency));
+        	
+        	System.out.print(String.format("%10.3f	",minTransferTime[i]));
+        	System.out.print(String.format("%10.3f	",maxTransferTime[i]));
+        	System.out.print(String.format("%10.3f	",(transferTime[i] / jobs[i]) ) );
+        	System.out.print(String.format("%10.3f	",outminTransferTime[i]));
+        	System.out.print(String.format("%10.3f	",outmaxTransferTime[i]));
+        	System.out.println(String.format("%10.3f	",(outtransferTime[i] / jobs[i]) ));
+        	
+
+        
+        	System.out.println();
+        
+        }
+        
+        /////////////////////////////
+        //print overall statistics
+        write("---------------summary------------------");
+        write("Number of gridlets: " + totalGridlet);
+        write(" Resources: " + totalResource);
+        write(" PEs: " + totalPEs);
+        
+        write(" Submission start: " + startTime);
+        write(" saturationStart: " + saturationStart);
+        write(" saturationFinish: " + saturationFinish);
+        write(" Last receive: " + finishTime);
+        
+        write(" Makespan: " + (finishTime - startTime));
+        write(" Saturated interval: " + (saturationFinish - saturationStart));
+        write(" Saturated time ratio: " + (saturationFinish - saturationStart) / (finishTime - startTime));
+        write("------------------------------------------");
 
         ////////////////////////////////////////////////////////
         // shut down I/O ports
@@ -286,6 +357,8 @@ class SimUser extends DataGridUser {
               " complete at " + GridSim.clock() );
     
 
+        
+        
         ////////////////////////////////////////////////////////
         // shut down I/O ports
         shutdownUserEntity();
@@ -297,7 +370,7 @@ class SimUser extends DataGridUser {
    private void pingRes(int resourceID){
 	// ping functionality
        InfoPacket pkt = null;
-       int size = 500000;
+       int size = 1024 * 1024; // 1 MB
 
        // There are 2 ways to ping an entity:
        // a. non-blocking call, i.e.
@@ -314,20 +387,7 @@ class SimUser extends DataGridUser {
        write("-------- " + name_ + " ----------------\n");
    }
 
-    private void createGridlet(int userID, int numGridlet)
-    {
-        int data = 500000;
-        for (int i = 0; i < numGridlet; i++)
-        {
-            // Creates a Gridlet
-            Gridlet gl = new Gridlet(i, data, data, data);
-            gl.setUserID(userID);
-
-            // add this gridlet into a list
-            this.list_.add(gl);
-        }
-    }
-    
+   
 
     /**
      * Prints out the given message into stdout.

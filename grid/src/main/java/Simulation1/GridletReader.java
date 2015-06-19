@@ -33,11 +33,11 @@ public class GridletReader {
 			if(gridlet != null){ //add only valid records from log
 				gridletList.add(gridlet);
 				jobCounter++;
-				System.out.println(String.format("Created a gridlet. id %s, length: %f (s), inputSize: %d (bytes), outputSize: %d (bytes)", gridlet.getGridletID(), gridlet.getGridletLength(), gridlet.getGridletFileSize(), gridlet.getGridletOutputSize()));
+				//System.out.println(String.format("Created a gridlet. id %s, length: %f (s), inputSize: %d (bytes), outputSize: %d (bytes)", gridlet.getGridletID(), gridlet.getGridletLength(), gridlet.getGridletFileSize(), gridlet.getGridletOutputSize()));
 			}
-			if(linesCounter % 100 == 0){
-				System.out.println("GridletReader: " + linesCounter + " lines processed, " + jobCounter + "gridlets created");
-				}			
+			//if(linesCounter % 100 == 0){
+			//	System.out.println("GridletReader: " + linesCounter + " lines processed, " + jobCounter + "gridlets created");
+			//	}			
  
 		}
  

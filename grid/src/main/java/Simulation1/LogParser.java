@@ -16,9 +16,9 @@ public class LogParser {
 
 	public static void main(String[] args) {
 		int maxJobs = Integer.MAX_VALUE;
-		String prefix = "st_physics_1307"; //only jobs with input file starting with this prefix are included into results
+		String prefix = ""; //only jobs with input file starting with this prefix are included into results
 		String csvFile = "KISTIlog1.csv";
-		String outputFile = "KISTI_st_physics_1307_.csv";		
+		String outputFile = "KISTI_all_filtered.csv";		
 
 		
 		BufferedReader br = null;

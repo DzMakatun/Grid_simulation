@@ -1,6 +1,6 @@
 #the description of resources in a grid
 #the format of the file:
 #resource_name Number_of_PE ProcessingRate(MIPS) storage_size(in GB) bandwidth(bits/s) router_name list_of_containing_files
-RCF 100 1 1000 10000000000 router1 fileH testFile1
-KISTI 10 1 1000 10000000000 router2 testFile2
-PDSF 10 1 1000 10000000000 router5 fileF fileG
+RCF 1600 1 1 10000000000 router1 fileH testFile1
+KISTI 100 1 1000 10000000000 router2 testFile2
+PDSF 50 1 1000 10000000000 router5 fileF fileG
