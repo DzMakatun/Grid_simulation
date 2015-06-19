@@ -1,0 +1,177 @@
+user1 ALL GRIDLETS SUBMITTED
+Time below denotes the simulation time.
+Time (sec)       Description Gridlet #87568
+------------------------------------------
+0.00   Creates Gridlet ID #87568
+0.00   Assigns the Gridlet to user1 (ID #35)
+396515.045   Allocates this Gridlet to KISTI (ID #22) with cost = $0.0/sec
+396515.045   Sets the submission time to 396515.045
+396515.045   Sets Gridlet status from Created to InExec
+396515.045   Sets the execution start time to 396515.045
+610758.341   Sets Gridlet status from InExec to Success
+610758.341   Sets the execution start time to 396515.045
+610758.341   Sets the wall clock time to 214243.296 and the actual CPU time to 214243.296
+610758.341   Sets the length's finished so far to 214243.0
+
+Gridlet #87568, length = 214243.0, finished so far = 214243.0
+======================================
+
+Time below denotes the simulation time.
+Time (sec)       Description Gridlet #100797
+------------------------------------------
+0.00   Creates Gridlet ID #100797
+0.00   Assigns the Gridlet to user1 (ID #35)
+2152.782   Allocates this Gridlet to RCF (ID #15) with cost = $0.0/sec
+2152.782   Sets the submission time to 2152.782
+2152.782   Sets Gridlet status from Created to InExec
+2152.782   Sets the execution start time to 2152.782
+4510.782   Sets Gridlet status from InExec to Success
+4510.782   Sets the execution start time to 2152.782
+4510.782   Sets the wall clock time to 2358.00 and the actual CPU time to 2358.00
+4510.782   Sets the length's finished so far to 2357.0
+
+Gridlet #100797, length = 2357.0, finished so far = 2357.0
+======================================
+
+Time below denotes the simulation time.
+Time (sec)       Description Gridlet #102230
+------------------------------------------
+0.00   Creates Gridlet ID #102230
+0.00   Assigns the Gridlet to user1 (ID #35)
+189549.66   Allocates this Gridlet to RCF (ID #15) with cost = $0.0/sec
+189549.66   Sets the submission time to 189549.66
+189549.66   Sets Gridlet status from Created to InExec
+189549.66   Sets the execution start time to 189549.66
+377531.66   Sets Gridlet status from InExec to Success
+377531.66   Sets the execution start time to 189549.66
+377531.66   Sets the wall clock time to 187982.00 and the actual CPU time to 187982.00
+377531.66   Sets the length's finished so far to 187981.0
+
+Gridlet #102230, length = 187981.0, finished so far = 187981.0
+======================================
+
+Time below denotes the simulation time.
+Time (sec)       Description Gridlet #103662
+------------------------------------------
+0.00   Creates Gridlet ID #103662
+0.00   Assigns the Gridlet to user1 (ID #35)
+213583.698   Allocates this Gridlet to RCF (ID #15) with cost = $0.0/sec
+213583.698   Sets the submission time to 213583.698
+213583.698   Sets Gridlet status from Created to InExec
+213583.698   Sets the execution start time to 213583.698
+220306.698   Sets Gridlet status from InExec to Success
+220306.698   Sets the execution start time to 213583.698
+220306.698   Sets the wall clock time to 6723.00 and the actual CPU time to 6723.00
+220306.698   Sets the length's finished so far to 6722.0
+
+Gridlet #103662, length = 6722.0, finished so far = 6722.0
+======================================
+
+Time below denotes the simulation time.
+Time (sec)       Description Gridlet #105094
+------------------------------------------
+0.00   Creates Gridlet ID #105094
+0.00   Assigns the Gridlet to user1 (ID #35)
+308778.266   Allocates this Gridlet to RCF (ID #15) with cost = $0.0/sec
+308778.266   Sets the submission time to 308778.266
+308778.266   Sets Gridlet status from Created to InExec
+308778.266   Sets the execution start time to 308778.266
+449249.445   Sets Gridlet status from InExec to Success
+449249.445   Sets the execution start time to 308778.266
+449249.445   Sets the wall clock time to 140471.179 and the actual CPU time to 140471.179
+449249.445   Sets the length's finished so far to 140471.0
+
+Gridlet #105094, length = 140471.0, finished so far = 140471.0
+======================================
+
+Time below denotes the simulation time.
+Time (sec)       Description Gridlet #106526
+------------------------------------------
+0.00   Creates Gridlet ID #106526
+0.00   Assigns the Gridlet to user1 (ID #35)
+392173.342   Allocates this Gridlet to RCF (ID #15) with cost = $0.0/sec
+392173.342   Sets the submission time to 392173.342
+392173.342   Sets Gridlet status from Created to InExec
+392173.342   Sets the execution start time to 392173.342
+394817.431   Sets Gridlet status from InExec to Success
+394817.431   Sets the execution start time to 392173.342
+394817.431   Sets the wall clock time to 2644.089 and the actual CPU time to 2644.089
+394817.431   Sets the length's finished so far to 2644.0
+
+Gridlet #106526, length = 2644.0, finished so far = 2644.0
+======================================
+
+-------------gridlet log--------------
+getGridletID getResourceID getGridletLength 	getGridletFileSize	 getGridletOutputSize	 	inTransfer	 		outTransfer		 getWallClockTime		totalTime 			slowdown
+87568		22		214243.0		5000161792		3559894409		395515.0012175998		208107.8992655999		214243.29587919993		817866.1963623996		3.8174645932610636
+100797		15		2357.0		861776384		51804019		1152.7384144015919		59.75612480480049		2358.0000000000005		3570.494539206393		1.5142046391884614
+102230		15		187981.0		5000039424		3596885649		700.651087222388		481.44172334391624		187982.0		189164.0928105663		1.006288329789907
+103662		15		6722.0		3476535808		150999935		476.90963049198035		22.35138146398822		6723.0		7222.261011955969		1.0742616409275574
+105094		15		140471.0		4491065344		2895126456		574.6914334775647		111.29486810963135		140471.17930682155		141157.16560840874		1.0048834665229716
+106526		15		2644.0		1086924288		52610643		169.19117909128545		6.49263121758122		2644.0888120296295		2819.772622338496		1.0664439898953357
+#####################Computational efficiency######################
+Name	PEs	jobs		firstJobSend		lastJobReceived		cost		work		efficiency
+KISTI	100.0	102	1000.0439999999999	819200.9848631995	8.182009408631995E7	1.83174044616096E7	0.22387415544016354	
+RCF	1600.0	6995	1000.0439999999999	575870.5794275281	9.19792856684045E8	7.322622599395111E8	0.79611648929238	
+PDSF	50.0	61	1000.0439999999999	1593304.1008720004	7.961520284360002E7	2230740.0	0.028019020492633478	
+
+-------- user1 ----------------
+Ping information for user1
+Entity Name	Entry Time	Exit Time	 Bandwidth
+----------------------------------------------------------
+user1		1593304.1009        1593304.1009        10000000000.000
+router1		1593307.4409        1593307.4409        10000000.000
+router2		1593307.4509        1593307.4509        10000000000.000
+KISTI		1593307.4519        1593307.4519        10000000000.000
+router2		1593307.4529        1593307.4529        10000000.000
+router1		1593307.4629        1593307.4629        10000000000.000
+user1		1593307.4729            N/A            N/A
+
+Round Trip Time : 3.372 seconds
+Number of Hops  : 3
+Bottleneck Bandwidth : 1.0E7 bits/s
+-------- user1 ----------------
+
+
+-------- user1 ----------------
+Ping information for user1
+Entity Name	Entry Time	Exit Time	 Bandwidth
+----------------------------------------------------------
+user1		1593307.4729        1593307.4729        10000000000.000
+router1		1593310.8129        1593310.8129        10000000000.000
+RCF		1593310.8139        1593310.8139        10000000000.000
+router1		1593310.8149        1593310.8149        10000000000.000
+user1		1593310.8249            N/A            N/A
+
+Round Trip Time : 3.352 seconds
+Number of Hops  : 2
+Bottleneck Bandwidth : 1.0E10 bits/s
+-------- user1 ----------------
+
+
+-------- user1 ----------------
+Ping information for user1
+Entity Name	Entry Time	Exit Time	 Bandwidth
+----------------------------------------------------------
+user1		1593310.8249        1593310.8249        10000000000.000
+router1		1593314.1649        1593314.1649        1000000.000
+router5		1593314.1659        1593314.1659        10000000000.000
+PDSF		1593314.1669        1593314.1669        10000000000.000
+router5		1593314.1679        1593314.1679        1000000.000
+router1		1593314.1689        1593314.1689        10000000000.000
+user1		1593314.1789            N/A            N/A
+
+Round Trip Time : 3.354 seconds
+Number of Hops  : 3
+Bottleneck Bandwidth : 1000000.0 bits/s
+-------- user1 ----------------
+
+user1: sending and receiving of Gridlets complete at 1593314.1788720093
+user1:%%%% Exiting body() at time 1593314.1788720093
+DataGIS: Notify all replica catalog entities for shutting down.
+DataGIS: Notify all GridSim entities for shutting down.
+Sim_system: No more future events
+Gathering simulation data.
+Simulation completed.
+
+Finish data grid simulation ...

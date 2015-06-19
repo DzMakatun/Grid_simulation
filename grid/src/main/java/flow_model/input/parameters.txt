@@ -1,0 +1,10 @@
+#WARNING numUsers should be the same as the number of users in the user configuration file
+numUsers=1
+maxGridlets=10
+gridlets=input/KISTI_all_filtered.csv
+resources=input/resources.txt
+network=input/network.txt
+users=input/users.txt
+#the router which the topRC is connected to
+topRCrouter=router1
+useLocalRC=true
