@@ -1,3 +1,7 @@
 /target/
 /sim_trace
 /sim_report
+/GridSim_stat.txt
+/router1_report.csv
+/router2_report.csv
+/User_0.csv
