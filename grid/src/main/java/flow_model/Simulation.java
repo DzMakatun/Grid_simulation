@@ -27,7 +27,7 @@ public class Simulation {
 	private static SimReport report_;  // logs every events
 	
     public static void main(String[] args) {
-        System.out.println("Starting simulation ...");
+        System.out.println("Starting simulation ....");
 
         try {
             if (args.length != 1) {
