@@ -24,7 +24,7 @@ import gridsim.net.flow.*;  // To use the new flow network package - GridSim 4.2
  */
 public class Simulation {
 
-	private static SimReport report_;  // logs every events
+    private static SimReport report_;  // logs every events
 	
     public static void main(String[] args) {
         System.out.println("Starting simulation ....");
@@ -37,7 +37,7 @@ public class Simulation {
             
             report_ = new SimReport("Simulation_report");
 
-            //read parameters
+            //reads parameters
             write( "Parameters file: " + args[0]);
             ParameterReader.read(args[0]);
 
@@ -46,28 +46,29 @@ public class Simulation {
             boolean trace_flag = true; // means trace GridSim events
             boolean gisFlag = false; // means using DataGIS instead
            
-            // Initialize the GridSim package
+            //Initializes the GridSim package
             System.out.println("Initializing GridSim package");
             GridSim.init(num_user, calendar, trace_flag, gisFlag);
 
-            // Flow extension
+            //uses flow extension
             GridSim.initNetworkType(GridSimTags.NET_FLOW_LEVEL);
 
-            // set the GIS into DataGIS that handles specifically for data grid
+            // sets the GIS into DataGIS that handles specifically for data grid
             // scenarios
             DataGIS gis = new DataGIS();
             GridSim.setGIS(gis);
 
             
             //SETUP NETWORK DEFAULTS
-            //some default values
-            double baud_rate = 10000000000.0; // bits/s
+            double baud_rate = Double.MAX_VALUE;//10000000000.0; // bits/s (throughput of the
+            					//links that we do not consider has to be as 
+            					//large as possible, so that they are not a bottleneck)
             double propDelay = 1; // propagation delay in millisecond
             int mtu = Integer.MAX_VALUE; // max. transmission unit in bytes
 
             //-------------------------------------------
-            //read topology
-            // Flow extension
+            //reads topology
+            //uses flow extension
             LinkedList routerList = NetworkReader.createFlow(ParameterReader.networkFilename);
             
             
@@ -82,7 +83,7 @@ public class Simulation {
             r1.attachHost(rc, gisSched); // attach RC
 
             ///////////
-            //CREATE RESOURCES
+            //CREATEs RESOURCES
             LinkedList resList = ResourceReader.read(ParameterReader.resourceFilename,
                     routerList);
             DPResource res;
@@ -97,7 +98,8 @@ public class Simulation {
 
             
             //READ GRIDLETS
-            GridletList gridletList = GridletReader.getGridletList(ParameterReader.gridletsFilename, ParameterReader.maxGridlets);
+            GridletList gridletList = GridletReader.getGridletList(ParameterReader.gridletsFilename, 
+        	    ParameterReader.maxGridlets);
             //print gridletlist
             DPGridlet gl = null;
             write("GRIDLETS: ");

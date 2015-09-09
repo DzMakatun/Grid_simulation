@@ -200,7 +200,7 @@ public class ResourceReader {
             // defined as bit/s 
             gridRes = new DPResource(name,
                     new FlowLink(name + "_link", bandwidth, 1,
-                        Integer.MAX_VALUE), resConfig, cal, rm);
+                        Integer.MAX_VALUE), resConfig, storage_size, cal, rm);
             gridRes.addStorage(storage);
 
             

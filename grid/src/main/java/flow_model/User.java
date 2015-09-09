@@ -7,10 +7,12 @@ package flow_model;
  * License:      GPL - http://www.gnu.org/copyleft/gpl.html
  */
 
+import eduni.simjava.Sim_event;
 import gridsim.GridSim;
 import gridsim.GridSimTags;
 import gridsim.Gridlet;
 import gridsim.GridletList;
+import gridsim.IO_data;
 import gridsim.ResourceCharacteristics;
 import gridsim.datagrid.DataGridUser;
 import gridsim.datagrid.File;
@@ -19,15 +21,19 @@ import gridsim.net.InfoPacket;
 import gridsim.net.SimpleLink;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedList;
+import java.util.Map;
 
 import gridsim.net.flow.*;  // To use the new flow network package - GridSim 4.2
 import gridsim.util.SimReport;
 
 /**
- * This class defines a user which executes a set of commands.
+ * This class defines a user which submits raw data for processing in 
+ * network-flow model.
  * @author Uros Cibej and Anthony Sulistio
+ * @author Dzmitry Makatun
  */
 class User extends DataGridUser {
     private String name_;
@@ -132,6 +138,30 @@ class User extends DataGridUser {
         for(i = 0; i < totalResource; i++){
         	totalPEs += resourcePEs[i];
         }
+        
+        /////////////////////////////////////////////////
+        //GET resource statuses
+        
+        //send requests
+        for(i = 0; i <  totalResource; i++){ 
+                     
+            write("sending status request to resource " + resourceID[i]);
+            send(super.output, GridSimTags.SCHEDULE_NOW, RiftTags.STATUS_REQUEST,
+                 new IO_data(super.get_id(), 0, resourceID[i], 0) 
+            );
+          } 
+        
+        //receive responses
+        Sim_event ev = new Sim_event();
+        Map status;
+        for(i = 0; i <  totalResource; i++){ 
+            super.sim_get_next(ev);
+            status = (HashMap) ev.get_data();
+            
+            write("received status responce" + statusToString(status));
+
+          } 
+        
 
 
         ////////////////////////////////////////////////
@@ -139,6 +169,31 @@ class User extends DataGridUser {
         startTime = GridSim.clock(); ///Start time of the submission;
         super.gridSimHold(1.0);
         
+        // SUBMIT Gridlets
+        DPGridlet gl = null;
+        boolean success;
+        
+        //initial populating of PEs
+        
+        int j = 0; //number of gridlet
+        int k = 0; // number of PE
+        startTime = GridSim.clock(); ///Start time of the submission;
+        for(i = 0; i <  totalResource && i < gridlets.size(); i++){ 
+          gl = (DPGridlet) gridlets.get(i);          
+          
+          //GENERAL FORM:
+          // send(output_port,  GridSimTags.SCHEDULE_NOW, TAG, 
+          //      new IO_data(your_object, message_size, destination_id,
+          //                  netServiceLevel = 0));
+
+          
+          write(" sending gridlet " + gl.getGridletID() + " to resource " + resourceID[i]);
+          send(super.output, GridSimTags.SCHEDULE_NOW, RiftTags.INPUT,
+               new IO_data(gl, gl.getGridletFileSize(), resourceID[i],
+                           0) 
+          );
+
+        }       
        
         
         
@@ -200,7 +255,16 @@ class User extends DataGridUser {
             GridSim.clock());
     }
 
-   private void pingRes(int resourceID){
+   private String statusToString(Map status) {
+       StringBuffer buf = new StringBuffer();
+       
+       buf.append("id: " + status.get("nodeId") + " ");
+       buf.append("name: " + status.get("nodeName") + " ");
+	
+	return buf.toString();
+    }
+
+private void pingRes(int resourceID){
 	// ping functionality
        InfoPacket pkt = null;
        int size = 1024 * 1024; // 1 MB
@@ -229,7 +293,13 @@ class User extends DataGridUser {
      */
     private void write(String msg)
     {
-        System.out.println(msg);
+	StringBuffer buf = new StringBuffer();
+	buf.append(GridSim.clock() + " ");
+	buf.append( super.get_name() + ":" );
+	buf.append(super.get_id() + " ");	    
+	buf.append(msg);
+	
+        System.out.println(buf.toString());
         if (report_ != null) {
             report_.write(msg);
         }
