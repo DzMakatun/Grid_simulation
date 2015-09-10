@@ -45,6 +45,10 @@ public class Simulation {
             Calendar calendar = Calendar.getInstance();
             boolean trace_flag = true; // means trace GridSim events
             boolean gisFlag = false; // means using DataGIS instead
+            
+            //set data units for the simulation
+            DataUnits.setUnits(ParameterReader.dataUnitsName, ParameterReader.dataUnitsSize);
+
            
             //Initializes the GridSim package
             System.out.println("Initializing GridSim package");
@@ -86,13 +90,13 @@ public class Simulation {
             //CREATEs RESOURCES
             LinkedList resList = ResourceReader.read(ParameterReader.resourceFilename,
                     routerList);
-            DPResource res;
+            GridResource res;
             
             //print resource list
             write("RESOURCES: ");
             for(Object obj: resList){
-            	res = (DPResource) obj;
-            	write(res.paramentersToString());
+            	res = (GridResource) obj;
+            	write( ( (DPSpaceShared) res.getAllocationPolicy() ).paramentersToString());
             	
             }
 
@@ -121,6 +125,7 @@ public class Simulation {
             	write(usr.toStringShort());
             	
             }
+           
             
 
             GridSim.startGridSimulation();
@@ -140,6 +145,27 @@ public class Simulation {
             report_.write(msg);
         }
     }
+    
+    private static String gridResourceToString(GridResource gr){
+	StringBuffer br = new StringBuffer();
+	ResourceCharacteristics characteristics = gr.getResourceCharacteristics();
+	
+	
+	br.append("name: " + gr.get_name() + ", ");
+	br.append("id: " + gr.get_id() + ", ");
+	br.append("PEs: " + characteristics.getMachineList().getNumPE() + ", ");
+	br.append("storage: " + ( (DPSpaceShared) gr.getAllocationPolicy() ).getStorageSize() + "(MB), ");
+	
+	br.append("processingRate: " +characteristics.getMIPSRatingOfOnePE()  + ", ");
+	//br.append("processingRate: " +characteristics.  + ", ");
+	
+	br.append("link bandwidth: " + gr.getLink().getBaudRate()  + "(bit/s), ");
+	//br.append("stat: " + gr.get_stat().toString());
+	
+	return br.toString();
+	
+    }
+    
 
 }
 

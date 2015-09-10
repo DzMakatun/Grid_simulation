@@ -8,3 +8,5 @@ users=input/users.txt
 #the router which the topRC is connected to
 topRCrouter=router1
 useLocalRC=true
+dataUnitsName=MB
+dataUnitsSize=1048576 

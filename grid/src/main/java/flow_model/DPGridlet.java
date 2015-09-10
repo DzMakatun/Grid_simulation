@@ -29,12 +29,12 @@ public class DPGridlet extends DataGridlet{
 		return br.toString();
 	}
 	
-	public double getInputSizeInMB(){
-	    return super.getGridletFileSize() / RiftTags.SIZE_UNITS;
+	public double getInputSizeInUnits(){
+	    return super.getGridletFileSize() / DataUnits.getSize();
 	}
 	
-	public double getOutputSizeInMB(){
-	    return super.getGridletOutputSize() / RiftTags.SIZE_UNITS;
+	public double getOutputSizeInUnits(){
+	    return super.getGridletOutputSize() / DataUnits.getSize();
 	}
 
 }

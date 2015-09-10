@@ -36,8 +36,4 @@ public class RiftTags {
   /** Remote node confirms that the output file was received*/
   public static final int CONFIRMATION_OUTPUT = BASE + 7;
   
-  /**COEFICIENT for bytes -> MB translation 
-   * (or other units)
-   */
-  public static final int SIZE_UNITS = 1024 * 1024;
 }

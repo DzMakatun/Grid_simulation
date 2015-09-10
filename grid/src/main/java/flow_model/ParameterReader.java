@@ -26,6 +26,8 @@ public class ParameterReader {
     public static int numUsers;
     public static String topRCrouter;
     public static boolean useLocalRC = true;
+    public static String dataUnitsName = "MB"; //default value
+    public static long dataUnitsSize = 1024*1024; //default value
 
     public static void read(String filename) {
         try {
@@ -35,7 +37,7 @@ public class ParameterReader {
             String name;
             String value;
             StringTokenizer str;
-
+             
             while ((line = buf.readLine()) != null) {
                 if (!line.startsWith("#")) { //ignore comments
                     str = new StringTokenizer(line);
@@ -61,10 +63,15 @@ public class ParameterReader {
                     } else if (name.equals("useLocalRC")) {
                     	//System.out.println(name + " " + value);
                         useLocalRC = Boolean.valueOf(value);
+                    } else if (name.equals("dataUnitsName")) {
+                	dataUnitsName = value;
+                    } else if (name.equals("dataUnitsSize")) {
+                	dataUnitsSize = Long.valueOf(value);
                     } else {
                         System.out.println("Unknown parameter " + name);
                     }
                 }
+
             }
         } catch (Exception exp) {
             System.out.println("File not found");

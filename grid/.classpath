@@ -22,10 +22,11 @@
 			<attribute name="maven.pomderived" value="true"/>
 		</attributes>
 	</classpathentry>
-	<classpathentry kind="lib" path="F:/git/Grid_simulation/grid/lib/gridsim.jar"/>
+	<classpathentry exported="true" kind="lib" path="F:/git/Grid_simulation/grid/lib/gridsim.jar"/>
 	<classpathentry kind="lib" path="F:/git/Grid_simulation/grid/lib/simjava2.jar"/>
 	<classpathentry kind="lib" path="lib/joda-time-2.4-javadoc.jar"/>
 	<classpathentry kind="lib" path="lib/joda-time-2.4-sources.jar"/>
 	<classpathentry kind="lib" path="lib/joda-time-2.4.jar"/>
+	<classpathentry exported="true" kind="src" path="/GridSim"/>
 	<classpathentry kind="output" path="target/classes"/>
 </classpath>

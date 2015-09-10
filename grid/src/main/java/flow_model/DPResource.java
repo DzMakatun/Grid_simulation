@@ -51,12 +51,7 @@ public class DPResource extends DataGridResource{
 		this.readyOutputSize = 0;
 		
 	}
-	
-	public DPResource(){
-	    super();
-	}
-
-	
+		
 	/**
 	 * provides summary about the resource as a string
 	 */
@@ -158,7 +153,7 @@ public class DPResource extends DataGridResource{
 	 * @return true if success
 	 */
 	private boolean addOutputFile(DPGridlet gl) {
-	    double size = gl.getInputSizeInMB();
+	    double size = gl.getInputSizeInUnits();
 	    if (this.freeStorageSpace >= size ) {
 		this.freeStorageSpace -= size;
 		this.readyOutputSize += size;
@@ -249,14 +244,14 @@ public class DPResource extends DataGridResource{
 	private boolean submitInputFile(DPGridlet gl) {
 	    write(" DEBUG: Inside submitInputFile()");
 	    if (createOutputFile(gl) ){ // if space for outputfile was successfully created
-	        waitingInputSize -= gl.getInputSizeInMB(); 
+	        waitingInputSize -= gl.getInputSizeInUnits(); 
 	        this.submittedInputFiles.add(gl);
 	        //// THIS IS THE HACK:
 	        //we change the gridlet user ID in order to receive it when it's done 
 	        //gl.setUserID(super.get_id()); 
 	        write("Setting gridlet userID to " +Integer.toString(gl.getUserID() )  );
 	        policy_.gridletSubmit(gl, false); // submit to policy for execution 
-	        this.localProcessingFlow -= gl.getOutputSizeInMB(); //decrease the counter
+	        this.localProcessingFlow -= gl.getOutputSizeInUnits(); //decrease the counter
 	        return true;
 	    }else{		
 	        write("WARNING failed to submit file");	           
@@ -291,7 +286,7 @@ public class DPResource extends DataGridResource{
 	    send(super.output, GridSimTags.SCHEDULE_NOW, RiftTags.INPUT,
 	          new IO_data(gl, gl.getGridletFileSize(), neighborNodesIds.get(j), 0) );
 	    //update counters
-	    double size = gl.getInputSizeInMB();
+	    double size = gl.getInputSizeInUnits();
 	    remoteInputFlow -=  size;
 	    neighborNodesInputFlows.set(j, neighborNodesInputFlows.get(j) - size);
 	    waitingInputSize -= size;
@@ -326,7 +321,7 @@ public class DPResource extends DataGridResource{
 	    send(super.output, GridSimTags.SCHEDULE_NOW, RiftTags.CONFIRMATION_OUTPUT,
 	          new IO_data(gl, gl.getGridletOutputSize(), neighborNodesIds.get(j), 0) );
 	    //update counters
-	    double size = gl.getOutputSizeInMB();
+	    double size = gl.getOutputSizeInUnits();
 	    remoteOutputFlow -=  size;
 	    neighborNodesOutputFlows.set(j, neighborNodesOutputFlows.get(j) - size);
 	    readyOutputSize -= size;
@@ -342,7 +337,7 @@ public class DPResource extends DataGridResource{
 	 * @return true if success, false if not
 	 */
 	private boolean addInputFile(DPGridlet gl){
-	    double size = gl.getInputSizeInMB();
+	    double size = gl.getInputSizeInUnits();
 	    if (this.freeStorageSpace >= size ) {
 		this.freeStorageSpace -= size;
 		this.waitingInputSize += size;
@@ -365,7 +360,7 @@ public class DPResource extends DataGridResource{
 	 * @return
 	 */
 	private boolean createOutputFile(DPGridlet gl){
-	    double outSize = gl.getOutputSizeInMB();	    
+	    double outSize = gl.getOutputSizeInUnits();	    
 	    if (this.freeStorageSpace >= outSize ) { //if there is a place for output
 		this.freeStorageSpace -= outSize; //reserve space for output
 		this.reservedOutputFiles.add(gl); //add the file to the future output list		
@@ -441,9 +436,10 @@ public class DPResource extends DataGridResource{
 	    buf.append("tag:" + ev.get_tag()+ " ");
 	    buf.append("src:" + ev.get_src()+ " ");
 	    buf.append("dest:" + ev.get_dest()+ " ");
-
+	    
 	    return buf.toString();
 	}
+	
 	
 	/**method for displaying output
 	 * 

@@ -27,13 +27,13 @@ import java.util.StringTokenizer;
 
 
 /**
- * Creates one or more DPResources 
+ * Creates one or more GridResources 
  */
 public class ResourceReader {
 
     /**
      * Reads a description of resources from a file and creates the
-     * DPResources.
+     * GridResources.
      *
      * @param filename
      *            the name of the file where the resources are specified
@@ -80,7 +80,7 @@ public class ResourceReader {
         double storage_size;
         double bandwidth;
 
-        DPResource r1;
+        GridResource r1;
         Router tempRouter;
         LinkedList resourceList = new LinkedList();
         StringTokenizer str;
@@ -134,7 +134,7 @@ public class ResourceReader {
      * Similarly, a Machine contains one or more PEs (Processing Elements or
      * CPUs).
      */
-    private static DPResource createStandardResource(String name, int PEs, int processingMIPSRate,
+    private static GridResource createStandardResource(String name, int PEs, int processingMIPSRate,
         double storage_size, double bandwidth, String regionalRC) {
         System.out.println();
 
@@ -180,39 +180,48 @@ public class ResourceReader {
 
         // incorporates holidays. However, no holidays are set in this example
         LinkedList Holidays = new LinkedList();
-        DPResource gridRes = null;
+        GridResource gridRes = null;
 
         try {
             // create the replica manager
-            SimpleReplicaManager rm = new SimpleReplicaManager("RM_" + name,
-                    name);
+            //SimpleReplicaManager rm = new SimpleReplicaManager("RM_" + name,
+            //        name);
 
             // create the resource calendar
             ResourceCalendar cal = new ResourceCalendar(time_zone, peakLoad,
                     offPeakLoad, holidayLoad, Weekends, Holidays, seed);
 
             // create a storage, which demands the storage size in MB
-            Storage storage = new HarddriveStorage("storage",
-                    storage_size);
+            //Storage storage = new HarddriveStorage("storage",
+            //        storage_size);
 
             //DEFAULT NETWORK PARAMETERS for resources
             // create a grid resource, connected to a router. The bandwith is
             // defined as bit/s 
-            gridRes = new DPResource(name,
-                    new FlowLink(name + "_link", bandwidth, 1,
-                        Integer.MAX_VALUE), resConfig, storage_size, cal, rm);
-            gridRes.addStorage(storage);
+            
+            // our logic is placed in handler
+            DPSpaceShared handler = new DPSpaceShared(name, name + "_handler", storage_size);
+            //link which connects the resource to it's router, the bandwith is
+            // defined as bit/s 
+            Link link = new FlowLink(name + "_link", bandwidth, 1, Integer.MAX_VALUE);
+            gridRes = new GridResource(name, link, resConfig, cal, handler);
+            
+            
+            //gridRes = new DPResource(name,
+            //       new FlowLink(name + "_link", bandwidth, 1,
+            //            Integer.MAX_VALUE), resConfig, storage_size, cal, rm);
+            //gridRes.addStorage(storage);
 
             
             
             // create a local replica catalogue if needed
             // else set the regional RC for this resource
-            if (ParameterReader.useLocalRC) {
-                gridRes.createLocalRC();
-                gridRes.setHigherReplicaCatalogue(TopRegionalRC.DEFAULT_NAME);
-            } else {
-                gridRes.setReplicaCatalogue(regionalRC);
-            }
+            //if (ParameterReader.useLocalRC) {
+            //    gridRes.createLocalRC();
+            //    gridRes.setHigherReplicaCatalogue(TopRegionalRC.DEFAULT_NAME);
+            //} else {
+            //    gridRes.setReplicaCatalogue(regionalRC);
+            //}
         } catch (Exception e) {
             e.printStackTrace();
         }
