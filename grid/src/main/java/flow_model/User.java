@@ -162,6 +162,13 @@ class User extends DataGridUser {
 
           } 
         
+        //send plan
+        for(i = 0; i <  totalResource; i++){             
+            write("sending status request to resource " + resourceID[i]);
+            send(super.output, GridSimTags.SCHEDULE_NOW, RiftTags.NEW_PLAN,
+                 new IO_data(super.get_id(), 0, resourceID[i], 0) 
+            );
+          } 
 
 
         ////////////////////////////////////////////////
@@ -179,7 +186,8 @@ class User extends DataGridUser {
         int k = 0; // number of PE
         startTime = GridSim.clock(); ///Start time of the submission;
         for(i = 0; i <  totalResource && i < gridlets.size(); i++){ 
-          gl = (DPGridlet) gridlets.get(i);          
+          gl = (DPGridlet) gridlets.get(i);  
+          gl.setUserID(myId_);
           
           //GENERAL FORM:
           // send(output_port,  GridSimTags.SCHEDULE_NOW, TAG, 
