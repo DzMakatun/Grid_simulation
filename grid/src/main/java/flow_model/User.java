@@ -8,6 +8,7 @@ package flow_model;
  */
 
 import eduni.simjava.Sim_event;
+import eduni.simjava.Sim_system;
 import gridsim.GridSim;
 import gridsim.GridSimTags;
 import gridsim.Gridlet;
@@ -45,6 +46,7 @@ class User extends DataGridUser {
     boolean trace_flag;
     double startTime, saturationStart, saturationFinish, finishTime ;
     int chunkSize; //for monitoring
+    private LinkedList <LinkFlows> newPlan;
     
 
     // constructor
@@ -147,7 +149,7 @@ class User extends DataGridUser {
                      
             write("sending status request to resource " + resourceID[i]);
             send(super.output, GridSimTags.SCHEDULE_NOW, RiftTags.STATUS_REQUEST,
-                 new IO_data(super.get_id(), 0, resourceID[i], 0) 
+                 new IO_data(myId_, 0, resourceID[i], 0) 
             );
           } 
         
@@ -162,11 +164,15 @@ class User extends DataGridUser {
 
           } 
         
+        //create plan
+        newPlan = createNewPlan(resourceID);
+        
+        
         //send plan
         for(i = 0; i <  totalResource; i++){             
             write("sending status request to resource " + resourceID[i]);
             send(super.output, GridSimTags.SCHEDULE_NOW, RiftTags.NEW_PLAN,
-                 new IO_data(super.get_id(), 0, resourceID[i], 0) 
+                 new IO_data(newPlan, 0, resourceID[i], 0) 
             );
           } 
 
@@ -207,6 +213,25 @@ class User extends DataGridUser {
         
         ////////////////////////////////////////////////////////
         // RECEIVES Gridlets and submit new
+        //Sim_event ev = new Sim_event();
+        //while ( Sim_system.running() )
+        //{
+          //  super.sim_get_next(ev);
+
+            // if the simulation finishes then exit the loop
+            //if (ev.get_tag() == GridSimTags.END_OF_SIMULATION)
+            //{
+              //  policy_.setEndSimulation();
+               // break;
+            //}
+
+            // process the received event
+            //processEvent(ev);
+        //}
+
+        
+        
+        
         saturationStart = GridSim.clock();
         super.gridSimHold(1.0);
         saturationFinish = GridSim.clock();
@@ -263,7 +288,38 @@ class User extends DataGridUser {
             GridSim.clock());
     }
 
-   private String statusToString(Map status) {
+   /** generates new transfer plan
+    * The planner logic is connected here 
+    * @return
+    */
+   private LinkedList<LinkFlows> createNewPlan(int[] resourceID) {
+       double defaultLocalProcessingFlow = 100000;
+       double defaultInputFlow = 10000;
+       double defaultOutputFlow = 100000;
+              
+       LinkedList<LinkFlows> plan = new LinkedList();
+       LinkFlows tempFlow;
+       for (int i = 0; i < resourceID.length; i++ ){
+	   plan.add(new LinkFlows(resourceID[i], -1, defaultLocalProcessingFlow, 0)); // add local processing flow
+	   plan.add(new LinkFlows(this.myId_, resourceID[i], defaultInputFlow, 0)); // input flow from user to resources
+	   plan.add(new LinkFlows(resourceID[i], this.myId_, 0, defaultOutputFlow)); // flow back to user
+	   for (int j = 0; j < resourceID.length; j++ ){
+	       if ( i != j ){
+		   if (resourceID[i] < resourceID[j] ){
+		       // input flow to other resources
+		       //plan.add(new LinkFlows(resourceID[i], resourceID[j], defaultInputFlow, 0));		       
+		   }else{
+		       //output flow to other resources
+		       //plan.add(new LinkFlows(resourceID[i], resourceID[j], 0, defaultOutputFlow));
+		   }
+	       }
+	   }
+       }
+       
+	return plan;
+    }
+
+private String statusToString(Map status) {
        StringBuffer buf = new StringBuffer();
        
        buf.append("id: " + status.get("nodeId") + " ");

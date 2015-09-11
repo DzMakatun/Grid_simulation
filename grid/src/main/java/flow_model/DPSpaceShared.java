@@ -13,6 +13,8 @@ import gridsim.*;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.LinkedHashSet;
+import java.util.LinkedList;
 import java.util.Map;
 
 import eduni.simjava.Sim_event;
@@ -134,7 +136,8 @@ class DPSpaceShared extends AllocPolicy
 	br.append("id: " + super.resId_ + ", ");
 	br.append("PEs: " + resource_.getMachineList().getNumPE() + ", ");
 	br.append("storage: " + storageSize + " " + DataUnits.getName() + ", ");		
-	br.append("processingRate: " +resource_.getMIPSRatingOfOnePE()  + ", ");		
+	br.append("processingRate: " +resource_.getMIPSRatingOfOnePE()  + ", ");	
+	
 	//br.append("link bandwidth: " + super.outputPort_.  + "(bit/s), ");		
 	//br.append("stat: " + super.get_stat().toString());
 		
@@ -453,11 +456,26 @@ class DPSpaceShared extends AllocPolicy
 	 * @param ev
 	 */
 	private void processNewPlan(Sim_event ev) {
-	    localProcessingFlow = 100000;// (MB) for testing
-	    //link to the central storage
-	    neighborNodesIds.add(planerId);
-	    neighborNodesInputFlows.add(0.0);// (MB) for testing
-	    neighborNodesOutputFlows.add(100000.0);// (MB) for testing
+	    LinkedList <LinkFlows> newPlan = (LinkedList <LinkFlows>) ev.get_data();	    
+	    LinkFlows tempData;
+	    
+	    //clear old plan
+	    neighborNodesIds.clear();
+	    neighborNodesInputFlows.clear();
+	    neighborNodesOutputFlows.clear();
+	    for (int i = 0; i < newPlan.size(); i++) {
+		tempData = newPlan.get(i);
+		if (tempData.fromID == resId_) {
+		    if (tempData.toID == -1){ //dummy edge
+			localProcessingFlow = tempData.inputFlow;
+			
+		    }else{ //links to other nodes
+			neighborNodesIds.add(tempData.toID);
+			neighborNodesInputFlows.add(tempData.inputFlow);
+			neighborNodesOutputFlows.add(tempData.outputFlow);
+		    }
+		}
+	    }    
 	    
 	    //set counters
 	    remoteInputFlow = 0;
@@ -467,8 +485,30 @@ class DPSpaceShared extends AllocPolicy
 		remoteOutputFlow += neighborNodesOutputFlows.get(i);
 	    }
 	    this.planIsSet = true;
-	    
+	    write(planToString());
 	    processFiles(); // after the new plan is setup we have to process what was left before
+	}
+	
+	/**
+	 * prints the current plan and state of the resource
+	 */
+	private String planToString(){
+	    StringBuffer buf = new StringBuffer();
+	    
+	    buf.append("\n-------------PLAN----------------\n");
+	    buf.append("all valuse in "+ DataUnits.getName() + "\n");
+	    buf.append("localProcessingFlow: " + localProcessingFlow + "\n");
+	    buf.append("remoteInputFlow: " + remoteInputFlow + " remoteOutputFlow: " + remoteOutputFlow + "\n");
+	    buf.append("IDS: " + neighborNodesIds.toString() + "\n");
+	    buf.append("IN:  " + neighborNodesInputFlows.toString() + "\n");
+	    buf.append("OUT: " + neighborNodesOutputFlows.toString() + "\n");
+	    
+	    buf.append("---------------------------------");
+	    buf.append("\nfreeStorageSpace: " +freeStorageSpace + " waitingInputSize: " + waitingInputSize 
+		    + " readyOutputSize: " + readyOutputSize + "\n");
+	    buf.append("---------------------------------");
+	    
+	    return buf.toString();
 	}
 
 	/**
