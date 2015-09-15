@@ -4,4 +4,4 @@
 #attribute filename
 #replicate filename resource
 #delete filename resource
-user1 router1 RCF 10000000000
+Planer RCF_router RCF 10000000000

@@ -9,6 +9,7 @@
 package flow_model;
 
 import gridsim.*;
+import gridsim.net.InfoPacket;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -54,7 +55,11 @@ class DPSpaceShared extends AllocPolicy
     
     private int planerId;
     private boolean planIsSet;
-	
+    
+    //properties to definy the type of the resource
+    private boolean isInputSource;
+    private boolean isOutputDestination;
+    
     //properties to maitain the storage functionality
     // and manage input/output files
     private double storageSize; // (UNITS) total size of storage
@@ -97,7 +102,7 @@ class DPSpaceShared extends AllocPolicy
      * @pre entityName != null
      * @post $none
      */
-    DPSpaceShared(String resourceName, String entityName, double storageSize) throws Exception
+    DPSpaceShared(String resourceName, String entityName, double storageSize, boolean isInputSource, boolean isOutputDestination) throws Exception
     {
         super(resourceName, entityName);
 
@@ -115,7 +120,27 @@ class DPSpaceShared extends AllocPolicy
 	this.localProcessingFlow = 0.0; 
 	this.remoteInputFlow = 0.0; 
 	this.remoteOutputFlow = 0.0;
+	this.isInputSource = isInputSource;
+	this.isOutputDestination = isOutputDestination;
 
+    }
+    
+    public boolean  isInputSource(){
+	return this.isInputSource;
+    }
+    
+    public boolean isOutputDestination(){
+	return this.isOutputDestination;
+    }
+    
+    public boolean addInitialInputFiles(GridletList list){
+	for (int i = 0; i < list.size(); i++){
+	    if ( ! addInputFile( (DPGridlet) list.get(i) ) ){
+		//if failed to add input file
+		return false;
+	    }
+	}
+	return true;
     }
     
     /**
@@ -136,7 +161,10 @@ class DPSpaceShared extends AllocPolicy
 	br.append("id: " + super.resId_ + ", ");
 	br.append("PEs: " + resource_.getMachineList().getNumPE() + ", ");
 	br.append("storage: " + storageSize + " " + DataUnits.getName() + ", ");		
-	br.append("processingRate: " +resource_.getMIPSRatingOfOnePE()  + ", ");	
+	br.append("processingRate: " +resource_.getMIPSRatingOfOnePE()  + ", ");
+	br.append("isInputSource: " +isInputSource()  + ", ");
+	br.append("isOutputDestination: " +isOutputDestination()  + ", ");
+	br.append("waitingInputSize: " + waitingInputSize  + ", ");
 	
 	//br.append("link bandwidth: " + super.outputPort_.  + "(bit/s), ");		
 	//br.append("stat: " + super.get_stat().toString());
@@ -160,7 +188,7 @@ class DPSpaceShared extends AllocPolicy
 	          return;
 	      }
 
-	      	write("Received event: " + verboseEvent(ev) );
+	      	//write("Received event: " + verboseEvent(ev) );
 	      	
 	      	//extract event tag
 	      	int tag = ev.get_tag();
@@ -178,12 +206,12 @@ class DPSpaceShared extends AllocPolicy
 	                break;
 	                
 	            case RiftTags.INPUT:
-	        	write("received input file");
+	        	//write("received input file");
 	                processIncommingInputFile(ev);
 	                break;    
 
 	            case RiftTags.OUTPUT:
-	        	write("received input file");
+	        	//write("received input file");
 	                processIncommingOutputFile(ev);
 	                break;     
 	                
@@ -196,6 +224,7 @@ class DPSpaceShared extends AllocPolicy
 	
 	private void processIncommingOutputFile(Sim_event ev) {
 	    DPGridlet gl = (DPGridlet) ev.get_data();
+	    write("received output file of gridlet" + gl.getGridletID());
 	    //add new input file to
 	    if (addOutputFile(gl) ){
 		//send confirmation to sender
@@ -235,6 +264,7 @@ class DPSpaceShared extends AllocPolicy
 
 	private void processIncommingInputFile(Sim_event ev) {
 	    DPGridlet gl = (DPGridlet) ev.get_data();
+	    write("received input file of gridlet" + gl.getGridletID());
 	    //add new input file to
 	    if (addInputFile(gl) ){
 		//send confirmation to sender
@@ -279,6 +309,7 @@ class DPSpaceShared extends AllocPolicy
 	private void processFinishedJob(DPGridlet gl){
 	    //remove input file from the disk
 	    //and check if it was registered properly
+	    write("Gridlet " + gl.getGridletID() + " finished processing");
 	    if (this.submittedInputFiles.remove(gl) && this.reservedOutputFiles.remove(gl) ){
 		this.freeStorageSpace += gl.getInputSizeInUnits(); //clear disc space
 		this.readyOutputFiles.add(gl); //add output file to the ready list
@@ -297,11 +328,11 @@ class DPSpaceShared extends AllocPolicy
 	 * event occurs.
 	 */
 	private void processFiles(){	    
-	  write(" DEBUG: Inside processFiles()");  
+	  //write(" DEBUG: Inside processFiles()");  
 	  DPGridlet gl;	
 	  //PROCESS READY OUTPUT FILES
 	  while (readyOutputFiles.size() > 0 && remoteOutputFlow > 0){
-	      write(" DEBUG: Inside processFiles(): process ready outputfiles");
+	      //write(" DEBUG: Inside processFiles(): process ready outputfiles");
 	      gl = (DPGridlet) readyOutputFiles.poll(); //this removes gl from the list
 	      if ( ! transferOutputFile(gl) ){
 		  //failed to transfer output file (probably now links with flow > 0)
@@ -314,7 +345,7 @@ class DPSpaceShared extends AllocPolicy
 	  //first send jobs to free CPUs
 	  while (waitingInputFiles.size() > 0 && localProcessingFlow > 0 
 	    && resource_.getNumFreePE() > 0 && freeStorageSpace > 0) {
-	      write(" DEBUG: Inside processFiles(): first send jobs to free CPUs");   
+	      //write(" DEBUG: Inside processFiles(): first send jobs to free CPUs");   
 	    gl = (DPGridlet) waitingInputFiles.poll(); //this removes gl from the list	    
 	    if (! submitInputFile(gl) ){ 
 	      //failed to submit job (probably not enough space for output)
@@ -325,7 +356,7 @@ class DPSpaceShared extends AllocPolicy
 	  
 	  //then forward the rest for remote processing
 	  while (waitingInputFiles.size() > 0 && remoteInputFlow > 0){
-	      write(" DEBUG: Inside processFiles(): then forward the rest for remote processing");
+	      //write(" DEBUG: Inside processFiles(): then forward the rest for remote processing");
 	      gl = (DPGridlet) waitingInputFiles.poll(); //this removes gl from the list
 	      if ( ! transferInputFile(gl) ){
 		      //failed to transfer input file (probably no links with flow > 0)
@@ -334,7 +365,7 @@ class DPSpaceShared extends AllocPolicy
 	      }
 	  }	    
 	    
-	  write(" DEBUG: processFiles() exited");
+	  //write(" DEBUG: processFiles() exited");
 	    return;
 	}
 
@@ -346,7 +377,7 @@ class DPSpaceShared extends AllocPolicy
 	 * @return
 	 */
 	private boolean submitInputFile(DPGridlet gl) {
-	    write(" DEBUG: Inside submitInputFile()");
+	    write(" Submitting gridlet " + gl.getGridletID() +" for processing");
 	    if (createOutputFile(gl) ){ // if space for outputfile was successfully created
 	        waitingInputSize -= gl.getInputSizeInUnits(); 
 	        submittedInputFiles.add(gl);
@@ -384,7 +415,7 @@ class DPSpaceShared extends AllocPolicy
 	 * @param gl
 	 * @return true if success
 	 */
-	private boolean transferInputFile(DPGridlet gl) {
+	private boolean transferInputFile(DPGridlet gl) {	    
 	    //select destination
 	    int j = -1; //number of destination in the lists
 	    for (int i = 0; i < neighborNodesInputFlows.size(); i++ ){
@@ -519,20 +550,49 @@ class DPSpaceShared extends AllocPolicy
 	private void processStatusRequest(Sim_event ev) {
 	    planerId = (Integer) ev.get_data();
 	    write("planerId is: " + planerId);
-	    
+	    	    
 	    //create status message
 	    Map status = new HashMap();
 	    status.put("nodeId", super.resId_);
 	    status.put("nodeName", super.resName_);
+	    status.put("isInputSource", isInputSource());
+	    status.put("isOutputDestination", isOutputDestination);
+	    status.put("waitingInputFiles", waitingInputFiles);
 	    status.put("freeStorageSpace", freeStorageSpace);
 	    status.put("readyOutputSize", readyOutputSize);
 	    status.put("waitingInputFiles", waitingInputFiles);
+	    
 	    
 	    super.sim_schedule(super.outputPort_, GridSimTags.SCHEDULE_NOW, RiftTags.STATUS_RESPONSE,
                 new IO_data(status, 0, planerId, 0) 
            );
 	    
 	    
+	    return;
+	}
+	
+	/** find bandwidth to neighbouring nodes
+	 * remove this
+	 */
+	private void discoverNetwork(){
+	    LinkedList resList = GridSim.getGridResourceList();
+	    int resID;
+	    InfoPacket pkt = null;
+	    int size = 1; // 1 MB
+
+	       
+	    while(!resList.isEmpty() ){
+		resID = (Integer) resList.poll();
+		
+		if (resID == this.myId_){//skip myself
+		    continue;
+		}
+		//ping remote resource
+		//pkt = GridSimCore.pingBlockingCall(resID, size);
+		
+		
+	    }	    
+	    write(resList.toString() );
 	    return;
 	}
 

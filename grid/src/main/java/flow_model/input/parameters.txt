@@ -6,7 +6,7 @@ resources=input/resources.txt
 network=input/network.txt
 users=input/users.txt
 #the router which the topRC is connected to
-topRCrouter=router1
+topRCrouter=RCF_router
 useLocalRC=true
 dataUnitsName=MB
 dataUnitsSize=1048576 

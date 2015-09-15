@@ -59,7 +59,7 @@ public class Simulation {
 
             // sets the GIS into DataGIS that handles specifically for data grid
             // scenarios
-            DataGIS gis = new DataGIS();
+            DataGIS gis = new DataGIS(); 
             GridSim.setGIS(gis);
 
             
@@ -86,21 +86,6 @@ public class Simulation {
             FIFOScheduler gisSched = new FIFOScheduler();
             r1.attachHost(rc, gisSched); // attach RC
 
-            ///////////
-            //CREATEs RESOURCES
-            LinkedList resList = ResourceReader.read(ParameterReader.resourceFilename,
-                    routerList);
-            GridResource res;
-            
-            //print resource list
-            write("RESOURCES: ");
-            for(Object obj: resList){
-            	res = (GridResource) obj;
-            	write( ( (DPSpaceShared) res.getAllocationPolicy() ).paramentersToString());
-            	
-            }
-
-            
             //READ GRIDLETS
             GridletList gridletList = GridletReader.getGridletList(ParameterReader.gridletsFilename, 
         	    ParameterReader.maxGridlets);
@@ -111,6 +96,28 @@ public class Simulation {
             	gl = (DPGridlet) g;
             	write(gl.toStringShort());
             }
+            
+            ///////////
+            //CREATEs RESOURCES
+            LinkedList resList = ResourceReader.read(ParameterReader.resourceFilename,
+                    routerList);
+            GridResource res;
+            
+            //print resource list
+            DPSpaceShared policy = null;
+            write("RESOURCES: ");
+            for(Object obj: resList){
+            	res = (GridResource) obj;
+            	policy = (DPSpaceShared) res.getAllocationPolicy();
+            	if ( policy.isInputSource() ){
+            	    policy.addInitialInputFiles(gridletList);
+            	}
+            	write( policy.paramentersToString());
+            	
+            }
+
+            
+
             
             
             //CREATE USERS

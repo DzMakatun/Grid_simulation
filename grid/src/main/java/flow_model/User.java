@@ -20,6 +20,7 @@ import gridsim.datagrid.File;
 import gridsim.datagrid.FileAttribute;
 import gridsim.net.InfoPacket;
 import gridsim.net.SimpleLink;
+import gridsim.GridUser;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -36,7 +37,7 @@ import gridsim.util.SimReport;
  * @author Uros Cibej and Anthony Sulistio
  * @author Dzmitry Makatun
  */
-class User extends DataGridUser {
+class User extends GridUser {
     private String name_;
     private int myId_;
     private int totalGridlet; //how many gridlet were red from file
@@ -170,7 +171,7 @@ class User extends DataGridUser {
         
         //send plan
         for(i = 0; i <  totalResource; i++){             
-            write("sending status request to resource " + resourceID[i]);
+            write("sending new plan to resource " + resourceID[i]);
             send(super.output, GridSimTags.SCHEDULE_NOW, RiftTags.NEW_PLAN,
                  new IO_data(newPlan, 0, resourceID[i], 0) 
             );
@@ -191,9 +192,9 @@ class User extends DataGridUser {
         int j = 0; //number of gridlet
         int k = 0; // number of PE
         startTime = GridSim.clock(); ///Start time of the submission;
-        for(i = 0; i <  totalResource && i < gridlets.size(); i++){ 
-          gl = (DPGridlet) gridlets.get(i);  
-          gl.setUserID(myId_);
+        //for(i = 0; i <  totalResource && i < gridlets.size(); i++){ 
+          //gl = (DPGridlet) gridlets.get(i);  
+          //gl.setUserID(myId_);
           
           //GENERAL FORM:
           // send(output_port,  GridSimTags.SCHEDULE_NOW, TAG, 
@@ -201,13 +202,13 @@ class User extends DataGridUser {
           //                  netServiceLevel = 0));
 
           
-          write(" sending gridlet " + gl.getGridletID() + " to resource " + resourceID[i]);
-          send(super.output, GridSimTags.SCHEDULE_NOW, RiftTags.INPUT,
-               new IO_data(gl, gl.getGridletFileSize(), resourceID[i],
-                           0) 
-          );
+          //write(" sending gridlet " + gl.getGridletID() + " to resource " + resourceID[i]);
+          //send(super.output, GridSimTags.SCHEDULE_NOW, RiftTags.INPUT,
+          //     new IO_data(gl, gl.getGridletFileSize(), resourceID[i],
+          //                 0) 
+          //);
 
-        }       
+       // }       
        
         
         
@@ -346,6 +347,7 @@ private void pingRes(int resourceID){
        write("\n-------- " + name_ + " ----------------");
        write(pkt.toString());
        write("-------- " + name_ + " ----------------\n");
+       
    }
 
    

@@ -79,6 +79,8 @@ public class ResourceReader {
         int MIPSrate;
         double storage_size;
         double bandwidth;
+        boolean isInputSource;
+        boolean isOutputDestination;
 
         GridResource r1;
         Router tempRouter;
@@ -102,9 +104,12 @@ public class ResourceReader {
                 } else {
                     regionalRC = str.nextToken();
                 }
+                
+                isInputSource = Boolean.parseBoolean(str.nextToken() );
+                isOutputDestination = Boolean.parseBoolean(str.nextToken());
 
                 r1 = createStandardResource(resourceName, PEs, MIPSrate, storage_size,
-                        bandwidth, regionalRC);
+                        bandwidth, regionalRC, isInputSource, isOutputDestination);
 
                 // attach the resource to a router
                 tempRouter = NetworkReader.getRouter(routerName, routerList);
@@ -135,7 +140,7 @@ public class ResourceReader {
      * CPUs).
      */
     private static GridResource createStandardResource(String name, int PEs, int processingMIPSRate,
-        double storage_size, double bandwidth, String regionalRC) {
+        double storage_size, double bandwidth, String regionalRC,boolean isInputSource, boolean isOutputDestination) {
         System.out.println();
 
         // Here are the steps needed to create a Grid resource:
@@ -200,7 +205,7 @@ public class ResourceReader {
             // defined as bit/s 
             
             // our logic is placed in handler
-            DPSpaceShared handler = new DPSpaceShared(name, name + "_handler", storage_size);
+            DPSpaceShared handler = new DPSpaceShared(name, name + "_handler", storage_size, isInputSource, isOutputDestination);
             //link which connects the resource to it's router, the bandwith is
             // defined as bit/s 
             Link link = new FlowLink(name + "_link", bandwidth, 1, Integer.MAX_VALUE);
