@@ -35,16 +35,16 @@ public class Simulation {
                 return;
             }
             
-            report_ = new SimReport("Simulation_report");
+            report_ = new SimReport("output/Simulation_report");
 
             //reads parameters
             write( "Parameters file: " + args[0]);
             ParameterReader.read(args[0]);
 
-            int num_user = ParameterReader.numUsers; // number of grid users
+            int num_user = 1; // number of grid users
             Calendar calendar = Calendar.getInstance();
             boolean trace_flag = true; // means trace GridSim events
-            boolean gisFlag = false; // means using DataGIS instead
+            boolean gisFlag = false; // means using custom gis instead
             
             //set data units for the simulation
             DataUnits.setUnits(ParameterReader.dataUnitsName, ParameterReader.dataUnitsSize);
@@ -59,79 +59,50 @@ public class Simulation {
 
             // sets the GIS into DataGIS that handles specifically for data grid
             // scenarios
-            DataGIS gis = new DataGIS(); 
+            GridInformationService gis = new GridInformationService("GIS",Double.MAX_VALUE);
+            //DataGIS gis = new DataGIS(); 
             GridSim.setGIS(gis);
-
-            
-            //SETUP NETWORK DEFAULTS
-            double baud_rate = Double.MAX_VALUE;//10000000000.0; // bits/s (throughput of the
-            					//links that we do not consider has to be as 
-            					//large as possible, so that they are not a bottleneck)
-            double propDelay = 1; // propagation delay in millisecond
-            int mtu = Integer.MAX_VALUE; // max. transmission unit in bytes
-
-            //-------------------------------------------
-            //reads topology
-            //uses flow extension
-            LinkedList routerList = NetworkReader.createFlow(ParameterReader.networkFilename);
-            
-            
-            //Regional RC
-            Link l = new FlowLink("rc_link", baud_rate, propDelay, mtu);
-            TopRegionalRC rc = new TopRegionalRC(l);
-
-            //connect the TopRC to a router specified in the parameters file
-            Router r1 = NetworkReader.getRouter(ParameterReader.topRCrouter,
-                    routerList);
-            FIFOScheduler gisSched = new FIFOScheduler();
-            r1.attachHost(rc, gisSched); // attach RC
-
-            //READ GRIDLETS
-            GridletList gridletList = GridletReader.getGridletList(ParameterReader.gridletsFilename, 
-        	    ParameterReader.maxGridlets);
-            //print gridletlist
-            DPGridlet gl = null;
-            write("GRIDLETS: ");
-            for(Gridlet g: gridletList){
-            	gl = (DPGridlet) g;
-            	write(gl.toStringShort());
-            }
             
             ///////////
             //CREATEs RESOURCES
-            LinkedList resList = ResourceReader.read(ParameterReader.resourceFilename,
-                    routerList);
-            GridResource res;
+            LinkedList<GridResource> resList = ResourceReader.read(ParameterReader.resourceFilename);  
+            //adding routers
+            LinkedList<FlowRouter> routerList = new LinkedList<FlowRouter>();
+            FlowRouter router, plannerRouter = null;
             
-            //print resource list
             DPSpaceShared policy = null;
             write("RESOURCES: ");
-            for(Object obj: resList){
-            	res = (GridResource) obj;
+            for(GridResource res: resList){
+            	//adding routers
+            	router = new FlowRouter(res.get_name() + "_router", trace_flag);
+            	router.attachHost(res, new FIFOScheduler(res.get_name()
+                        + "_router_scheduler"));            	
+            	routerList.add(router);
+            	//setup TIER-0s
             	policy = (DPSpaceShared) res.getAllocationPolicy();
             	if ( policy.isInputSource() ){
-            	    policy.addInitialInputFiles(gridletList);
+            	  plannerRouter = router; //select the router where to attach a planer
+            	  //collect all available gridlets here
+            	    
             	}
-            	write( policy.paramentersToString());
             	
+            	write( policy.paramentersToString());            	
             }
 
-            
-
-            
-            
-            //CREATE USERS
-            LinkedList users = UserReader.read(ParameterReader.usersFilename,
-                    routerList, resList);
-            
-            write("USERS:");
-            User usr;
-            for(Object obj: users){
-            	usr = (User) obj;
-            	usr.setGridletList(gridletList);
-            	write(usr.toStringShort());
-            	
+            //READ NETWORK
+            System.out.println("ROUTERS:");
+            for (FlowRouter r:routerList){
+        	System.out.println(DPNetworkReader.routerToString(r));
             }
+            
+            DPNetworkReader.createNetwork(routerList, ParameterReader.networkFilename);
+            DPNetworkReader.printLinks();
+                 
+            
+            //CREATE PLANER
+            User Planer = new User("Planer",
+                    Double.MAX_VALUE, 0.001, Integer.MAX_VALUE);            
+            plannerRouter.attachHost(Planer, new FIFOScheduler("Planer"+"_router_scheduler"));     
            
             
 

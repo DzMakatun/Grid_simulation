@@ -1,12 +1,5 @@
-#WARNING numUsers should be the same as the number of users in the user configuration file
-numUsers=1
-maxGridlets=10
-gridlets=input/KISTI_all_filtered.csv
+# file with gridlets in specified in resources
 resources=input/resources.txt
 network=input/network.txt
-users=input/users.txt
-#the router which the topRC is connected to
-topRCrouter=RCF_router
-useLocalRC=-
 dataUnitsName=MB
 dataUnitsSize=1048576 

@@ -1,11 +1,4 @@
-# specify the number of routers
-3
-# specify the name of each router and (optional) logging facility
-#router_name1 [true/false]
-RCF_router
-PDSF_router
-KISTI_router
-#router_name1 router_name2 baud_rate(Gbps) prop_delay(ms) mtu(bytes) 
-RCF_router PDSF_router 1 1.0 1000000000
-RCF_router KISTI_router 0.1 1.0 1000000000
-#PDSF_router KISTI_router 0.1 10.0 1000000000
+#node1 node2 baud_rate(Gbps)
+RCF PDSF 0.01
+RCF KISTI 0.001
+PDSF KISTI 0.001
