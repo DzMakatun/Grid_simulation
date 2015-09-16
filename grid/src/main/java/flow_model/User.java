@@ -294,16 +294,20 @@ class User extends GridUser {
     * @return
     */
    private LinkedList<LinkFlows> createNewPlan(int[] resourceID) {
-       double defaultLocalProcessingFlow = 100000;
+       double defaultLocalProcessingFlow = 20000;
        double defaultInputFlow = 10000;
        double defaultOutputFlow = 100000;
               
        LinkedList<LinkFlows> plan = new LinkedList();
        LinkFlows tempFlow;
+       int centralStorageID = GridSim.getEntityId("RCF");
        for (int i = 0; i < resourceID.length; i++ ){
 	   plan.add(new LinkFlows(resourceID[i], -1, defaultLocalProcessingFlow, 0)); // add local processing flow
-	   plan.add(new LinkFlows(this.myId_, resourceID[i], defaultInputFlow, 0)); // input flow from user to resources
-	   plan.add(new LinkFlows(resourceID[i], this.myId_, 0, defaultOutputFlow)); // flow back to user
+	   if (centralStorageID == resourceID[i]){
+	       continue;
+	   }
+	   plan.add(new LinkFlows(centralStorageID, resourceID[i], defaultInputFlow, 0)); // input flow from user to resources
+	   plan.add(new LinkFlows(resourceID[i], centralStorageID, 0, defaultOutputFlow)); // flow back to user
 	   for (int j = 0; j < resourceID.length; j++ ){
 	       if ( i != j ){
 		   if (resourceID[i] < resourceID[j] ){

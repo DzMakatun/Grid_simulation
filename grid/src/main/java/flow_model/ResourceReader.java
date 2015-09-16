@@ -113,6 +113,7 @@ public class ResourceReader {
 
                 // attach the resource to a router
                 tempRouter = NetworkReader.getRouter(routerName, routerList);
+                
 
                 if (tempRouter != null) {
                      tempRouter.attachHost(r1, new FIFOScheduler(r1.get_name()

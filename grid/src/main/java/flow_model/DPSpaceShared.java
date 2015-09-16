@@ -217,7 +217,7 @@ class DPSpaceShared extends AllocPolicy
 	                
              
 	            default:
-	        	write("Unknown event received");
+	        	write("Unknown event received. tag: " + ev.get_tag());
 	                break;
 	        }        
 	    }
@@ -467,7 +467,7 @@ class DPSpaceShared extends AllocPolicy
 	    
 	    //send	    
 	    write("sending output file " + gl.getGridletID() + " to resource " + neighborNodesIds.get(j));
-	    super.sim_schedule(super.outputPort_, GridSimTags.SCHEDULE_NOW, RiftTags.CONFIRMATION_OUTPUT,
+	    super.sim_schedule(super.outputPort_, GridSimTags.SCHEDULE_NOW, RiftTags.OUTPUT,
 	          new IO_data(gl, gl.getGridletOutputSize(), neighborNodesIds.get(j), 0) );
 	    //update counters
 	    double size = gl.getOutputSizeInUnits();
