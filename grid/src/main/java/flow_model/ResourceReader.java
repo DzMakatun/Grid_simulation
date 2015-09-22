@@ -104,7 +104,16 @@ public class ResourceReader {
                     gridletFilename = str.nextToken();
                     GridletList gridletList = GridletReader.getGridletList(gridletFilename ,maxGridlets);
                     policy = (DPSpaceShared) r1.getAllocationPolicy();                    	
-                    policy.addInitialInputFiles(gridletList);                    
+                    policy.addInitialInputFiles(gridletList);       
+                    
+                    //Print Gridlet list
+                    System.out.println("GRIDLETS at " + r1.get_id() + ":" + r1.get_name());
+                    DPGridlet gridlet;
+                    
+                    for (Gridlet gl : gridletList){
+                	gridlet = (DPGridlet) gl;
+                	System.out.println(gridlet.toStringShort());
+                    }
                 }
                 
                // add resource to the list
@@ -113,7 +122,7 @@ public class ResourceReader {
                 //WARNING CHECK THIS
                //create a CompNodeEntity for planner
                 planerNode = new CompNode(r1.get_id(), r1.get_name(), false, isInputSource, isOutputDestination,
-                	true, true, (long) storage_size, PEs, 27.0f, 0, 0, 0, 0, 0);
+                	true, true, (long) storage_size, PEs, 11.1f, 0, 0, 0, 0, 0);
                 
                 planerNodes.add(planerNode);
             }
@@ -145,7 +154,7 @@ public class ResourceReader {
         String arch = "x86"; // system architecture
         String os = "Linux"; // operating system
         double time_zone = 0.0; // time zone this resource located
-        double cost = 0.0; // the cost of using this resource
+        double cost = 1.0; // the cost of using this resource
 
         ResourceCharacteristics resConfig = new ResourceCharacteristics(arch,
                 os, mList, ResourceCharacteristics.SPACE_SHARED, time_zone, cost);

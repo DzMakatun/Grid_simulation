@@ -100,6 +100,7 @@ private static DPGridlet readGridlet(String line) {
 			//we create gridlets only from jobs that passed requirements
 			//gridlet = new Gridlet(id, duration , inputFileSize, outputFileSize);
 			gridlet = new DPGridlet(id, duration, inputFileSize, outputFileSize, true); //do  track this
+			gridlet.setGridletFinishedSoFar(0);
 			//gridlet.setUserID(userId);
 		}else{
 			System.out.println("Gridlet filtered:\n" + line);

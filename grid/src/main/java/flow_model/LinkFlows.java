@@ -1,5 +1,7 @@
 package flow_model;
 
+
+
 public class LinkFlows {
     public int fromID;
     public int toID;
@@ -11,6 +13,17 @@ public class LinkFlows {
 	this.toID = toID;
 	this.inputFlow = inputFlow;
 	this.outputFlow = outputFlow;	
+    }
+    
+    @Override
+    public String toString(){
+	StringBuffer br = new StringBuffer();	
+	br.append("fromID: " + this.fromID + " ");
+	br.append("toID: " + this.toID + " ");
+	br.append("inputFlow: " + this.inputFlow + " ");
+	br.append("outputFlow: " + this.outputFlow);
+	
+	return br.toString();	
     }
 
 }

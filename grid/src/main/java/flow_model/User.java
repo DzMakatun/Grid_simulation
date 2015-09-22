@@ -97,8 +97,8 @@ class User extends GridUser {
     public void body() {
 	
 	//INITIALIZE PLANER
-	int deltaT = 100;
-	float beta =  0.6f;	
+	int deltaT = 200000;
+	float beta =  0.7f;	
 	solver = new DataProductionPlanner(ParameterReader.planerLogFilename, deltaT, beta);
 	for(CompNode node : ResourceReader.planerNodes){
 	    solver.addNode(node);
@@ -242,6 +242,8 @@ class User extends GridUser {
         finishTime = GridSim.clock();
 
         
+        //WAIT for other events before finishing the simulation
+        super.gridSimHold(2000000);
         
         
              ////////////////////////////////////////////////////////
@@ -357,9 +359,19 @@ class User extends GridUser {
             plan.add(tempFlow);
         }
 
-        
+        printPlan(plan);
  	return plan;
      }
+    
+    private void printPlan(LinkedList<LinkFlows> plan){
+	write("-------------New plan created----------------");
+	
+	for (LinkFlows tempFlow : plan){
+	    write(tempFlow.toString() );
+	}
+	
+	write("----------------------------------------------");
+    }
 
    /** generates static plan for testing purposes
     * @return

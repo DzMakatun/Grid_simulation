@@ -134,8 +134,11 @@ class DPSpaceShared extends AllocPolicy
     }
     
     public boolean addInitialInputFiles(GridletList list){
+	DPGridlet gridlet;
 	for (int i = 0; i < list.size(); i++){
-	    if ( ! addInputFile( (DPGridlet) list.get(i) ) ){
+	    gridlet = (DPGridlet) list.get(i);
+	    gridlet.setUserID(this.resId_);
+	    if ( ! addInputFile( gridlet ) ){
 		//if failed to add input file
 		return false;
 	    }
@@ -381,6 +384,10 @@ class DPSpaceShared extends AllocPolicy
 	    if (createOutputFile(gl) ){ // if space for outputfile was successfully created
 	        waitingInputSize -= gl.getInputSizeInUnits(); 
 	        submittedInputFiles.add(gl);
+	        //!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+	        //BUGFIX (otherwise job times are not calculated)
+	        gl.setResourceParameter(this.resId_,this.resource_.getCostPerSec());
+	        /////////////////////////////////
 	        gridletSubmit(gl, false); // submit to policy for execution 
 	        localProcessingFlow -= gl.getInputSizeInUnits(); //decrease the counter
 	        return true;
@@ -688,7 +695,13 @@ class DPSpaceShared extends AllocPolicy
             gl.setNumPE(1);
         }
 
+
         ResGridlet rgl = new ResGridlet(gl);
+        //DEBUG
+        //System.out.println("gridlet length: " + gl.getGridletLength() + "gridlet getGridletFinishedSoFar(): " +gl.getGridletFinishedSoFar()  + " ResGridlet getGridletLength: " + rgl.getGridletLength()
+        //	+ " ResGridlet getRemainingGridletLength: " + rgl.getRemainingGridletLength());
+        
+
         boolean success = false;
 
         // if there is an available PE slot, then allocate immediately
@@ -1152,6 +1165,7 @@ class DPSpaceShared extends AllocPolicy
         // ALLOCATE IMMEDIATELY
         rgl.setGridletStatus(Gridlet.INEXEC);   // change Gridlet status
         rgl.setMachineAndPEID(myMachine.getMachineID(), freePE);
+        
 
         // add this Gridlet into execution list
         gridletInExecList_.add(rgl);
@@ -1161,6 +1175,8 @@ class DPSpaceShared extends AllocPolicy
 
         // Identify Completion Time and Set Interrupt
         int rating = machineRating_[ rgl.getMachineID() ];
+        //DEBUG
+        //System.out.println("allocatePEtoGridlet: rgl.getRemainingGridletLength(): " + rgl.getRemainingGridletLength());
         double time = forecastFinishTime( rating ,
                                           rgl.getRemainingGridletLength() );
 
@@ -1192,7 +1208,8 @@ class DPSpaceShared extends AllocPolicy
         if (finishTime < 1.0) {
             finishTime = 1.0;
         }
-
+        //DEBUG
+        //System.out.println("availableRating: " + availableRating + " length: " + length + " forecastFinishTime " + finishTime);
         return finishTime;
     }
 
