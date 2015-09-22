@@ -25,11 +25,14 @@ import java.util.Calendar;
 import java.util.LinkedList;
 import java.util.StringTokenizer;
 
+import networkflows.planner.CompNode;
+
 
 /**
  * Creates one or more GridResources 
  */
 public class ResourceReader {
+    public static LinkedList<CompNode> planerNodes = new LinkedList<CompNode>();
 
     /**
      * Reads a description of resources from a file and creates the
@@ -72,6 +75,8 @@ public class ResourceReader {
         boolean isOutputDestination;
         int maxGridlets; // max number of gridlets to read;
         String gridletFilename; //list of initial gridlets placed at the resource
+        CompNode planerNode; //to store the data for planner
+        
         
 
         GridResource r1;
@@ -105,6 +110,12 @@ public class ResourceReader {
                // add resource to the list
                 resourceList.add(r1);
                 
+                //WARNING CHECK THIS
+               //create a CompNodeEntity for planner
+                planerNode = new CompNode(r1.get_id(), r1.get_name(), false, isInputSource, isOutputDestination,
+                	true, true, (long) storage_size, PEs, 27.0f, 0, 0, 0, 0, 0);
+                
+                planerNodes.add(planerNode);
             }
         }
 

@@ -557,10 +557,10 @@ class DPSpaceShared extends AllocPolicy
 	    status.put("nodeName", super.resName_);
 	    status.put("isInputSource", isInputSource());
 	    status.put("isOutputDestination", isOutputDestination);
-	    status.put("waitingInputFiles", waitingInputFiles);
+	    status.put("waitingInputSize", waitingInputSize);
 	    status.put("freeStorageSpace", freeStorageSpace);
 	    status.put("readyOutputSize", readyOutputSize);
-	    status.put("waitingInputFiles", waitingInputFiles);
+	    //status.put("waitingInputFiles", waitingInputFiles);
 	    
 	    
 	    super.sim_schedule(super.outputPort_, GridSimTags.SCHEDULE_NOW, RiftTags.STATUS_RESPONSE,
@@ -571,30 +571,6 @@ class DPSpaceShared extends AllocPolicy
 	    return;
 	}
 	
-	/** find bandwidth to neighbouring nodes
-	 * remove this
-	 */
-	private void discoverNetwork(){
-	    LinkedList resList = GridSim.getGridResourceList();
-	    int resID;
-	    InfoPacket pkt = null;
-	    int size = 1; // 1 MB
-
-	       
-	    while(!resList.isEmpty() ){
-		resID = (Integer) resList.poll();
-		
-		if (resID == this.myId_){//skip myself
-		    continue;
-		}
-		//ping remote resource
-		//pkt = GridSimCore.pingBlockingCall(resID, size);
-		
-		
-	    }	    
-	    write(resList.toString() );
-	    return;
-	}
 
 	/**generate a string with event details
 	 * 

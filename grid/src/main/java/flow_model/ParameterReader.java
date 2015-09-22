@@ -22,6 +22,7 @@ public class ParameterReader {
     public static String resourceFilename;
     public static String usersFilename;
     public static String gridletsFilename;
+    public static String planerLogFilename;
     public static int maxGridlets;
     public static int numUsers;
     public static String topRCrouter;
@@ -67,6 +68,9 @@ public class ParameterReader {
                 	dataUnitsName = value;
                     } else if (name.equals("dataUnitsSize")) {
                 	dataUnitsSize = Long.valueOf(value);
+                    } else if (name.equals("planerLogFilename")) {
+                	planerLogFilename = value;	
+                	
                     } else {
                         System.out.println("Unknown parameter " + name);
                     }

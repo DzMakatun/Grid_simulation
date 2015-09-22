@@ -1,5 +1,6 @@
 # file with gridlets in specified in resources
 resources=input/resources.txt
 network=input/network.txt
+planerLogFilename=output/planer_log.txt
 dataUnitsName=MB
 dataUnitsSize=1048576 
