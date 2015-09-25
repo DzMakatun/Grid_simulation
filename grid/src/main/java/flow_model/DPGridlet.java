@@ -28,6 +28,7 @@ public class DPGridlet extends Gridlet{
 		br.append("inSizeUnits: " + this.getInputSizeInUnits() + DataUnits.getName() + " ");
 		br.append("outSize: " + this.getGridletFileSize() + "(bytes), ");
 		br.append("outSizeUnits: " + this.getOutputSizeInUnits() + DataUnits.getName()+ " ");
+		br.append("netServiceLevel: " + this.getNetServiceLevel()+ " ");
 		
 		
 		return br.toString();

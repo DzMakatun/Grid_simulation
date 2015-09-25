@@ -8,18 +8,27 @@
 
 package flow_model;
 
-import gridsim.*;
-import gridsim.net.InfoPacket;
-
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.LinkedHashSet;
-import java.util.LinkedList;
-import java.util.Map;
-
 import eduni.simjava.Sim_event;
 import eduni.simjava.Sim_system;
+import gridsim.AllocPolicy;
+import gridsim.GridSim;
+import gridsim.GridSimTags;
+import gridsim.Gridlet;
+import gridsim.GridletList;
+import gridsim.IO_data;
+import gridsim.Machine;
+import gridsim.MachineList;
+import gridsim.PE;
+import gridsim.PEList;
+import gridsim.ResGridlet;
+import gridsim.ResGridletList;
+
+import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.Map;
 
 
 /**
@@ -105,7 +114,6 @@ class DPSpaceShared extends AllocPolicy
     DPSpaceShared(String resourceName, String entityName, double storageSize, boolean isInputSource, boolean isOutputDestination) throws Exception
     {
         super(resourceName, entityName);
-
         // initialises local data structure
         this.gridletInExecList_ = new ResGridletList();
         this.gridletPausedList_ = new ResGridletList();
@@ -168,10 +176,11 @@ class DPSpaceShared extends AllocPolicy
 	br.append("isInputSource: " +isInputSource()  + ", ");
 	br.append("isOutputDestination: " +isOutputDestination()  + ", ");
 	br.append("waitingInputSize: " + waitingInputSize  + ", ");
-	
+	br.append("out_port: " + super.outputPort_.getClass()  + ", ");
+	br.append("inputID: "  + GridSim.getEntityId("Input_" + super.resName_) + ", ");
+	br.append("outputID: "  + GridSim.getEntityId("Output_" + super.resName_) + ", ");
 	//br.append("link bandwidth: " + super.outputPort_.  + "(bit/s), ");		
 	//br.append("stat: " + super.get_stat().toString());
-		
 	return br.toString();
 		
     }    
@@ -209,7 +218,7 @@ class DPSpaceShared extends AllocPolicy
 	                break;
 	                
 	            case RiftTags.INPUT:
-	        	//write("received input file");
+	        	write("received input file");	        	
 	                processIncommingInputFile(ev);
 	                break;    
 
@@ -267,7 +276,8 @@ class DPSpaceShared extends AllocPolicy
 
 	private void processIncommingInputFile(Sim_event ev) {
 	    DPGridlet gl = (DPGridlet) ev.get_data();
-	    write("received input file of gridlet" + gl.getGridletID());
+	    write("received input file of gridlet" + gl.getGridletID() 
+		    + " of size " + gl.getGridletFileSize() + " (bytes)");
 	    //add new input file to
 	    if (addInputFile(gl) ){
 		//send confirmation to sender
@@ -438,9 +448,14 @@ class DPSpaceShared extends AllocPolicy
 	    }
 	    
 	    //send	    
-	    write(" sending input file " + gl.getGridletID() + " to resource " + neighborNodesIds.get(j));	    
-	    super.sim_schedule(super.outputPort_, GridSimTags.SCHEDULE_NOW, RiftTags.INPUT,
-	          new IO_data(gl, gl.getGridletFileSize(), neighborNodesIds.get(j), 0) );
+	    write(" sending input file " + gl.getGridletID() + " of size " + gl.getGridletFileSize() 
+		    + "(bytes) to resource " + neighborNodesIds.get(j));	
+	    IO_data data = new IO_data(gl, gl.getGridletFileSize(), neighborNodesIds.get(j));
+	    //DEBUG
+	   
+	    write("sending IO_data: " + data.toString());
+	    super.sim_schedule(super.outputPort_, GridSimTags.SCHEDULE_NOW, RiftTags.INPUT, data);
+	    
 	    //update counters
 	    double size = gl.getInputSizeInUnits();
 	    remoteInputFlow -=  size;
@@ -473,9 +488,13 @@ class DPSpaceShared extends AllocPolicy
 	    }
 	    
 	    //send	    
-	    write("sending output file " + gl.getGridletID() + " to resource " + neighborNodesIds.get(j));
-	    super.sim_schedule(super.outputPort_, GridSimTags.SCHEDULE_NOW, RiftTags.OUTPUT,
-	          new IO_data(gl, gl.getGridletOutputSize(), neighborNodesIds.get(j), 0) );
+	    write("sending output file " + gl.getGridletID()  +" of size "  + gl.getGridletOutputSize() 
+		    + "(bytes) to resource " + neighborNodesIds.get(j));
+	    IO_data data =  new IO_data(gl, gl.getGridletOutputSize(), neighborNodesIds.get(j) );
+	    //DEBUG
+	    write("sending IO_data: " + data.toString());
+	    super.sim_schedule(super.outputPort_, GridSimTags.SCHEDULE_NOW, RiftTags.OUTPUT, data);
+	    //GridSim.send(super.outputPort_, GridSimTags.SCHEDULE_NOW,  RiftTags.OUTPUT, data);
 	    //update counters
 	    double size = gl.getOutputSizeInUnits();
 	    remoteOutputFlow -=  size;

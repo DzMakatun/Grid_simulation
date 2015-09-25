@@ -7,16 +7,14 @@ package flow_model;
  * License:      GPL - http://www.gnu.org/copyleft/gpl.html
  */
 
-import gridsim.*;
-import gridsim.datagrid.DataGridResource;
-import gridsim.datagrid.File;
-import gridsim.datagrid.SimpleReplicaManager;
-import gridsim.datagrid.index.TopRegionalRC;
-import gridsim.datagrid.storage.HarddriveStorage;
-import gridsim.datagrid.storage.Storage;
-import gridsim.net.*;
+import gridsim.GridResource;
+import gridsim.Gridlet;
+import gridsim.GridletList;
+import gridsim.Machine;
+import gridsim.MachineList;
+import gridsim.ResourceCalendar;
+import gridsim.ResourceCharacteristics;
 import gridsim.net.flow.FlowLink;
-import gridsim.util.NetworkReader;
 
 import java.io.BufferedReader;
 import java.io.FileReader;
@@ -154,7 +152,7 @@ public class ResourceReader {
         String arch = "x86"; // system architecture
         String os = "Linux"; // operating system
         double time_zone = 0.0; // time zone this resource located
-        double cost = 1.0; // the cost of using this resource
+        double cost = 0.0; // the cost of using this resource
 
         ResourceCharacteristics resConfig = new ResourceCharacteristics(arch,
                 os, mList, ResourceCharacteristics.SPACE_SHARED, time_zone, cost);
@@ -191,7 +189,7 @@ public class ResourceReader {
             //link which connects the resource to it's router, the bandwith is
             // defined as bit/s 
             double bandwidth = Double.MAX_VALUE;
-            Link link = new FlowLink(name + "_internal_link", bandwidth, 0.1, Integer.MAX_VALUE);
+            FlowLink link = new FlowLink(name + "_internal_link", bandwidth, 0.1, Integer.MAX_VALUE);
             
             gridRes = new GridResource(name, link, resConfig, cal, handler);
             

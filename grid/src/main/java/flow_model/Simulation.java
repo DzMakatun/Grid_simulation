@@ -1,20 +1,16 @@
 package flow_model;
 
 
-import eduni.simjava.Sim_system;
-import gridsim.*;
-import gridsim.datagrid.index.*;
+import gridsim.GridResource;
+import gridsim.GridSim;
+import gridsim.GridSimTags;
+import gridsim.ResourceCharacteristics;
 import gridsim.net.FIFOScheduler;
-import gridsim.net.Link;
-import gridsim.net.Router;
-import gridsim.net.SimpleLink;
-import gridsim.util.NetworkReader;
+import gridsim.net.flow.FlowRouter;  // To use the new flow network package - GridSim 4.2
 import gridsim.util.SimReport;
 
 import java.util.Calendar;
 import java.util.LinkedList;
-
-import gridsim.net.flow.*;  // To use the new flow network package - GridSim 4.2
 
 /**
  * This is the main class of the simulation package. It reads all the parameters
@@ -44,24 +40,25 @@ public class Simulation {
             int num_user = 1; // number of grid users
             Calendar calendar = Calendar.getInstance();
             boolean trace_flag = true; // means trace GridSim events
-            boolean gisFlag = false; // means using custom gis instead
+           // boolean gisFlag = false; // means using custom gis instead
             
             //set data units for the simulation
             DataUnits.setUnits(ParameterReader.dataUnitsName, ParameterReader.dataUnitsSize);
 
            
-            //Initializes the GridSim package
-            System.out.println("Initializing GridSim package");
-            GridSim.init(num_user, calendar, trace_flag, gisFlag);
-
             //uses flow extension
             GridSim.initNetworkType(GridSimTags.NET_FLOW_LEVEL);
+            //Initializes the GridSim package
+            System.out.println("Initializing GridSim package");            
+            GridSim.init(num_user, calendar, trace_flag);
+
+            
 
             // sets the GIS into DataGIS that handles specifically for data grid
             // scenarios
-            GridInformationService gis = new GridInformationService("GIS",Double.MAX_VALUE);
+            //GridInformationService gis = new GridInformationService("GIS",Double.MAX_VALUE);
             //DataGIS gis = new DataGIS(); 
-            GridSim.setGIS(gis);
+            //GridSim.setGIS(gis);
             
             ///////////
             //CREATEs RESOURCES
@@ -104,9 +101,16 @@ public class Simulation {
                     Double.MAX_VALUE, 0.001, Integer.MAX_VALUE);            
             plannerRouter.attachHost(Planer, new FIFOScheduler("Planer"+"_router_scheduler"));     
            
-            
+            //check network type
+            write( "Network type NET_FLOW_LEVEL: " + ( GridSim.getNetworkType() == GridSimTags.NET_FLOW_LEVEL ) );
+            GridSim.enableDebugMode();
 
             GridSim.startGridSimulation();
+            
+            write("ROUTERS:");
+            for (FlowRouter r : routerList){
+        	r.printRoutingTable();
+            }
             
             write("\nFinish data grid simulation ...");
             report_.finalWrite();

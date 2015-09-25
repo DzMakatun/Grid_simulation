@@ -22,7 +22,9 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.Map;
 
-import networkflows.planner.*; //My planner model
+import networkflows.planner.CompNode;
+import networkflows.planner.DataProductionPlanner; //My planner model
+import networkflows.planner.NetworkLink;
 
 /**
  * This class defines a user which submits raw data for processing in 
@@ -108,8 +110,14 @@ class User extends GridUser {
 	}	
 	solver.PrintGridSetup();
 	
+	//DEBUG
+	write("input port: " + this.input.toString());
+	write("output port: " + this.output.toString());
+	write("link: " + this.getLink().getClass());
+	write("inputID: "  + GridSim.getEntityId("Input_" + this.name_) );
+	write("outputID: "  + GridSim.getEntityId("Output_" + this.name_) );
 	
-    	 // wait for a little while for about 3 seconds.
+	
         // This to give a time for GridResource entities to register their
         // services to GIS (GridInformationService) entity.
         super.gridSimHold(1000.0);
@@ -154,6 +162,11 @@ class User extends GridUser {
         for(i = 0; i < totalResource; i++){
         	totalPEs += resourcePEs[i];
         }
+        
+        
+        //write("sending 5000000000 bytes to resource " + resourceID[0]);
+        //super.send(super.output, GridSimTags.SCHEDULE_NOW, RiftTags.INPUT,
+        //	new IO_data("Hello", 5000000000L, resourceID[0]));
         
         /////////////////////////////////////////////////
         //GET resource statuses

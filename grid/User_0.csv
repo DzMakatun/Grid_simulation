@@ -20,26 +20,26 @@
 12.450799999999996 User_0Sending Gridlet #17 to PE 7 at Res_1 at time 12.450799999999996
 12.450799999999996 User_0Sending Gridlet #18 to PE 8 at Res_1 at time 12.450799999999996
 12.450799999999996 User_0Sending Gridlet #19 to PE 9 at Res_1 at time 12.450799999999996
-12.450799999999996 User_0Sending Gridlet #20 to PE 0 at Res_2 at time 12.450799999999996
-12.450799999999996 User_0Sending Gridlet #21 to PE 1 at Res_2 at time 12.450799999999996
-12.450799999999996 User_0Sending Gridlet #22 to PE 2 at Res_2 at time 12.450799999999996
-12.450799999999996 User_0Sending Gridlet #23 to PE 3 at Res_2 at time 12.450799999999996
-12.450799999999996 User_0Sending Gridlet #24 to PE 4 at Res_2 at time 12.450799999999996
-12.450799999999996 User_0Sending Gridlet #25 to PE 5 at Res_2 at time 12.450799999999996
-12.450799999999996 User_0Sending Gridlet #26 to PE 6 at Res_2 at time 12.450799999999996
-12.450799999999996 User_0Sending Gridlet #27 to PE 7 at Res_2 at time 12.450799999999996
-12.450799999999996 User_0Sending Gridlet #28 to PE 8 at Res_2 at time 12.450799999999996
-12.450799999999996 User_0Sending Gridlet #29 to PE 9 at Res_2 at time 12.450799999999996
-12.450799999999996 User_0Sending Gridlet #30 to PE 0 at Res_3 at time 12.450799999999996
-12.450799999999996 User_0Sending Gridlet #31 to PE 1 at Res_3 at time 12.450799999999996
-12.450799999999996 User_0Sending Gridlet #32 to PE 2 at Res_3 at time 12.450799999999996
-12.450799999999996 User_0Sending Gridlet #33 to PE 3 at Res_3 at time 12.450799999999996
-12.450799999999996 User_0Sending Gridlet #34 to PE 4 at Res_3 at time 12.450799999999996
-12.450799999999996 User_0Sending Gridlet #35 to PE 5 at Res_3 at time 12.450799999999996
-12.450799999999996 User_0Sending Gridlet #36 to PE 6 at Res_3 at time 12.450799999999996
-12.450799999999996 User_0Sending Gridlet #37 to PE 7 at Res_3 at time 12.450799999999996
-12.450799999999996 User_0Sending Gridlet #38 to PE 8 at Res_3 at time 12.450799999999996
-12.450799999999996 User_0Sending Gridlet #39 to PE 9 at Res_3 at time 12.450799999999996
+12.450799999999996 User_0Sending Gridlet #20 to PE 0 at Res_3 at time 12.450799999999996
+12.450799999999996 User_0Sending Gridlet #21 to PE 1 at Res_3 at time 12.450799999999996
+12.450799999999996 User_0Sending Gridlet #22 to PE 2 at Res_3 at time 12.450799999999996
+12.450799999999996 User_0Sending Gridlet #23 to PE 3 at Res_3 at time 12.450799999999996
+12.450799999999996 User_0Sending Gridlet #24 to PE 4 at Res_3 at time 12.450799999999996
+12.450799999999996 User_0Sending Gridlet #25 to PE 5 at Res_3 at time 12.450799999999996
+12.450799999999996 User_0Sending Gridlet #26 to PE 6 at Res_3 at time 12.450799999999996
+12.450799999999996 User_0Sending Gridlet #27 to PE 7 at Res_3 at time 12.450799999999996
+12.450799999999996 User_0Sending Gridlet #28 to PE 8 at Res_3 at time 12.450799999999996
+12.450799999999996 User_0Sending Gridlet #29 to PE 9 at Res_3 at time 12.450799999999996
+12.450799999999996 User_0Sending Gridlet #30 to PE 0 at Res_2 at time 12.450799999999996
+12.450799999999996 User_0Sending Gridlet #31 to PE 1 at Res_2 at time 12.450799999999996
+12.450799999999996 User_0Sending Gridlet #32 to PE 2 at Res_2 at time 12.450799999999996
+12.450799999999996 User_0Sending Gridlet #33 to PE 3 at Res_2 at time 12.450799999999996
+12.450799999999996 User_0Sending Gridlet #34 to PE 4 at Res_2 at time 12.450799999999996
+12.450799999999996 User_0Sending Gridlet #35 to PE 5 at Res_2 at time 12.450799999999996
+12.450799999999996 User_0Sending Gridlet #36 to PE 6 at Res_2 at time 12.450799999999996
+12.450799999999996 User_0Sending Gridlet #37 to PE 7 at Res_2 at time 12.450799999999996
+12.450799999999996 User_0Sending Gridlet #38 to PE 8 at Res_2 at time 12.450799999999996
+12.450799999999996 User_0Sending Gridlet #39 to PE 9 at Res_2 at time 12.450799999999996
 12.450799999999996 User_0%%%%%%%%%%%60 gridlets left after initial submision
 148.9108 User_0: Receiving Gridlet #0from: Res_0 at time = 148.9108
 148.9108 User_0Sending next Gridlet #40 to Res_0 at time 148.9108
@@ -81,46 +81,46 @@
 868.9108 User_0Sending next Gridlet #58 to Res_1 at time 868.9108
 908.9108 User_0: Receiving Gridlet #19from: Res_1 at time = 908.9108
 908.9108 User_0Sending next Gridlet #59 to Res_1 at time 908.9108
-948.9108 User_0: Receiving Gridlet #20from: Res_2 at time = 948.9108
-948.9108 User_0Sending next Gridlet #60 to Res_2 at time 948.9108
-988.9108 User_0: Receiving Gridlet #21from: Res_2 at time = 988.9108
-988.9108 User_0Sending next Gridlet #61 to Res_2 at time 988.9108
-1028.9107999999999 User_0: Receiving Gridlet #22from: Res_2 at time = 1028.9107999999999
-1028.9107999999999 User_0Sending next Gridlet #62 to Res_2 at time 1028.9107999999999
-1068.9108 User_0: Receiving Gridlet #23from: Res_2 at time = 1068.9108
-1068.9108 User_0Sending next Gridlet #63 to Res_2 at time 1068.9108
-1108.9108 User_0: Receiving Gridlet #24from: Res_2 at time = 1108.9108
-1108.9108 User_0Sending next Gridlet #64 to Res_2 at time 1108.9108
-1148.9108 User_0: Receiving Gridlet #25from: Res_2 at time = 1148.9108
-1148.9108 User_0Sending next Gridlet #65 to Res_2 at time 1148.9108
-1188.9108 User_0: Receiving Gridlet #26from: Res_2 at time = 1188.9108
-1188.9108 User_0Sending next Gridlet #66 to Res_2 at time 1188.9108
-1228.9108 User_0: Receiving Gridlet #27from: Res_2 at time = 1228.9108
-1228.9108 User_0Sending next Gridlet #67 to Res_2 at time 1228.9108
-1268.9108 User_0: Receiving Gridlet #28from: Res_2 at time = 1268.9108
-1268.9108 User_0Sending next Gridlet #68 to Res_2 at time 1268.9108
-1308.9108 User_0: Receiving Gridlet #29from: Res_2 at time = 1308.9108
-1308.9108 User_0Sending next Gridlet #69 to Res_2 at time 1308.9108
-1348.9108 User_0: Receiving Gridlet #30from: Res_3 at time = 1348.9108
-1348.9108 User_0Sending next Gridlet #70 to Res_3 at time 1348.9108
-1388.9108 User_0: Receiving Gridlet #31from: Res_3 at time = 1388.9108
-1388.9108 User_0Sending next Gridlet #71 to Res_3 at time 1388.9108
-1428.9108 User_0: Receiving Gridlet #32from: Res_3 at time = 1428.9108
-1428.9108 User_0Sending next Gridlet #72 to Res_3 at time 1428.9108
-1468.9108 User_0: Receiving Gridlet #33from: Res_3 at time = 1468.9108
-1468.9108 User_0Sending next Gridlet #73 to Res_3 at time 1468.9108
-1508.9108 User_0: Receiving Gridlet #34from: Res_3 at time = 1508.9108
-1508.9108 User_0Sending next Gridlet #74 to Res_3 at time 1508.9108
-1548.9108 User_0: Receiving Gridlet #35from: Res_3 at time = 1548.9108
-1548.9108 User_0Sending next Gridlet #75 to Res_3 at time 1548.9108
-1588.9108 User_0: Receiving Gridlet #36from: Res_3 at time = 1588.9108
-1588.9108 User_0Sending next Gridlet #76 to Res_3 at time 1588.9108
-1628.9108 User_0: Receiving Gridlet #37from: Res_3 at time = 1628.9108
-1628.9108 User_0Sending next Gridlet #77 to Res_3 at time 1628.9108
-1668.9108 User_0: Receiving Gridlet #38from: Res_3 at time = 1668.9108
-1668.9108 User_0Sending next Gridlet #78 to Res_3 at time 1668.9108
-1708.9108 User_0: Receiving Gridlet #39from: Res_3 at time = 1708.9108
-1708.9108 User_0Sending next Gridlet #79 to Res_3 at time 1708.9108
+948.9108 User_0: Receiving Gridlet #20from: Res_3 at time = 948.9108
+948.9108 User_0Sending next Gridlet #60 to Res_3 at time 948.9108
+988.9108 User_0: Receiving Gridlet #21from: Res_3 at time = 988.9108
+988.9108 User_0Sending next Gridlet #61 to Res_3 at time 988.9108
+1028.9107999999999 User_0: Receiving Gridlet #22from: Res_3 at time = 1028.9107999999999
+1028.9107999999999 User_0Sending next Gridlet #62 to Res_3 at time 1028.9107999999999
+1068.9108 User_0: Receiving Gridlet #23from: Res_3 at time = 1068.9108
+1068.9108 User_0Sending next Gridlet #63 to Res_3 at time 1068.9108
+1108.9108 User_0: Receiving Gridlet #24from: Res_3 at time = 1108.9108
+1108.9108 User_0Sending next Gridlet #64 to Res_3 at time 1108.9108
+1148.9108 User_0: Receiving Gridlet #25from: Res_3 at time = 1148.9108
+1148.9108 User_0Sending next Gridlet #65 to Res_3 at time 1148.9108
+1188.9108 User_0: Receiving Gridlet #26from: Res_3 at time = 1188.9108
+1188.9108 User_0Sending next Gridlet #66 to Res_3 at time 1188.9108
+1228.9108 User_0: Receiving Gridlet #27from: Res_3 at time = 1228.9108
+1228.9108 User_0Sending next Gridlet #67 to Res_3 at time 1228.9108
+1268.9108 User_0: Receiving Gridlet #28from: Res_3 at time = 1268.9108
+1268.9108 User_0Sending next Gridlet #68 to Res_3 at time 1268.9108
+1308.9108 User_0: Receiving Gridlet #29from: Res_3 at time = 1308.9108
+1308.9108 User_0Sending next Gridlet #69 to Res_3 at time 1308.9108
+1348.9108 User_0: Receiving Gridlet #30from: Res_2 at time = 1348.9108
+1348.9108 User_0Sending next Gridlet #70 to Res_2 at time 1348.9108
+1388.9108 User_0: Receiving Gridlet #31from: Res_2 at time = 1388.9108
+1388.9108 User_0Sending next Gridlet #71 to Res_2 at time 1388.9108
+1428.9108 User_0: Receiving Gridlet #32from: Res_2 at time = 1428.9108
+1428.9108 User_0Sending next Gridlet #72 to Res_2 at time 1428.9108
+1468.9108 User_0: Receiving Gridlet #33from: Res_2 at time = 1468.9108
+1468.9108 User_0Sending next Gridlet #73 to Res_2 at time 1468.9108
+1508.9108 User_0: Receiving Gridlet #34from: Res_2 at time = 1508.9108
+1508.9108 User_0Sending next Gridlet #74 to Res_2 at time 1508.9108
+1548.9108 User_0: Receiving Gridlet #35from: Res_2 at time = 1548.9108
+1548.9108 User_0Sending next Gridlet #75 to Res_2 at time 1548.9108
+1588.9108 User_0: Receiving Gridlet #36from: Res_2 at time = 1588.9108
+1588.9108 User_0Sending next Gridlet #76 to Res_2 at time 1588.9108
+1628.9108 User_0: Receiving Gridlet #37from: Res_2 at time = 1628.9108
+1628.9108 User_0Sending next Gridlet #77 to Res_2 at time 1628.9108
+1668.9108 User_0: Receiving Gridlet #38from: Res_2 at time = 1668.9108
+1668.9108 User_0Sending next Gridlet #78 to Res_2 at time 1668.9108
+1708.9108 User_0: Receiving Gridlet #39from: Res_2 at time = 1708.9108
+1708.9108 User_0Sending next Gridlet #79 to Res_2 at time 1708.9108
 1748.9108 User_0: Receiving Gridlet #40from: Res_0 at time = 1748.9108
 1748.9108 User_0Sending next Gridlet #80 to Res_0 at time 1748.9108
 1788.9108 User_0: Receiving Gridlet #41from: Res_0 at time = 1788.9108
@@ -162,26 +162,26 @@
 2508.910800000001 User_0: Receiving Gridlet #59from: Res_1 at time = 2508.910800000001
 2508.910800000001 User_0Sending next Gridlet #99 to Res_1 at time 2508.910800000001
 2508.910800000001 User_0 ALL GRIDLETS SUBMITTED
-2548.910800000001 User_0: Receiving Gridlet #60from: Res_2 at time = 2548.910800000001
-2588.910800000001 User_0: Receiving Gridlet #61from: Res_2 at time = 2588.910800000001
-2628.910800000001 User_0: Receiving Gridlet #62from: Res_2 at time = 2628.910800000001
-2668.910800000001 User_0: Receiving Gridlet #63from: Res_2 at time = 2668.910800000001
-2708.910800000001 User_0: Receiving Gridlet #64from: Res_2 at time = 2708.910800000001
-2748.910800000001 User_0: Receiving Gridlet #65from: Res_2 at time = 2748.910800000001
-2788.910800000001 User_0: Receiving Gridlet #66from: Res_2 at time = 2788.910800000001
-2828.910800000001 User_0: Receiving Gridlet #67from: Res_2 at time = 2828.910800000001
-2868.910800000001 User_0: Receiving Gridlet #68from: Res_2 at time = 2868.910800000001
-2908.910800000001 User_0: Receiving Gridlet #69from: Res_2 at time = 2908.910800000001
-2948.910800000001 User_0: Receiving Gridlet #70from: Res_3 at time = 2948.910800000001
-2988.910800000001 User_0: Receiving Gridlet #71from: Res_3 at time = 2988.910800000001
-3028.910800000001 User_0: Receiving Gridlet #72from: Res_3 at time = 3028.910800000001
-3068.910800000001 User_0: Receiving Gridlet #73from: Res_3 at time = 3068.910800000001
-3108.910800000001 User_0: Receiving Gridlet #74from: Res_3 at time = 3108.910800000001
-3148.910800000001 User_0: Receiving Gridlet #75from: Res_3 at time = 3148.910800000001
-3188.910800000001 User_0: Receiving Gridlet #76from: Res_3 at time = 3188.910800000001
-3228.910800000001 User_0: Receiving Gridlet #77from: Res_3 at time = 3228.910800000001
-3268.910800000001 User_0: Receiving Gridlet #78from: Res_3 at time = 3268.910800000001
-3308.910800000001 User_0: Receiving Gridlet #79from: Res_3 at time = 3308.910800000001
+2548.910800000001 User_0: Receiving Gridlet #60from: Res_3 at time = 2548.910800000001
+2588.910800000001 User_0: Receiving Gridlet #61from: Res_3 at time = 2588.910800000001
+2628.910800000001 User_0: Receiving Gridlet #62from: Res_3 at time = 2628.910800000001
+2668.910800000001 User_0: Receiving Gridlet #63from: Res_3 at time = 2668.910800000001
+2708.910800000001 User_0: Receiving Gridlet #64from: Res_3 at time = 2708.910800000001
+2748.910800000001 User_0: Receiving Gridlet #65from: Res_3 at time = 2748.910800000001
+2788.910800000001 User_0: Receiving Gridlet #66from: Res_3 at time = 2788.910800000001
+2828.910800000001 User_0: Receiving Gridlet #67from: Res_3 at time = 2828.910800000001
+2868.910800000001 User_0: Receiving Gridlet #68from: Res_3 at time = 2868.910800000001
+2908.910800000001 User_0: Receiving Gridlet #69from: Res_3 at time = 2908.910800000001
+2948.910800000001 User_0: Receiving Gridlet #70from: Res_2 at time = 2948.910800000001
+2988.910800000001 User_0: Receiving Gridlet #71from: Res_2 at time = 2988.910800000001
+3028.910800000001 User_0: Receiving Gridlet #72from: Res_2 at time = 3028.910800000001
+3068.910800000001 User_0: Receiving Gridlet #73from: Res_2 at time = 3068.910800000001
+3108.910800000001 User_0: Receiving Gridlet #74from: Res_2 at time = 3108.910800000001
+3148.910800000001 User_0: Receiving Gridlet #75from: Res_2 at time = 3148.910800000001
+3188.910800000001 User_0: Receiving Gridlet #76from: Res_2 at time = 3188.910800000001
+3228.910800000001 User_0: Receiving Gridlet #77from: Res_2 at time = 3228.910800000001
+3268.910800000001 User_0: Receiving Gridlet #78from: Res_2 at time = 3268.910800000001
+3308.910800000001 User_0: Receiving Gridlet #79from: Res_2 at time = 3308.910800000001
 3348.910800000001 User_0: Receiving Gridlet #80from: Res_0 at time = 3348.910800000001
 3388.910800000001 User_0: Receiving Gridlet #81from: Res_0 at time = 3388.910800000001
 3428.910800000001 User_0: Receiving Gridlet #82from: Res_0 at time = 3428.910800000001
