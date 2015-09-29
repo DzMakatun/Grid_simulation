@@ -24,22 +24,28 @@ public class DPGridlet extends Gridlet{
 		br.append("length: " + this.getGridletLength() + ", ");
 		//br.append("remaining_length: " + super.getRemainingGridletLength() + ", ");
 		
-		br.append("inSize: " + this.getGridletFileSize() + "(bytes), ");
-		br.append("inSizeUnits: " + this.getInputSizeInUnits() + DataUnits.getName() + " ");
-		br.append("outSize: " + this.getGridletFileSize() + "(bytes), ");
-		br.append("outSizeUnits: " + this.getOutputSizeInUnits() + DataUnits.getName()+ " ");
-		br.append("netServiceLevel: " + this.getNetServiceLevel()+ " ");
+		br.append("inSize: " + this.getGridletFileSize());
+		br.append(" (" + DataUnits.getName() + ") ");
+		//br.append("inSizeUnits: " + this.getInputSizeInUnits() + DataUnits.getName() + " ");
+		br.append("outSize: " + this.getGridletOutputSize());
+		br.append(" (" + DataUnits.getName() + ") ");
+		//br.append("outSizeUnits: " + this.getOutputSizeInUnits() + DataUnits.getName()+ " ");
+		//br.append("netServiceLevel: " + this.getNetServiceLevel()+ " ");
 		
 		
 		return br.toString();
 	}
 	
+	@Deprecated
 	public double getInputSizeInUnits(){
-	    return super.getGridletFileSize() / DataUnits.getSize();
+	    return this.getGridletFileSize();
+	    //return super.getGridletFileSize() / DataUnits.getSize();
 	}
 	
+	@Deprecated
 	public double getOutputSizeInUnits(){
-	    return super.getGridletOutputSize() / DataUnits.getSize();
+	    return this.getGridletOutputSize();
+	    //return super.getGridletOutputSize() / DataUnits.getSize();
 	}
 
 }

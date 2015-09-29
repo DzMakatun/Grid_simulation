@@ -68,6 +68,8 @@ class DPSpaceShared extends AllocPolicy
     //properties to definy the type of the resource
     private boolean isInputSource;
     private boolean isOutputDestination;
+    private boolean isInputDestination;
+    private boolean isOutputSource;
     
     //properties to maitain the storage functionality
     // and manage input/output files
@@ -111,7 +113,9 @@ class DPSpaceShared extends AllocPolicy
      * @pre entityName != null
      * @post $none
      */
-    DPSpaceShared(String resourceName, String entityName, double storageSize, boolean isInputSource, boolean isOutputDestination) throws Exception
+    DPSpaceShared(String resourceName, String entityName, double storageSize, 
+	    boolean isInputSource, boolean isOutputDestination,
+	    boolean isInputDestination, boolean isOutputSource) throws Exception
     {
         super(resourceName, entityName);
         // initialises local data structure
@@ -130,6 +134,8 @@ class DPSpaceShared extends AllocPolicy
 	this.remoteOutputFlow = 0.0;
 	this.isInputSource = isInputSource;
 	this.isOutputDestination = isOutputDestination;
+	this.isInputDestination = isInputDestination;
+	this.isOutputSource = isOutputSource;
 
     }
     
@@ -172,13 +178,33 @@ class DPSpaceShared extends AllocPolicy
 	br.append("id: " + super.resId_ + ", ");
 	br.append("PEs: " + resource_.getMachineList().getNumPE() + ", ");
 	br.append("storage: " + storageSize + " " + DataUnits.getName() + ", ");		
-	br.append("processingRate: " +resource_.getMIPSRatingOfOnePE()  + ", ");
-	br.append("isInputSource: " +isInputSource()  + ", ");
-	br.append("isOutputDestination: " +isOutputDestination()  + ", ");
-	br.append("waitingInputSize: " + waitingInputSize  + ", ");
-	br.append("out_port: " + super.outputPort_.getClass()  + ", ");
-	br.append("inputID: "  + GridSim.getEntityId("Input_" + super.resName_) + ", ");
-	br.append("outputID: "  + GridSim.getEntityId("Output_" + super.resName_) + ", ");
+	br.append("MIPSrating: " + resource_.getMIPSRatingOfOnePE()  + ", ");
+	//br.append("isInputSource: " + isInputSource()  + ", ");
+	//br.append("isOutputDestination: " +isOutputDestination()  + ", ");	
+	//br.append("isInputDestination: " +this.isInputDestination  + ", ");
+	//br.append("isOutputSource: " + this.isOutputSource  + ", ");
+	br.append("nodeType: ");
+	if (this.isInputSource)
+	    br.append("1");
+	else			
+	    br.append("0");
+	if (this.isOutputDestination)
+	    br.append("1");
+	else			
+	    br.append("0");
+	if (this.isInputDestination)
+	    br.append("1");
+	else			
+	    br.append("0");
+	if (this.isOutputSource)
+	    br.append("1");
+	else			
+	    br.append("0");	
+	
+	br.append(" waitingInputSize: " + waitingInputSize  + ", ");
+	//br.append("out_port: " + super.outputPort_.getClass()  + ", ");
+	//br.append("inputID: "  + GridSim.getEntityId("Input_" + super.resName_) + ", ");
+	//br.append("outputID: "  + GridSim.getEntityId("Output_" + super.resName_) + ", ");
 	//br.append("link bandwidth: " + super.outputPort_.  + "(bit/s), ");		
 	//br.append("stat: " + super.get_stat().toString());
 	return br.toString();
@@ -208,22 +234,22 @@ class DPSpaceShared extends AllocPolicy
 	      	switch (tag)
 	        {
 	            case RiftTags.STATUS_REQUEST:
-	        	write("received status request");
+	        	//write("received status request");
 	                processStatusRequest(ev);
 	                break;
 
 	            case RiftTags.NEW_PLAN:
-	        	write("received new plan");
+	        	//write("received new plan");
 	                processNewPlan(ev);
 	                break;
 	                
 	            case RiftTags.INPUT:
-	        	write("received input file");	        	
+	        	//write("received input file");	        	
 	                processIncommingInputFile(ev);
 	                break;    
 
 	            case RiftTags.OUTPUT:
-	        	//write("received input file");
+	        	//write("received output file");
 	                processIncommingOutputFile(ev);
 	                break;     
 	                
@@ -236,7 +262,7 @@ class DPSpaceShared extends AllocPolicy
 	
 	private void processIncommingOutputFile(Sim_event ev) {
 	    DPGridlet gl = (DPGridlet) ev.get_data();
-	    write("received output file of gridlet" + gl.getGridletID());
+	    write("received output file of a gridlet " + gl.getGridletID());
 	    //add new input file to
 	    if (addOutputFile(gl) ){
 		//send confirmation to sender
@@ -261,6 +287,7 @@ class DPSpaceShared extends AllocPolicy
 		this.freeStorageSpace -= size;
 		this.readyOutputSize += size;
 		this.readyOutputFiles.add(gl);
+		//write("remaining disk space: " + freeStorageSpace);
 		return true;
 		
 	    }else{
@@ -277,7 +304,7 @@ class DPSpaceShared extends AllocPolicy
 	private void processIncommingInputFile(Sim_event ev) {
 	    DPGridlet gl = (DPGridlet) ev.get_data();
 	    write("received input file of gridlet" + gl.getGridletID() 
-		    + " of size " + gl.getGridletFileSize() + " (bytes)");
+		    + " of size " + gl.getGridletFileSize() + " " + DataUnits.getName());
 	    //add new input file to
 	    if (addInputFile(gl) ){
 		//send confirmation to sender
@@ -302,6 +329,7 @@ class DPSpaceShared extends AllocPolicy
 		this.freeStorageSpace -= size;
 		this.waitingInputSize += size;
 		this.waitingInputFiles.add(gl);
+		//write("remaining disk space: " + freeStorageSpace);
 		return true;
 		
 	    }else{
@@ -390,7 +418,7 @@ class DPSpaceShared extends AllocPolicy
 	 * @return
 	 */
 	private boolean submitInputFile(DPGridlet gl) {
-	    write(" Submitting gridlet " + gl.getGridletID() +" for processing");
+	   
 	    if (createOutputFile(gl) ){ // if space for outputfile was successfully created
 	        waitingInputSize -= gl.getInputSizeInUnits(); 
 	        submittedInputFiles.add(gl);
@@ -400,9 +428,13 @@ class DPSpaceShared extends AllocPolicy
 	        /////////////////////////////////
 	        gridletSubmit(gl, false); // submit to policy for execution 
 	        localProcessingFlow -= gl.getInputSizeInUnits(); //decrease the counter
+	        write(" Submitted gridlet " + gl.getGridletID() +" for processing, free CPUS: " 
+	        + this.resource_.getNumFreePE());
 	        return true;
 	    }else{		
-	        write("WARNING failed to submit input file for processing");	           
+	        write("WARNING failed to submit input file for processing: "+ gl.getGridletID()
+	        	+ " freeStorageSpace: " + this.freeStorageSpace
+	        	+ " free CPUS: " + this.resource_.getNumFreePE());	           
 	        return false;    
 	    }		    
 	}
@@ -420,7 +452,8 @@ class DPSpaceShared extends AllocPolicy
 		return true;		
 	    }else{
 		//failed to accommodate a new file
-		write("WARNING RUNNING OUT OF STORAGE SPACE, can't create an output file");
+		write("WARNING RUNNING OUT OF STORAGE SPACE, can't create an output file: " + gl.getGridletID()
+			+ " freeStorageSpace: " + this.freeStorageSpace);
 		return false;
 	    }
 	}
@@ -451,9 +484,8 @@ class DPSpaceShared extends AllocPolicy
 	    write(" sending input file " + gl.getGridletID() + " of size " + gl.getGridletFileSize() 
 		    + "(bytes) to resource " + neighborNodesIds.get(j));	
 	    IO_data data = new IO_data(gl, gl.getGridletFileSize(), neighborNodesIds.get(j));
-	    //DEBUG
-	   
-	    write("sending IO_data: " + data.toString());
+	    //DEBUG	   
+	    //write("sending IO_data: " + data.toString());
 	    super.sim_schedule(super.outputPort_, GridSimTags.SCHEDULE_NOW, RiftTags.INPUT, data);
 	    
 	    //update counters
@@ -488,11 +520,9 @@ class DPSpaceShared extends AllocPolicy
 	    }
 	    
 	    //send	    
-	    write("sending output file " + gl.getGridletID()  +" of size "  + gl.getGridletOutputSize() 
-		    + "(bytes) to resource " + neighborNodesIds.get(j));
 	    IO_data data =  new IO_data(gl, gl.getGridletOutputSize(), neighborNodesIds.get(j) );
 	    //DEBUG
-	    write("sending IO_data: " + data.toString());
+	    // write("sending IO_data: " + data.toString());
 	    super.sim_schedule(super.outputPort_, GridSimTags.SCHEDULE_NOW, RiftTags.OUTPUT, data);
 	    //GridSim.send(super.outputPort_, GridSimTags.SCHEDULE_NOW,  RiftTags.OUTPUT, data);
 	    //update counters
@@ -500,8 +530,11 @@ class DPSpaceShared extends AllocPolicy
 	    remoteOutputFlow -=  size;
 	    neighborNodesOutputFlows.set(j, neighborNodesOutputFlows.get(j) - size);
 	    readyOutputSize -= size;
-	    freeStorageSpace +=  size; //this "deletes" the file, 
-	    //later file has to be deleted when a confirmation is received    	 
+	    freeStorageSpace +=  size; //this "deletes" the file, 	    
+	    //later file has to be deleted when a confirmation is received    
+	    write("send output file " + gl.getGridletID()  +" of size "  + gl.getGridletOutputSize() 
+		    + "to resource " + neighborNodesIds.get(j)
+		    + " remaining flow" + neighborNodesOutputFlows.get(j));
 	    return true;
 	}
 
@@ -553,7 +586,7 @@ class DPSpaceShared extends AllocPolicy
 	    StringBuffer buf = new StringBuffer();
 	    
 	    buf.append("\n-------------PLAN----------------\n");
-	    buf.append("all valuse in "+ DataUnits.getName() + "\n");
+	    buf.append("all values in "+ DataUnits.getName() + "\n");
 	    buf.append("localProcessingFlow: " + localProcessingFlow + "\n");
 	    buf.append("remoteInputFlow: " + remoteInputFlow + " remoteOutputFlow: " + remoteOutputFlow + "\n");
 	    buf.append("IDS: " + neighborNodesIds.toString() + "\n");
@@ -575,22 +608,28 @@ class DPSpaceShared extends AllocPolicy
 	 */
 	private void processStatusRequest(Sim_event ev) {
 	    planerId = (Integer) ev.get_data();
-	    write("planerId is: " + planerId);
+	    write("Procesing status request. planerId is: " + planerId);
 	    	    
 	    //create status message
 	    Map status = new HashMap();
 	    status.put("nodeId", super.resId_);
 	    status.put("nodeName", super.resName_);
+	    
+	    //node role
 	    status.put("isInputSource", isInputSource());
 	    status.put("isOutputDestination", isOutputDestination);
+	    status.put("isInputDestination", isInputDestination);
+	    status.put("isOutputSource", isOutputSource);
+	    
 	    status.put("waitingInputSize", waitingInputSize);
 	    status.put("freeStorageSpace", freeStorageSpace);
 	    status.put("readyOutputSize", readyOutputSize);
+
 	    //status.put("waitingInputFiles", waitingInputFiles);
 	    
-	    
-	    super.sim_schedule(super.outputPort_, GridSimTags.SCHEDULE_NOW, RiftTags.STATUS_RESPONSE,
-                new IO_data(status, 0, planerId, 0) 
+	    //send without network delay
+	    super.sim_schedule(planerId, GridSimTags.SCHEDULE_NOW, RiftTags.STATUS_RESPONSE,
+		    status 
            );
 	    
 	    
@@ -659,6 +698,7 @@ class DPSpaceShared extends AllocPolicy
             if (ev.get_tag() == GridSimTags.END_OF_SIMULATION ||
                 super.isEndSimulation())
             {
+        	write("received END_OF_SIMULATION");
                 break;
             }
 

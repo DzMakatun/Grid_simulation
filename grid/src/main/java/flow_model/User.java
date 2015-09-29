@@ -15,7 +15,7 @@ import gridsim.GridletList;
 import gridsim.IO_data;
 import gridsim.ResourceCharacteristics;
 import gridsim.net.InfoPacket;
-import gridsim.net.flow.FlowLink;  // To use the new flow network package - GridSim 4.2
+import gridsim.net.SimpleLink;  // To use the new flow network package - GridSim 4.2
 import gridsim.util.SimReport;
 
 import java.util.HashMap;
@@ -38,11 +38,9 @@ class User extends GridUser {
     private int totalResource;
     private int resourceID[];
     String resourceName[];
-    double resourcePEs[];
     double totalPEs = 0;
     private int totalGridlet; //how many gridlet were red from file
     private GridletList gridlets;          // list of submitted Gridlets
-    private GridletList receiveList_;   // list of received Gridlets
     private SimReport report_;  // logs every events
     boolean trace_flag;
     double startTime, saturationStart, saturationFinish, finishTime ;
@@ -58,7 +56,7 @@ class User extends GridUser {
     	//super(name, new SimpleLink(name + "_link", baud_rate, delay, MTU));
 
         // NOTE: uncomment this if you want to use the new Flow extension
-        super(name, new FlowLink(name + "_link", baud_rate, delay, MTU));
+        super(name, new SimpleLink(name + "_link", baud_rate, delay, MTU));
     	
         // creates a report file
         if (trace_flag == true) {
@@ -70,8 +68,8 @@ class User extends GridUser {
 
         // Gets an ID for this entity
         this.myId_ = super.getEntityId(name);
-        write("Creating a grid user entity with name = " +
-              name + ", and id = " + this.myId_);
+        //write("Creating a grid user entity with name = " +
+        //      name + ", and id = " + this.myId_);
       
     }
     
@@ -83,8 +81,7 @@ class User extends GridUser {
     }
 
     public String toStringShort(){
-    	StringBuffer br = new StringBuffer();
-    	
+    	StringBuffer br = new StringBuffer();    	
     	br.append("name: " + this.get_name() + ", ");
     	br.append("id: " + this.get_id() + ", ");
     	br.append("totalGridlets: " + this.totalGridlet + ", ");
@@ -99,8 +96,8 @@ class User extends GridUser {
     public void body() {
 	
 	//INITIALIZE PLANER
-	int deltaT = 200000;
-	float beta =  0.7f;	
+	int deltaT = ParameterReader.deltaT;
+	float beta =  (float) ParameterReader.beta;	
 	solver = new DataProductionPlanner(ParameterReader.planerLogFilename, deltaT, beta);
 	for(CompNode node : ResourceReader.planerNodes){
 	    solver.addNode(node);
@@ -108,15 +105,7 @@ class User extends GridUser {
 	for(NetworkLink link : DPNetworkReader.planerLinks){
 	    solver.addLink(link);
 	}	
-	solver.PrintGridSetup();
-	
-	//DEBUG
-	write("input port: " + this.input.toString());
-	write("output port: " + this.output.toString());
-	write("link: " + this.getLink().getClass());
-	write("inputID: "  + GridSim.getEntityId("Input_" + this.name_) );
-	write("outputID: "  + GridSim.getEntityId("Output_" + this.name_) );
-	
+	//solver.PrintGridSetup();	
 	
         // This to give a time for GridResource entities to register their
         // services to GIS (GridInformationService) entity.
@@ -131,43 +120,15 @@ class User extends GridUser {
         this.resourceName = new String[this.totalResource];
         
         //get characteristics of resources
-        ResourceCharacteristics resChar;
-        this.resourcePEs = new double[this.totalResource];
         int i = 0 ;
         for (i = 0; i < totalResource; i++)
         {
             // Resource list contains list of resource IDs not grid resource
             // objects.
             resourceID[i] = ( (Integer)resList.get(i) ).intValue();
-
-            // Requests to resource entity to send its characteristics
-            super.send(resourceID[i], GridSimTags.SCHEDULE_NOW,
-                       GridSimTags.RESOURCE_CHARACTERISTICS, this.myId_);
-
-            // waiting to get a resource characteristics
-            resChar = (ResourceCharacteristics) super.receiveEventObject();
-            resourceName[i] = resChar.getResourceName();
-            resChar.getNumFreePE();
-            resourcePEs[i] = resChar.getNumPE();
-
-            write("Received ResourceCharacteristics from " +
-                    resourceName[i] + ", with id = " + resourceID[i] + " with  " + resourcePEs[i] + " PEs");
-
-            // record this event into "stat.txt" file
-            super.recordStatistics("\"Received ResourceCharacteristics " +
-                    "from " + resourceName[i] + "\"", "");
         }
         
-        //total PE number        
-        for(i = 0; i < totalResource; i++){
-        	totalPEs += resourcePEs[i];
-        }
-        
-        
-        //write("sending 5000000000 bytes to resource " + resourceID[0]);
-        //super.send(super.output, GridSimTags.SCHEDULE_NOW, RiftTags.INPUT,
-        //	new IO_data("Hello", 5000000000L, resourceID[0]));
-        
+
         /////////////////////////////////////////////////
         //GET resource statuses
         requestStatuses();
@@ -187,103 +148,23 @@ class User extends GridUser {
         //send plan
         for(i = 0; i <  totalResource; i++){             
             write("sending new plan to resource " + resourceID[i]);
-            send(super.output, GridSimTags.SCHEDULE_NOW, RiftTags.NEW_PLAN,
-                 new IO_data(newPlan, 0, resourceID[i], 0) 
-            );
+          //send without network delay
+            super.sim_schedule(resourceID[i], GridSimTags.SCHEDULE_NOW, RiftTags.NEW_PLAN, newPlan);
+            //send(super.output, GridSimTags.SCHEDULE_NOW, RiftTags.NEW_PLAN,
+                 //new IO_data(newPlan, 0, resourceID[i], 0) 
+            //);
           } 
-
-
-        ////////////////////////////////////////////////
-        // SUBMIT Gridlets
-        startTime = GridSim.clock(); ///Start time of the submission;
-        super.gridSimHold(1.0);
-        
-        // SUBMIT Gridlets
-        DPGridlet gl = null;
-        boolean success;
-        
-        //initial populating of PEs
-        
-        int j = 0; //number of gridlet
-        int k = 0; // number of PE
-        startTime = GridSim.clock(); ///Start time of the submission;
-        //for(i = 0; i <  totalResource && i < gridlets.size(); i++){ 
-          //gl = (DPGridlet) gridlets.get(i);  
-          //gl.setUserID(myId_);
-          
-          //GENERAL FORM:
-          // send(output_port,  GridSimTags.SCHEDULE_NOW, TAG, 
-          //      new IO_data(your_object, message_size, destination_id,
-          //                  netServiceLevel = 0));
-
-          
-          //write(" sending gridlet " + gl.getGridletID() + " to resource " + resourceID[i]);
-          //send(super.output, GridSimTags.SCHEDULE_NOW, RiftTags.INPUT,
-          //     new IO_data(gl, gl.getGridletFileSize(), resourceID[i],
-          //                 0) 
-          //);
-
-       // }       
-       
-        
-        
-        ////////////////////////////////////////////////////////
-        // RECEIVES Gridlets and submit new
-        //Sim_event ev = new Sim_event();
-        //while ( Sim_system.running() )
-        //{
-          //  super.sim_get_next(ev);
-
-            // if the simulation finishes then exit the loop
-            //if (ev.get_tag() == GridSimTags.END_OF_SIMULATION)
-            //{
-              //  policy_.setEndSimulation();
-               // break;
-            //}
-
-            // process the received event
-            //processEvent(ev);
-        //}
-
-        
-        
-        
-        saturationStart = GridSim.clock();
-        super.gridSimHold(1.0);
-        saturationFinish = GridSim.clock();
-        super.gridSimHold(1.0);
-        finishTime = GridSim.clock();
 
         
         //WAIT for other events before finishing the simulation
-        super.gridSimHold(2000000);
+        super.gridSimHold(10 * deltaT);
         
         
              ////////////////////////////////////////////////////////
         //ping resources
-        for(i = 0; i <  totalResource; i++){ 
-        	pingRes(resourceID[i]);
-        }
+        //pingAllRes(resourceID);
+
     
-        
-        /////////////////////////////
-        //print overall statistics
-        write("---------------summary------------------");
-        write("Number of gridlets: " + totalGridlet);
-        write(" Resources: " + totalResource);
-        write(" PEs: " + totalPEs);
-        
-        write(" Submission start: " + startTime);
-        write(" saturationStart: " + saturationStart);
-        write(" saturationFinish: " + saturationFinish);
-        write(" Last receive: " + finishTime);
-        
-        write(" Makespan: " + (finishTime - startTime));
-        write(" Saturated interval: " + (saturationFinish - saturationStart));
-        write(" Saturated time ratio: " + (saturationFinish - saturationStart) / (finishTime - startTime));
-        write("------------------------------------------");
-
-
         // don't forget to close the file
         if (report_ != null) {
             report_.finalWrite();
@@ -309,9 +190,11 @@ class User extends GridUser {
         for(int i = 0; i <  this.totalResource; i++){ 
                      
             write("sending status request to resource " + this.resourceID[i]);
-            send(super.output, GridSimTags.SCHEDULE_NOW, RiftTags.STATUS_REQUEST,
-                 new IO_data(this.myId_, 0, this.resourceID[i], 0) 
-            );
+            //send without network delay
+            super.sim_schedule(this.resourceID[i], GridSimTags.SCHEDULE_NOW, RiftTags.STATUS_REQUEST, this.myId_);
+            //send(super.output, GridSimTags.SCHEDULE_NOW, RiftTags.STATUS_REQUEST,
+                 //new IO_data(this.myId_, 0, this.resourceID[i], 0) 
+            //);
           } 
         
     }
@@ -321,10 +204,11 @@ class User extends GridUser {
      * @param ev
      */
     private void processStatusResponce(Sim_event ev){
-	//write("received status responce" + statusToString(status));
+	//write("received status response" + statusToString(status));
 	//extract data
 	Map status;
 	status = (HashMap) ev.get_data();
+	//write(statusToString(status));
 	int id = (Integer) status.get("nodeId");
 	String name = (String) status.get("nodeName");
 	boolean isInputSource = (Boolean) status.get("isInputSource");
@@ -372,7 +256,7 @@ class User extends GridUser {
             plan.add(tempFlow);
         }
 
-        printPlan(plan);
+        //printPlan(plan);
  	return plan;
      }
     
@@ -427,9 +311,21 @@ private String statusToString(Map status) {
        
        buf.append("id: " + status.get("nodeId") + " ");
        buf.append("name: " + status.get("nodeName") + " ");
-	
+       buf.append("isInputSource: " + status.get("isInputSource") + " ");
+       buf.append("isOutputDestination: " + status.get("isOutputDestination") + " ");
+       buf.append("waitingInputSize: " + status.get("waitingInputSize") + " ");
+       buf.append("readyOutputSize: " + status.get("readyOutputSize") + " ");
+       buf.append("freeStorageSpace: " + status.get("freeStorageSpace") + " ");
+     
 	return buf.toString();
     }
+
+private void pingAllRes(int[] resIDs){
+    for (int id: resIDs){
+	      pingRes(id);
+	  }
+}
+
 
 private void pingRes(int resourceID){
 	// ping functionality

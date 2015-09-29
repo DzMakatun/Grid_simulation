@@ -6,7 +6,7 @@ import gridsim.GridSim;
 import gridsim.GridSimTags;
 import gridsim.ResourceCharacteristics;
 import gridsim.net.FIFOScheduler;
-import gridsim.net.flow.FlowRouter;  // To use the new flow network package - GridSim 4.2
+import gridsim.net.RIPRouter;  // To use the new flow network package - GridSim 4.2
 import gridsim.util.SimReport;
 
 import java.util.Calendar;
@@ -47,7 +47,7 @@ public class Simulation {
 
            
             //uses flow extension
-            GridSim.initNetworkType(GridSimTags.NET_FLOW_LEVEL);
+            GridSim.initNetworkType(GridSimTags.NET_PACKET_LEVEL);
             //Initializes the GridSim package
             System.out.println("Initializing GridSim package");            
             GridSim.init(num_user, calendar, trace_flag);
@@ -64,14 +64,14 @@ public class Simulation {
             //CREATEs RESOURCES
             LinkedList<GridResource> resList = ResourceReader.read(ParameterReader.resourceFilename);  
             //adding routers
-            LinkedList<FlowRouter> routerList = new LinkedList<FlowRouter>();
-            FlowRouter router, plannerRouter = null;
+            LinkedList<RIPRouter> routerList = new LinkedList<RIPRouter>();
+            RIPRouter router, plannerRouter = null;
             
             DPSpaceShared policy = null;
             write("RESOURCES: ");
             for(GridResource res: resList){
             	//adding routers
-            	router = new FlowRouter(res.get_name() + "_router", trace_flag);
+            	router = new RIPRouter(res.get_name() + "_router", trace_flag);
             	router.attachHost(res, new FIFOScheduler(res.get_name()
                         + "_router_scheduler"));            	
             	routerList.add(router);
@@ -88,7 +88,7 @@ public class Simulation {
 
             //READ NETWORK
             System.out.println("ROUTERS:");
-            for (FlowRouter r:routerList){
+            for (RIPRouter r:routerList){
         	System.out.println(DPNetworkReader.routerToString(r));
             }
             
@@ -96,21 +96,21 @@ public class Simulation {
             DPNetworkReader.printLinks();
                  
             
-            //CREATE PLANER
+            //CREATE USER RUNING PLANER
             User Planer = new User("Planer",
                     Double.MAX_VALUE, 0.001, Integer.MAX_VALUE);            
             plannerRouter.attachHost(Planer, new FIFOScheduler("Planer"+"_router_scheduler"));     
            
             //check network type
-            write( "Network type NET_FLOW_LEVEL: " + ( GridSim.getNetworkType() == GridSimTags.NET_FLOW_LEVEL ) );
-            GridSim.enableDebugMode();
+            write( "Network type: " + GridSim.getNetworkType()  );
+            //GridSim.enableDebugMode();
 
             GridSim.startGridSimulation();
             
-            write("ROUTERS:");
-            for (FlowRouter r : routerList){
-        	r.printRoutingTable();
-            }
+            //write("ROUTERS:");
+            //for (RIPRouter r : routerList){
+        	//r.printRoutingTable();
+            //}
             
             write("\nFinish data grid simulation ...");
             report_.finalWrite();
@@ -138,7 +138,7 @@ public class Simulation {
 	br.append("PEs: " + characteristics.getMachineList().getNumPE() + ", ");
 	br.append("storage: " + ( (DPSpaceShared) gr.getAllocationPolicy() ).getStorageSize() + "(MB), ");
 	
-	br.append("processingRate: " +characteristics.getMIPSRatingOfOnePE()  + ", ");
+	br.append("MIPS: " +characteristics.getMIPSRatingOfOnePE()  + ", ");
 	//br.append("processingRate: " +characteristics.  + ", ");
 	
 	br.append("link bandwidth: " + gr.getLink().getBaudRate()  + "(bit/s), ");

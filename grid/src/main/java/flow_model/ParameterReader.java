@@ -29,6 +29,9 @@ public class ParameterReader {
     public static boolean useLocalRC = true;
     public static String dataUnitsName = "MB"; //default value
     public static long dataUnitsSize = 1024*1024; //default value
+    public static int deltaT;
+    public static double alpha;
+    public static double beta;
 
     public static void read(String filename) {
         try {
@@ -51,25 +54,19 @@ public class ParameterReader {
                         networkFilename = value;
                     } else if (name.equals("resources")) {
                         resourceFilename = value;
-                    } else if (name.equals("users")) {
-                        usersFilename = value;
-                    } else if (name.equals("maxGridlets")) {
-                    	maxGridlets = Integer.parseInt(value);
-                    } else if (name.equals("numUsers")) {
-                        numUsers = Integer.parseInt(value);
-                    } else if (name.equals("gridlets")) {
-                        gridletsFilename = value;
-                    } else if (name.equals("topRCrouter")) {
-                        topRCrouter = value;
-                    } else if (name.equals("useLocalRC")) {
-                    	//System.out.println(name + " " + value);
-                        useLocalRC = Boolean.valueOf(value);
                     } else if (name.equals("dataUnitsName")) {
                 	dataUnitsName = value;
                     } else if (name.equals("dataUnitsSize")) {
                 	dataUnitsSize = Long.valueOf(value);
                     } else if (name.equals("planerLogFilename")) {
                 	planerLogFilename = value;	
+                    } else if (name.equals("deltaT")) {
+                	deltaT = Integer.valueOf(value);
+                    } else if (name.equals("alpha")) {
+                	alpha = Double.valueOf(value);
+                    } else if (name.equals("beta")) {
+                	beta = Double.valueOf(value);
+                	
                 	
                     } else {
                         System.out.println("Unknown parameter " + name);
@@ -78,7 +75,8 @@ public class ParameterReader {
 
             }
         } catch (Exception exp) {
-            System.out.println("File not found");
+            System.out.println("!!!!!!!!!!!!!!!! EROR READING PARAMETERS FILE : " + filename 
+        	    + "!!!!!!!!!!!!!!!!!!!!!!!");
         }
     }
 }

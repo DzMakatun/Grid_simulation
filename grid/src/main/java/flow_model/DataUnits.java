@@ -16,8 +16,8 @@ public class DataUnits {
     private static long size = 1024 * 1024;
     
     public static void setUnits(String newName, long newSize){
-	name = newName;
-	size = newSize;
+	DataUnits.name = newName;
+	DataUnits.size = newSize;
 	System.out.println("New data units set. name: " + name + " size: " + size);
     }
     

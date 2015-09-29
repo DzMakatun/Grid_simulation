@@ -87,8 +87,8 @@ private static DPGridlet readGridlet(String line) {
 		//read the parameters
 		id = Integer.parseInt(jobData[0]);
 		InputFileName = jobData[9].replace("\"", "");
-		inputFileSize = Long.parseLong(jobData[10]); //in bytes
-		outputFileSize = Long.parseLong(jobData[31]);  //in bytes
+		inputFileSize = (Long) Long.parseLong(jobData[10]) / DataUnits.getSize(); //in units
+		outputFileSize = (Long) Long.parseLong(jobData[31]) / DataUnits.getSize() ;  //in units
 		
 		
 		

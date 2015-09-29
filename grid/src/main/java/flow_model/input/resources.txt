@@ -1,6 +1,6 @@
 #the description of resources in a grid
 #the format of the file:
-#resource_name Number_of_PE ProcessingRate(job length / per second) storage_size(in MB) isInputSource isOutputDestination maxGridlets gridletFile
-RCF 1 1 10000000 true true 30 input/KISTI_all_filtered.csv
-KISTI 1 1 1000000 false false
-PDSF 1 1 1000000 false false
+#resource_name Number_of_PE ProcessingRate(job length / per second) storage_size(in MB) isInputSource isOutputDestination isInputDestination isOutputSource maxGridlets gridletFile
+RCF 1 1 10000000000 true true false false 10 input/KISTI_all_filtered.csv
+KISTI 1 1 1000000000 false false true true
+PDSF 1 1 1000000000 false false true true

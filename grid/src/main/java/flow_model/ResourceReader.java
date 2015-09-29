@@ -14,7 +14,7 @@ import gridsim.Machine;
 import gridsim.MachineList;
 import gridsim.ResourceCalendar;
 import gridsim.ResourceCharacteristics;
-import gridsim.net.flow.FlowLink;
+import gridsim.net.SimpleLink;
 
 import java.io.BufferedReader;
 import java.io.FileReader;
@@ -71,6 +71,8 @@ public class ResourceReader {
         double storage_size;
         boolean isInputSource;
         boolean isOutputDestination;
+        boolean isInputDestination;
+        boolean isOutputSource;
         int maxGridlets; // max number of gridlets to read;
         String gridletFilename; //list of initial gridlets placed at the resource
         CompNode planerNode; //to store the data for planner
@@ -92,9 +94,11 @@ public class ResourceReader {
                 storage_size = Double.parseDouble(str.nextToken());         
                 isInputSource = Boolean.parseBoolean(str.nextToken() );
                 isOutputDestination = Boolean.parseBoolean(str.nextToken());
+                isInputDestination = Boolean.parseBoolean(str.nextToken() );
+                isOutputSource = Boolean.parseBoolean(str.nextToken());
 
                 r1 = createStandardResource(resourceName, PEs, MIPSrate, storage_size,
-                        isInputSource, isOutputDestination);
+                        isInputSource, isOutputDestination, isInputDestination, isOutputSource);
                 
                 //if it is an input source, add initial gridlets to the storage
                 if (isInputSource) {
@@ -119,8 +123,14 @@ public class ResourceReader {
                 
                 //WARNING CHECK THIS
                //create a CompNodeEntity for planner
-                planerNode = new CompNode(r1.get_id(), r1.get_name(), false, isInputSource, isOutputDestination,
-                	true, true, (long) storage_size, PEs, 11.1f, 0, 0, 0, 0, 0);
+                planerNode = new CompNode(r1.get_id(), r1.get_name(), 
+                	false,  //is Dummy
+                	isInputSource, isOutputDestination,
+                	isInputDestination, isOutputSource,
+                	(long) storage_size, PEs, 
+                	(float) ParameterReader.alpha / MIPSrate, //processing rate depends on job parameters and MIPS
+                	0, 0, 0, 0, 0
+                	);
                 
                 planerNodes.add(planerNode);
             }
@@ -136,7 +146,8 @@ public class ResourceReader {
      * CPUs).
      */
     private static GridResource createStandardResource(String name, int PEs, int processingMIPSRate,
-        double storage_size, boolean isInputSource, boolean isOutputDestination) {
+        double storage_size, boolean isInputSource, boolean isOutputDestination,
+        boolean isInputDestination, boolean isOutputSource) {
         // 1. We need to create an object of MachineList to store one or more
         // Machines
         MachineList mList = new MachineList();
@@ -185,11 +196,12 @@ public class ResourceReader {
             //        storage_size);
            
             // our logic is placed in handler
-            DPSpaceShared handler = new DPSpaceShared(name, name + "_handler", storage_size, isInputSource, isOutputDestination);
+            DPSpaceShared handler = new DPSpaceShared(name, name + "_handler", storage_size,
+        	    isInputSource, isOutputDestination, isInputDestination, isOutputSource);
             //link which connects the resource to it's router, the bandwith is
             // defined as bit/s 
             double bandwidth = Double.MAX_VALUE;
-            FlowLink link = new FlowLink(name + "_internal_link", bandwidth, 0.1, Integer.MAX_VALUE);
+            SimpleLink link = new SimpleLink(name + "_internal_link", bandwidth, 0.1, Integer.MAX_VALUE);
             
             gridRes = new GridResource(name, link, resConfig, cal, handler);
             
