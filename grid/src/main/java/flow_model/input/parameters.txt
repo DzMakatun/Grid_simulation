@@ -5,8 +5,8 @@ planerLogFilename=output/planer_log.txt
 dataUnitsName=MB
 dataUnitsSize=1048576
 # planning time interval in seconds
-deltaT=1000
+deltaT=300000
 # job input size / job duraton (consider units)
-alpha=0.027
+alpha=1
 #job output size / input size
 beta=0.7

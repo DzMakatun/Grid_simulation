@@ -47,6 +47,9 @@ class User extends GridUser {
     int chunkSize; //for monitoring
     private LinkedList <LinkFlows> newPlan;
     private DataProductionPlanner solver;
+    int deltaT;
+    float beta;	
+    boolean continueDataProduction;
     private int updateCounter = 0;
     
 
@@ -89,87 +92,105 @@ class User extends GridUser {
     	return br.toString();
     }
     
+    private void initPlaner(){
+	        //INITIALIZE PLANER
+		this.deltaT = ParameterReader.deltaT;
+		this.beta =  (float) ParameterReader.beta;	
+		solver = new DataProductionPlanner(ParameterReader.planerLogFilename, deltaT, beta);
+		for(CompNode node : ResourceReader.planerNodes){
+		    solver.addNode(node);
+		}
+		for(NetworkLink link : DPNetworkReader.planerLinks){
+		    solver.addLink(link);
+		}	
+		//solver.PrintGridSetup();	
+		
+	        // This to give a time for GridResource entities to register their
+	        // services to GIS (GridInformationService) entity.
+	        super.gridSimHold(1000.0);
+	        System.out.println(name_ + ": retrieving GridResourceList");
+	        LinkedList resList = super.getGridResourceList();
+	        
+	        // initialises all the containers
+	        this.totalResource = resList.size();
+	        write(name_ + ": obtained " + totalResource + " resource IDs in GridResourceList");
+	        this.resourceID = new int[this.totalResource];
+	        this.resourceName = new String[this.totalResource];
+	        
+	        //get characteristics of resources
+	        for (int i = 0; i < totalResource; i++)
+	        {
+	            // Resource list contains list of resource IDs not grid resource
+	            // objects.
+	            resourceID[i] = ( (Integer)resList.get(i) ).intValue();
+	        }
+	        
+	        this.continueDataProduction = true;
+    }
+    
     
     /**
      * The core method that handles communications among GridSim entities.
      */
     public void body() {
+	int planningIteration = 0;
 	
-	//INITIALIZE PLANER
-	int deltaT = ParameterReader.deltaT;
-	float beta =  (float) ParameterReader.beta;	
-	solver = new DataProductionPlanner(ParameterReader.planerLogFilename, deltaT, beta);
-	for(CompNode node : ResourceReader.planerNodes){
-	    solver.addNode(node);
+	initPlaner();
+	
+	Sim_event ev = new Sim_event();
+	Map status;
+	
+	while (continueDataProduction){
+	    write("######################## planningIteration: " + planningIteration + " #######################");
+	    planningIteration ++;
+	    /////////////////////////////////////////////////
+	    //GET resource statuses
+	    requestStatuses();
+	    
+	   //receive responses	   
+	    this.continueDataProduction = false; //re-check the condition
+	   for(int i = 0; i <  totalResource; i++){ 
+	       super.sim_get_next(ev);
+	       if (ev.get_tag() == RiftTags.STATUS_RESPONSE){
+		  //if any node has work to do will set to true
+		   if (processStatusResponce(ev)) {this.continueDataProduction = true;}
+	       }else{
+		   write("Received wrong message: " + ev.get_tag());
+	       }
+	       
+	   } 
+	   
+	   //create plan
+	   //new plan sets continueDataProduction
+	   newPlan = createNewPlan();
+	        
+	        
+	   //send plan
+	   for(int i = 0; i <  totalResource; i++){          
+	       write("sending new plan to resource " + resourceID[i]);
+	       //send without network delay
+	       super.sim_schedule(resourceID[i], GridSimTags.SCHEDULE_NOW, RiftTags.NEW_PLAN, newPlan);
+	   } 
+	    
+	    
+	    super.gridSimHold(deltaT);
 	}
-	for(NetworkLink link : DPNetworkReader.planerLinks){
-	    solver.addLink(link);
-	}	
-	//solver.PrintGridSetup();	
 	
-        // This to give a time for GridResource entities to register their
-        // services to GIS (GridInformationService) entity.
-        super.gridSimHold(1000.0);
-        System.out.println(name_ + ": retrieving GridResourceList");
-        LinkedList resList = super.getGridResourceList();
-        
-        // initialises all the containers
-        this.totalResource = resList.size();
-        write(name_ + ": obtained " + totalResource + " resource IDs in GridResourceList");
-        this.resourceID = new int[this.totalResource];
-        this.resourceName = new String[this.totalResource];
-        
-        //get characteristics of resources
-        int i = 0 ;
-        for (i = 0; i < totalResource; i++)
-        {
-            // Resource list contains list of resource IDs not grid resource
-            // objects.
-            resourceID[i] = ( (Integer)resList.get(i) ).intValue();
-        }
-        
-
-        /////////////////////////////////////////////////
-        //GET resource statuses
-        requestStatuses();
-        
-        //receive responses
-        Sim_event ev = new Sim_event();
-        Map status;
-        for(i = 0; i <  totalResource; i++){ 
-            super.sim_get_next(ev);
-            processStatusResponce(ev);
-          } 
-        
-        //create plan
-        newPlan = createNewPlan();
-        
-        
-        //send plan
-        for(i = 0; i <  totalResource; i++){             
-            write("sending new plan to resource " + resourceID[i]);
-          //send without network delay
-            super.sim_schedule(resourceID[i], GridSimTags.SCHEDULE_NOW, RiftTags.NEW_PLAN, newPlan);
-            //send(super.output, GridSimTags.SCHEDULE_NOW, RiftTags.NEW_PLAN,
-                 //new IO_data(newPlan, 0, resourceID[i], 0) 
-            //);
-          } 
-
-        
-        //WAIT for other events before finishing the simulation
-        super.gridSimHold(10 * deltaT);
-        
-        
-             ////////////////////////////////////////////////////////
-        //ping resources
-        //pingAllRes(resourceID);
-
+	finish();
+    }
     
+    private void finish(){
+	
+
+       //ping resources
+       //pingAllRes(resourceID);
+
+	
         // don't forget to close the file
         if (report_ != null) {
             report_.finalWrite();
-        }       
-        
+        }   
+	
         ////////////////////////////////////////////////////////
         // shut down I/O ports
         shutdownUserEntity();
@@ -177,7 +198,6 @@ class User extends GridUser {
         System.out.println(this.name_ + ":%%%% Exiting body() at time " +
             GridSim.clock());
     }
-    
     
     
     /**
@@ -202,8 +222,9 @@ class User extends GridUser {
     /**
      * processes status responses from resources, updates grid information for solver
      * @param ev
+     * @return if this node has more tasks to do
      */
-    private void processStatusResponce(Sim_event ev){
+    private boolean processStatusResponce(Sim_event ev){	
 	//write("received status response" + statusToString(status));
 	//extract data
 	Map status;
@@ -213,10 +234,23 @@ class User extends GridUser {
 	String name = (String) status.get("nodeName");
 	boolean isInputSource = (Boolean) status.get("isInputSource");
 	boolean isOutputDestination = (Boolean) status.get("isOutputDestination");
+	boolean isInputDestination = (Boolean) status.get("isInputDestination");
+	boolean isOutputSource = (Boolean) status.get("isOutputSource");
 	double waitingInputSize = (Double) status.get("waitingInputSize");
 	double readyOutputSize = (Double) status.get("readyOutputSize");
 	double freeStorageSpace = (Double) status.get("freeStorageSpace");
+	int submittedInputFiles = (Integer) status.get("submittedInputFiles");
 
+	//will check if there is unprocessed input
+	//or untransferred output
+	boolean hasMoreWorkToDo = false;
+	if (waitingInputSize > 0 //if any node has waiting input files
+		|| submittedInputFiles > 0 //if jobs are running
+		|| (! isOutputDestination && readyOutputSize > 0) ){ //if not a destination node has ready output files
+	    hasMoreWorkToDo = true;
+	}
+
+        
 	
 	if ( solver.updateNode(id, (long) waitingInputSize, (long) readyOutputSize,
 		(long) waitingInputSize, (long) freeStorageSpace) ){
@@ -225,7 +259,7 @@ class User extends GridUser {
 	}else{
 	    write("WARNING failed to update node status (probably node not found)"  + id + ":" + name);
 	}      
-	
+	return hasMoreWorkToDo;
     }
     
     
@@ -233,9 +267,16 @@ class User extends GridUser {
      * The planner logic is connected here 
      * @return
      */
-    private LinkedList<LinkFlows> createNewPlan() {    
+    private LinkedList<LinkFlows> createNewPlan() {  
+	double sumFlow = 0;
 	//solve the problem
-	solver.solve();
+	sumFlow = solver.solve();
+	
+	//if there is no flow - stop planning
+	if (sumFlow == 0){
+	    //this.continueDataProduction = false;
+	    //write("All calculated flows are zeros. Planer will stop.");
+	}
 	solver.PrintGridSetup();
 	
 	//parse the solution
@@ -261,12 +302,10 @@ class User extends GridUser {
      }
     
     private void printPlan(LinkedList<LinkFlows> plan){
-	write("-------------New plan created----------------");
-	
+	write("-------------New plan created----------------");	
 	for (LinkFlows tempFlow : plan){
 	    write(tempFlow.toString() );
-	}
-	
+	}	
 	write("----------------------------------------------");
     }
 
@@ -319,6 +358,8 @@ private String statusToString(Map status) {
      
 	return buf.toString();
     }
+
+
 
 private void pingAllRes(int[] resIDs){
     for (int id: resIDs){

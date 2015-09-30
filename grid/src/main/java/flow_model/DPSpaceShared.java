@@ -23,6 +23,7 @@ import gridsim.PEList;
 import gridsim.ResGridlet;
 import gridsim.ResGridletList;
 
+import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.HashMap;
@@ -90,6 +91,17 @@ class DPSpaceShared extends AllocPolicy
     private double localProcessingFlow; //(UNITS) input data to be processed locally (counter)
     private double remoteInputFlow; //(UNITS) total input data to be transferred out (counter)
     private double remoteOutputFlow; //(UNITS) total output data to be transferred out (counter)
+    
+    //for statistics purposes
+    private int jobsFinished = 0;
+    private double inputReceived = 0;
+    private double outputSent = 0;
+    private int waistedCPUCounter = 0;
+    //writing statistics to a file
+    private PrintWriter fileWriter; 
+
+    
+    
 
 
     /**
@@ -136,6 +148,11 @@ class DPSpaceShared extends AllocPolicy
 	this.isOutputDestination = isOutputDestination;
 	this.isInputDestination = isInputDestination;
 	this.isOutputSource = isOutputSource;
+	
+	String filename = "output/" + this.resName_ + "_statistics.csv";
+	fileWriter = new PrintWriter(filename, "UTF-8");
+	fileWriter.println(getStatusHeader() );
+	//fileWriter.println(getStatusString() );
 
     }
     
@@ -308,6 +325,9 @@ class DPSpaceShared extends AllocPolicy
 	    //add new input file to
 	    if (addInputFile(gl) ){
 		//send confirmation to sender
+		
+		//statistics
+		this.inputReceived += gl.getGridletFileSize();
 	    }else{
 		//send failure back to sender 		
 		return;
@@ -350,11 +370,14 @@ class DPSpaceShared extends AllocPolicy
 	private void processFinishedJob(DPGridlet gl){
 	    //remove input file from the disk
 	    //and check if it was registered properly
-	    write("Gridlet " + gl.getGridletID() + " finished processing");
+	    write("Gridlet " + gl.getGridletID() + " finished processing. free CPUS + " + this.resource_.getNumFreePE() );
 	    if (this.submittedInputFiles.remove(gl) && this.reservedOutputFiles.remove(gl) ){
 		this.freeStorageSpace += gl.getInputSizeInUnits(); //clear disc space
 		this.readyOutputFiles.add(gl); //add output file to the ready list
 		this.readyOutputSize += gl.getOutputSizeInUnits(); //update counter
+		//statisctics
+		this.jobsFinished++;
+		
 	    }else{
 		write("Error: finished gridlet was unregisterred");
 	    }
@@ -405,7 +428,14 @@ class DPSpaceShared extends AllocPolicy
 		      break;	
 	      }
 	  }	    
-	    
+	  
+	  //check if we have waiting files and free cpus.
+	  if (this.waitingInputFiles.size() > 0 && this.resource_.getNumFreePE() > 0){
+	      this.waistedCPUCounter++;
+	  }
+	  
+	  //write statistics to file
+	  fileWriter.println(getStatusString() );
 	  //write(" DEBUG: processFiles() exited");
 	    return;
 	}
@@ -535,6 +565,10 @@ class DPSpaceShared extends AllocPolicy
 	    write("send output file " + gl.getGridletID()  +" of size "  + gl.getGridletOutputSize() 
 		    + "to resource " + neighborNodesIds.get(j)
 		    + " remaining flow" + neighborNodesOutputFlows.get(j));
+	    
+		
+	    //statistics
+	    this.outputSent += size;
 	    return true;
 	}
 
@@ -585,8 +619,8 @@ class DPSpaceShared extends AllocPolicy
 	private String planToString(){
 	    StringBuffer buf = new StringBuffer();
 	    
-	    buf.append("\n-------------PLAN----------------\n");
-	    buf.append("all values in "+ DataUnits.getName() + "\n");
+	    //buf.append("\n-------------PLAN----------------\n");
+	    //buf.append("all values in "+ DataUnits.getName() + "\n");
 	    buf.append("localProcessingFlow: " + localProcessingFlow + "\n");
 	    buf.append("remoteInputFlow: " + remoteInputFlow + " remoteOutputFlow: " + remoteOutputFlow + "\n");
 	    buf.append("IDS: " + neighborNodesIds.toString() + "\n");
@@ -624,15 +658,25 @@ class DPSpaceShared extends AllocPolicy
 	    status.put("waitingInputSize", waitingInputSize);
 	    status.put("freeStorageSpace", freeStorageSpace);
 	    status.put("readyOutputSize", readyOutputSize);
+	    status.put("submittedInputFiles", submittedInputFiles.size());
 
 	    //status.put("waitingInputFiles", waitingInputFiles);
 	    
 	    //send without network delay
 	    super.sim_schedule(planerId, GridSimTags.SCHEDULE_NOW, RiftTags.STATUS_RESPONSE,
-		    status 
+		    status 		    
            );
 	    
+	    //print statistics
+	    write("~~~~~~~~~~~~~~~~~~~ REMAINING FLOWS OF OLD PLAN ~~~~~~~~~~~~~~~~~\n" 
+		    + planToString() + "\n"
+		    + "~~~~~~~~~~~~~~~~~~~~~~~~~~~ STATISTICS ~~~~~~~~~~~~~~~~~~~~~~~~~~\n"
+		    + getStatusHeader() + "\n"
+		    + getStatusString() + "\n"
+		    + "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n"
+		    );    	    
 	    
+	    fileWriter.println(getStatusString() );
 	    return;
 	}
 	
@@ -669,6 +713,66 @@ class DPSpaceShared extends AllocPolicy
 	    
 	    return;
 	}
+	
+	public String getStatusHeader(){
+	    String indent = " ";
+	    StringBuffer buf = new StringBuffer();	    
+	    buf.append("time" + indent);
+	    buf.append("resId" + indent);
+	    buf.append("resName" + indent);
+	    buf.append("CPUs" + indent);
+	    buf.append("freeCPUs" + indent);
+	    buf.append("storageSize" + indent);
+	    buf.append("freeStorageSpace" + indent);
+	    buf.append("waitingInputSize" + indent);
+	    buf.append("readyOutputSize" + indent);
+	    buf.append("jobsFinished" + indent);
+	    buf.append("inputReceived" + indent);
+	    buf.append("outputSent" + indent);
+	    buf.append("waistedCPUCounter" + indent);
+	    buf.append("localProcessingFlow" + indent);
+	    buf.append("remoteInputFlow" + indent);
+	    buf.append("remoteOutputFlow" + indent);
+	    //buf.append( + indent);	    
+	    return buf.toString();
+	}
+	
+	public String getStatusString(){
+	    String indent = " ";
+	    StringBuffer buf = new StringBuffer();	    
+	    buf.append(GridSim.clock() + indent);
+	    buf.append(this.resId_ + indent);
+	    buf.append(this.resName_ + indent);
+	    buf.append(this.resource_.getNumPE() + indent);
+	    buf.append(this.resource_.getNumFreePE() + indent);
+	    buf.append(this.storageSize + indent);
+	    buf.append(this.freeStorageSpace + indent);
+	    buf.append(this.waitingInputSize + indent);
+	    buf.append(this.readyOutputSize + indent);
+	    buf.append(this.jobsFinished + indent);
+	    buf.append(this.inputReceived + indent);
+	    buf.append(this.outputSent + indent);
+	    buf.append(this.waistedCPUCounter + indent);
+	    buf.append(this.localProcessingFlow + indent);
+	    buf.append(this.remoteInputFlow + indent);
+	    buf.append(this.remoteOutputFlow + indent);
+	    //buf.append( + indent);	    
+	    return buf.toString();
+	}
+	
+	private void finilize(){
+	  //print statistics
+	    write("~~~~~~~~~~~~~~~~~~~ REMAINING FLOWS OF OLD PLAN ~~~~~~~~~~~~~~~~~\n" 
+		    + planToString() + "\n"
+		    + "~~~~~~~~~~~~~~~~~~~~~~~~~~~ FINAL STATISTICS ~~~~~~~~~~~~~~~~~~~~~\n"
+		    + getStatusHeader() + "\n"
+		    + getStatusString() + "\n"
+		    + "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n"
+		    );    	    
+	    write("exitting");
+	    fileWriter.close();
+	    return;
+	}
     
     ///////////////////////////////////// METHODS FROM SpaceShared CLASS ///////////////////////// 
 
@@ -698,7 +802,8 @@ class DPSpaceShared extends AllocPolicy
             if (ev.get_tag() == GridSimTags.END_OF_SIMULATION ||
                 super.isEndSimulation())
             {
-        	write("received END_OF_SIMULATION");
+        	finilize();
+        	
                 break;
             }
 
