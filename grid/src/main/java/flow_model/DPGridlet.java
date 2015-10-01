@@ -8,6 +8,7 @@ import gridsim.datagrid.*;
  * @author Dzmitry Makatun
  */
 public class DPGridlet extends Gridlet{
+       private int senderID; //the previous resource, that send this gridlet
 
 	public DPGridlet(int id, double length, long inputSize, long outputSize, boolean trace) {
 		super(id, length, inputSize, outputSize, trace);
@@ -46,6 +47,16 @@ public class DPGridlet extends Gridlet{
 	public double getOutputSizeInUnits(){
 	    return this.getGridletOutputSize();
 	    //return super.getGridletOutputSize() / DataUnits.getSize();
+	}
+
+
+	public int getSenderID() {
+	    return senderID;
+	}
+
+
+	public void setSenderID(int senderID) {
+	    this.senderID = senderID;
 	}
 
 }

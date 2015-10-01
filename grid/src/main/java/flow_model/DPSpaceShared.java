@@ -78,11 +78,18 @@ class DPSpaceShared extends AllocPolicy
     private double freeStorageSpace; //(UNITS) available free space
     private double waitingInputSize; //(UNITS) input data that can be transferred or processed
     private double readyOutputSize; //(UNITS) output data ready to be transferred
+    private double pendingInputSize; //(UNITS) size of Input files in process of transfer
+    private double pendingOutputSize; //(UNITS) size of Output files in process of transfer
+    int sendErrorCounter; //how many outgoing transfers were failed 
+    int receiveErrorCounter; //how many incoming transfers were failed 
+    
 	
     private GridletList waitingInputFiles = new GridletList(); //Gridlets That has just arrived
     private GridletList submittedInputFiles = new GridletList(); //Gridlets submited for local processing
     private GridletList readyOutputFiles = new GridletList(); //output files ready for transfer
     private GridletList reservedOutputFiles = new GridletList(); //output files of runing jobs
+    private GridletList pendingInputFiles = new GridletList(); //Input files in process of transfer
+    private GridletList pendingOutputFiles = new GridletList(); //Output files in process of transfer
 	
     //properties to store the plan
     private ArrayList<Integer> neighborNodesIds = new ArrayList<Integer>(); //IDs of directly connected nodes
@@ -141,6 +148,8 @@ class DPSpaceShared extends AllocPolicy
 	this.freeStorageSpace = this.storageSize;
 	this.waitingInputSize = 0;
 	this.readyOutputSize = 0;
+	this.pendingInputSize = 0;
+	this.pendingOutputSize = 0;
 	this.localProcessingFlow = 0.0; 
 	this.remoteInputFlow = 0.0; 
 	this.remoteOutputFlow = 0.0;
@@ -270,6 +279,30 @@ class DPSpaceShared extends AllocPolicy
 	                processIncommingOutputFile(ev);
 	                break;     
 	                
+	            case RiftTags.INPUT_TRANSFER_ACK:
+	        	write("received INPUT_TRANSFER_ACK");
+	        	processInputTransferAck(ev);
+	                break;    
+	            
+	            case RiftTags.OUTPUT_TRANSFER_ACK:
+	        	write("received OUTPUT_TRANSFER_ACK");
+	        	processOutputTransferAck(ev);
+	                break;  
+	           
+
+	                
+	            case RiftTags.INPUT_TRANSFER_FAIL:
+	        	write("received INPUT_TRANSFER_FAIL");
+	        	processInputTransferFail(ev);
+	                break;  
+	                
+	            case RiftTags.OUTPUT_TRANSFER_FAIL:
+	        	write("received OUTPUT_TRANSFER_FAIL");
+	        	processOutputTransferFail(ev);
+	                break;  
+	                
+	                
+	                
              
 	            default:
 	        	write("Unknown event received. tag: " + ev.get_tag());
@@ -277,14 +310,93 @@ class DPSpaceShared extends AllocPolicy
 	        }        
 	    }
 	
+	/**
+	 * If input transfer to the remote resource failed
+	 * return the file to the waiting input queue
+	 * @param ev
+	 */
+	private void processInputTransferFail(Sim_event ev) {
+	    this.sendErrorCounter ++;
+	    DPGridlet gl = (DPGridlet) ev.get_data();
+	    write("INPUT TRANSFER FAILURE, gridlet id: " + gl.getGridletID());
+	    if (this.pendingInputFiles.remove(gl)) {
+		double size = gl.getGridletFileSize();
+		this.pendingInputSize -= size;
+		this.waitingInputFiles.add(gl);
+		this.waitingInputSize += size;
+		
+	    }else{
+		write("ERROR PENDING INPUT FILE NOT REGISTERED: " + gl.getGridletID());
+	    }	
+    }
+
+
+	/**
+	 * If output transfer to the remote resource failed
+	 * return the file to the ready output queue
+	 * @param ev
+	 */
+	private void processOutputTransferFail(Sim_event ev) {
+	    this.sendErrorCounter ++;
+	    DPGridlet gl = (DPGridlet) ev.get_data();
+	    if (this.pendingOutputFiles.remove(gl)) {
+		double size = gl.getGridletOutputSize();
+		this.pendingOutputSize -= size;
+		this.readyOutputFiles.add(gl);
+		this.readyOutputSize += size;
+	    }else{
+		write("ERROR PENDING OUTPUT FILE NOT REGISTERED: " + gl.getGridletID());
+	    }	
+	
+    }
+
+	/**
+	 * When transfer to remote destination succeed, remove
+	 * pending file; 
+	 * @param ev
+	 */
+	private void processOutputTransferAck(Sim_event ev) {
+	    DPGridlet gl = (DPGridlet) ev.get_data();
+	    if (this.pendingOutputFiles.remove(gl)) {
+		double size = gl.getGridletOutputSize();
+		this.pendingOutputSize -= size;
+		this.freeStorageSpace += size; //remove the file from storage
+	    }else{
+		write("ERROR PENDING OUTPUT FILE NOT REGISTERED: " + gl.getGridletID());
+	    }	
+    }
+	
+	/**
+	 * When transfer to remote destination succeed, remove
+	 * pending file; 
+	 * @param ev
+	 */
+	private void processInputTransferAck(Sim_event ev) {
+	    DPGridlet gl = (DPGridlet) ev.get_data();
+	    if (this.pendingInputFiles.remove(gl)) {
+		double size = gl.getGridletFileSize();
+		this.pendingInputSize -= size;
+		this.freeStorageSpace += size; //remove the file from storage
+	    }else{
+		write("ERROR PENDING INPUT FILE NOT REGISTERED: " + gl.getGridletID());
+	    }	
+    }
+
 	private void processIncommingOutputFile(Sim_event ev) {
 	    DPGridlet gl = (DPGridlet) ev.get_data();
 	    write("received output file of a gridlet " + gl.getGridletID());
 	    //add new input file to
 	    if (addOutputFile(gl) ){
 		//send confirmation to sender
+		//send without network delay
+		super.sim_schedule(gl.getSenderID(), GridSimTags.SCHEDULE_NOW,
+			RiftTags.OUTPUT_TRANSFER_ACK, gl); 
 	    }else{
-		//send failure back to sender 		
+		this.receiveErrorCounter ++;
+		//send failure back to sender 
+		//send without network delay		
+		super.sim_schedule(gl.getSenderID(), GridSimTags.SCHEDULE_NOW,
+			RiftTags.OUTPUT_TRANSFER_FAIL, gl); 
 		return;
 	    }
 	    
@@ -325,11 +437,19 @@ class DPSpaceShared extends AllocPolicy
 	    //add new input file to
 	    if (addInputFile(gl) ){
 		//send confirmation to sender
+		//send without network delay
+		
+		super.sim_schedule(gl.getSenderID(), GridSimTags.SCHEDULE_NOW,
+			RiftTags.INPUT_TRANSFER_ACK, gl); 
 		
 		//statistics
 		this.inputReceived += gl.getGridletFileSize();
 	    }else{
-		//send failure back to sender 		
+		this.receiveErrorCounter ++;
+		//send failure back to sender 	
+		//send without network delay
+		super.sim_schedule(gl.getSenderID(), GridSimTags.SCHEDULE_NOW,
+			RiftTags.INPUT_TRANSFER_FAIL, gl); 
 		return;
 	    }
 	    
@@ -512,7 +632,8 @@ class DPSpaceShared extends AllocPolicy
 	    
 	    //send	    
 	    write(" sending input file " + gl.getGridletID() + " of size " + gl.getGridletFileSize() 
-		    + "(bytes) to resource " + neighborNodesIds.get(j));	
+		    + "(bytes) to resource " + neighborNodesIds.get(j));
+	    gl.setSenderID(this.resId_);
 	    IO_data data = new IO_data(gl, gl.getGridletFileSize(), neighborNodesIds.get(j));
 	    //DEBUG	   
 	    //write("sending IO_data: " + data.toString());
@@ -523,7 +644,9 @@ class DPSpaceShared extends AllocPolicy
 	    remoteInputFlow -=  size;
 	    neighborNodesInputFlows.set(j, neighborNodesInputFlows.get(j) - size);
 	    waitingInputSize -= size;
-	    freeStorageSpace +=  size; //this "deletes" the file, 
+	    this.pendingInputFiles.add(gl);
+	    this.pendingInputSize += size;
+	    //freeStorageSpace +=  size; //this "deletes" the file, 
 	    //later file has to be deleted when a confirmation is received    	 
 	    return true;
 	}
@@ -549,23 +672,26 @@ class DPSpaceShared extends AllocPolicy
 		return false;
 	    }
 	    
-	    //send	    
+	    //send
+	    gl.setSenderID(this.resId_);
 	    IO_data data =  new IO_data(gl, gl.getGridletOutputSize(), neighborNodesIds.get(j) );
 	    //DEBUG
 	    // write("sending IO_data: " + data.toString());
 	    super.sim_schedule(super.outputPort_, GridSimTags.SCHEDULE_NOW, RiftTags.OUTPUT, data);
 	    //GridSim.send(super.outputPort_, GridSimTags.SCHEDULE_NOW,  RiftTags.OUTPUT, data);
+	    
 	    //update counters
 	    double size = gl.getOutputSizeInUnits();
 	    remoteOutputFlow -=  size;
 	    neighborNodesOutputFlows.set(j, neighborNodesOutputFlows.get(j) - size);
 	    readyOutputSize -= size;
-	    freeStorageSpace +=  size; //this "deletes" the file, 	    
+	    this.pendingOutputFiles.add(gl);
+	    this.pendingOutputSize += size;
+	    //freeStorageSpace +=  size; //this "deletes" the file, 	    
 	    //later file has to be deleted when a confirmation is received    
 	    write("send output file " + gl.getGridletID()  +" of size "  + gl.getGridletOutputSize() 
 		    + "to resource " + neighborNodesIds.get(j)
-		    + " remaining flow" + neighborNodesOutputFlows.get(j));
-	    
+		    + " remaining flow" + neighborNodesOutputFlows.get(j));	    
 		
 	    //statistics
 	    this.outputSent += size;
@@ -630,7 +756,9 @@ class DPSpaceShared extends AllocPolicy
 	    buf.append("---------------------------------");
 	    buf.append("\nfreeStorageSpace: " +freeStorageSpace + " waitingInputSize: " + waitingInputSize 
 		    + " readyOutputSize: " + readyOutputSize + "\n");
-	    buf.append("---------------------------------");
+	    buf.append("pending files: " + (this.pendingInputSize + this.pendingOutputSize) 
+		    + " sendErrors: " + this.sendErrorCounter + " receiveErrors " + this.receiveErrorCounter);
+	    buf.append("\n---------------------------------");
 	    
 	    return buf.toString();
 	}

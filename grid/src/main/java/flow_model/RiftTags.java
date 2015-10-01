@@ -31,9 +31,15 @@ public class RiftTags {
   public static final int OUTPUT = BASE + 5;
   
   /** Remote node confirms that the input file was received*/
-  public static final int CONFIRMATION_INPUT = BASE + 6;
+  public static final int INPUT_TRANSFER_ACK = BASE + 6;
   
   /** Remote node confirms that the output file was received*/
-  public static final int CONFIRMATION_OUTPUT = BASE + 7;
+  public static final int OUTPUT_TRANSFER_ACK = BASE + 7;
+  
+  /** Remote node failed to accommodate input file*/
+  public static final int INPUT_TRANSFER_FAIL = BASE + 8;
+  
+  /** Remote node failed to accommodate output file*/
+  public static final int OUTPUT_TRANSFER_FAIL = BASE + 9;
   
 }
