@@ -78,6 +78,8 @@ class DPSpaceShared extends AllocPolicy
     private double freeStorageSpace; //(UNITS) available free space
     private double waitingInputSize; //(UNITS) input data that can be transferred or processed
     private double readyOutputSize; //(UNITS) output data ready to be transferred
+    private double submittedInputSize; //(UNITS) size of input files of submitted jobs
+    private double reservedOutputSize; //(UNITS) size of output files of submitted jobs
     private double pendingInputSize; //(UNITS) size of Input files in process of transfer
     private double pendingOutputSize; //(UNITS) size of Output files in process of transfer
     int sendErrorCounter; //how many outgoing transfers were failed 
@@ -150,6 +152,8 @@ class DPSpaceShared extends AllocPolicy
 	this.readyOutputSize = 0;
 	this.pendingInputSize = 0;
 	this.pendingOutputSize = 0;
+	this.submittedInputSize = 0;
+	this.reservedOutputSize = 0;
 	this.localProcessingFlow = 0.0; 
 	this.remoteInputFlow = 0.0; 
 	this.remoteOutputFlow = 0.0;
@@ -163,6 +167,57 @@ class DPSpaceShared extends AllocPolicy
 	fileWriter.println(getStatusHeader() );
 	//fileWriter.println(getStatusString() );
 
+    }
+    
+    /**
+     *  
+     * @param list
+     * @return sum of input files in gridletlist
+     */
+    private double getInputSize(GridletList list){
+	double sum = 0;
+	Gridlet gl;
+	for (Object obj : list){
+	    gl = (Gridlet) obj;
+	    sum += gl.getGridletFileSize();
+	}
+	return sum;
+    }
+    
+    /**
+     *  
+     * @param list
+     * @return sum of input files in gridletlist
+     */
+    private double getOutputSize(GridletList list){
+	double sum = 0;
+	Gridlet gl;
+	for (Object obj : list){
+	    gl = (Gridlet) obj;
+	    sum += gl.getGridletOutputSize();
+	}
+	return sum;
+    }
+    
+    /**
+     * Checks the size of gridlet lists
+     * @throws Exception 
+     */
+    private void verifyGridletLists() throws Exception{
+	if( this.waitingInputSize == getInputSize(this.waitingInputFiles)
+		&& this.submittedInputSize == getInputSize(this.submittedInputFiles)
+		&& this.pendingInputSize== getInputSize(this.pendingInputFiles)
+		&& this.readyOutputSize == getOutputSize(this.readyOutputFiles)
+		&& this.reservedOutputSize == getOutputSize(this.reservedOutputFiles)
+		&& this.pendingOutputSize == getOutputSize(this.pendingOutputFiles)		
+		){
+	    		write("Gridlet lists verification passed ..............OK");
+	}else{
+	    write("GRIDLET LIST VERIFICATION FAILED");
+	    this.wait(60000);
+	    throw new Exception(); 
+	}
+	
     }
     
     public boolean  isInputSource(){
@@ -492,6 +547,8 @@ class DPSpaceShared extends AllocPolicy
 	    //and check if it was registered properly
 	    write("Gridlet " + gl.getGridletID() + " finished processing. free CPUS + " + this.resource_.getNumFreePE() );
 	    if (this.submittedInputFiles.remove(gl) && this.reservedOutputFiles.remove(gl) ){
+		this.submittedInputSize -= gl.getGridletFileSize();
+		this.reservedOutputSize -= gl.getGridletOutputSize();
 		this.freeStorageSpace += gl.getInputSizeInUnits(); //clear disc space
 		this.readyOutputFiles.add(gl); //add output file to the ready list
 		this.readyOutputSize += gl.getOutputSizeInUnits(); //update counter
@@ -557,7 +614,18 @@ class DPSpaceShared extends AllocPolicy
 	  //write statistics to file
 	  fileWriter.println(getStatusString() );
 	  //write(" DEBUG: processFiles() exited");
-	    return;
+	  
+	  //DEBUG
+	  try {
+	    verifyGridletLists();
+	} catch (Exception e) {
+	    // TODO Auto-generated catch block
+	    e.printStackTrace();
+	    
+	}
+	  return;
+	    
+	    
 	}
 
 	/**
@@ -572,6 +640,7 @@ class DPSpaceShared extends AllocPolicy
 	    if (createOutputFile(gl) ){ // if space for outputfile was successfully created
 	        waitingInputSize -= gl.getInputSizeInUnits(); 
 	        submittedInputFiles.add(gl);
+	        submittedInputSize += gl.getGridletFileSize();
 	        //!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 	        //BUGFIX (otherwise job times are not calculated)
 	        gl.setResourceParameter(this.resId_,this.resource_.getCostPerSec());
@@ -598,7 +667,8 @@ class DPSpaceShared extends AllocPolicy
 	    double outSize = gl.getOutputSizeInUnits();	    
 	    if (this.freeStorageSpace >= outSize ) { //if there is a place for output
 		this.freeStorageSpace -= outSize; //reserve space for output
-		this.reservedOutputFiles.add(gl); //add the file to the future output list		
+		this.reservedOutputFiles.add(gl); //add the file to the future output list
+		this.reservedOutputSize += outSize;
 		return true;		
 	    }else{
 		//failed to accommodate a new file
