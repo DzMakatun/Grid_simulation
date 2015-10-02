@@ -18,6 +18,9 @@ import gridsim.net.InfoPacket;
 import gridsim.net.SimpleLink;  // To use the new flow network package - GridSim 4.2
 import gridsim.util.SimReport;
 
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.PrintWriter;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.Map;
@@ -41,7 +44,7 @@ class User extends GridUser {
     double totalPEs = 0;
     private int totalGridlet; //how many gridlet were red from file
     private GridletList gridlets;          // list of submitted Gridlets
-    private SimReport report_;  // logs every events
+    //private static FileWriter report_;  // logs every events
     boolean trace_flag;
     double startTime, saturationStart, saturationFinish, finishTime ;
     int chunkSize; //for monitoring
@@ -51,6 +54,8 @@ class User extends GridUser {
     float beta;	
     boolean continueDataProduction;
     private int updateCounter = 0;
+    //writing statistics to a file
+    private PrintWriter fileWriter; 
     
 
     // constructor
@@ -61,19 +66,25 @@ class User extends GridUser {
         // NOTE: uncomment this if you want to use the new Flow extension
         super(name, new SimpleLink(name + "_link", baud_rate, delay, MTU));
     	
-        // creates a report file
-        if (trace_flag == true) {
-            report_ = new SimReport(name);
-        }
+
     	
     	trace_flag = true;
         this.name_ = name;
+        
+        // creates a report file
+        if (trace_flag == true) {
+            //report_ = new FileWriter(ParameterReader.simulationLogFilename, true);
+        }
 
         // Gets an ID for this entity
         this.myId_ = super.getEntityId(name);
         //write("Creating a grid user entity with name = " +
         //      name + ", and id = " + this.myId_);
-      
+        
+        //write statistics for planned link bandwith consumprion
+        String filename = "output/" + this.name_ + "_planned_net_usage.csv";
+	fileWriter = new PrintWriter(filename, "UTF-8");
+
     }
     
     //get list of gridlets for submission
@@ -125,10 +136,12 @@ class User extends GridUser {
 	            resourceID[i] = ( (Integer)resList.get(i) ).intValue();
 	        }
 	        
-	        this.continueDataProduction = true;
+	        this.continueDataProduction = true;        
+	        //write header to the statistics file
+		fileWriter.println(getStatusHeader() );
     }
     
-    
+
     /**
      * The core method that handles communications among GridSim entities.
      */
@@ -186,17 +199,13 @@ class User extends GridUser {
        //pingAllRes(resourceID);
 
 	
-        // don't forget to close the file
-        if (report_ != null) {
-            report_.finalWrite();
-        }   
-	
         ////////////////////////////////////////////////////////
         // shut down I/O ports
         shutdownUserEntity();
         terminateIOEntities();
         System.out.println(this.name_ + ":%%%% Exiting body() at time " +
             GridSim.clock());
+        fileWriter.close();
     }
     
     
@@ -283,23 +292,52 @@ class User extends GridUser {
         LinkedList<LinkFlows> plan = new LinkedList<LinkFlows>();
         LinkFlows tempFlow;
         
-        //get flows of real network links
+        //get flows of real network links 
         for (NetworkLink link : solver.getGridLinks()){
-            tempFlow = new LinkFlows(link.getBeginNodeId(), 
+            tempFlow = new LinkFlows(link.getId(), link.getName(), link.getBandwidth(), link.getBeginNodeId(), 
         	    link.getEndNodeId(), link.getInputFlow(), link.getOutputFlow());
             plan.add(tempFlow);
         }
         
         //get flows of dummy links
         for (CompNode node : solver.getGridNodes()){
-            tempFlow = new LinkFlows(node.getId(), 
+            tempFlow = new LinkFlows(-1, "dummy", 0, node.getId(), 
         	    -1, node.getNettoInputFlow(), 0);
             plan.add(tempFlow);
         }
 
         //printPlan(plan);
+        //record statistics
+        fileWriter.println(getLinkPlannedUsage());
  	return plan;
      }
+    
+    /**
+     * returnes string with names of all links
+     * @return
+     */
+    private String getStatusHeader() {
+	String delimiter = " ";
+	StringBuffer buf = new StringBuffer();
+	buf.append("time");
+        //get names real network links
+        for (NetworkLink link : solver.getGridLinks()){
+            buf.append(delimiter + link.getName() + "_INPUT");
+            buf.append(delimiter + link.getName()+ "_OUTPUT");
+        }            
+	return buf.toString();
+    }
+    
+    private String getLinkPlannedUsage(){
+	String delimiter = " ";
+	StringBuffer buf = new StringBuffer();
+	buf.append(GridSim.clock());
+        for (NetworkLink link : solver.getGridLinks()){           
+            buf.append(delimiter + ( link.getInputFlow() / (link.getBandwidth()*deltaT) ) );
+            buf.append(delimiter + ( link.getOutputFlow() / (link.getBandwidth()*deltaT) ) );
+        } 	
+	return buf.toString();
+    }
     
     private void printPlan(LinkedList<LinkFlows> plan){
 	write("-------------New plan created----------------");	
@@ -307,43 +345,7 @@ class User extends GridUser {
 	    write(tempFlow.toString() );
 	}	
 	write("----------------------------------------------");
-    }
-
-   /** generates static plan for testing purposes
-    * @return
-    */
-   private LinkedList<LinkFlows> createTestPlan(int[] resourceID) {
-       double defaultLocalProcessingFlow = 20000;
-       double defaultInputFlow = 10000;
-       double defaultOutputFlow = 100000;
-              
-       LinkedList<LinkFlows> plan = new LinkedList();
-       LinkFlows tempFlow;
-       int centralStorageID = GridSim.getEntityId("RCF");
-       for (int i = 0; i < resourceID.length; i++ ){
-	   plan.add(new LinkFlows(resourceID[i], -1, defaultLocalProcessingFlow, 0)); // add local processing flow
-	   if (centralStorageID == resourceID[i]){
-	       continue;
-	   }
-	   plan.add(new LinkFlows(centralStorageID, resourceID[i], defaultInputFlow, 0)); // input flow from user to resources
-	   plan.add(new LinkFlows(resourceID[i], centralStorageID, 0, defaultOutputFlow)); // flow back to user
-	   for (int j = 0; j < resourceID.length; j++ ){
-	       if ( i != j ){
-		   if (resourceID[i] < resourceID[j] ){
-		       // input flow to other resources
-		       //plan.add(new LinkFlows(resourceID[i], resourceID[j], defaultInputFlow, 0));		       
-		   }else{
-		       //output flow to other resources
-		       //plan.add(new LinkFlows(resourceID[i], resourceID[j], 0, defaultOutputFlow));
-		   }
-	       }
-	   }
-       }
-       
-	return plan;
-    }
-   
-   
+    } 
 
 private String statusToString(Map status) {
        StringBuffer buf = new StringBuffer();
@@ -403,12 +405,12 @@ private void pingRes(int resourceID){
 	buf.append( super.get_name() + ":" );
 	buf.append(super.get_id() + " ");	    
 	buf.append(msg);
-	
+	//print to screen
         System.out.println(buf.toString());
-        if (report_ != null) {
-            report_.write(msg);
-        }
+        //write to file
+        Logger.write(buf.toString());
     }
+
 } // end class
 
 

@@ -32,6 +32,7 @@ public class ParameterReader {
     public static int deltaT;
     public static double alpha;
     public static double beta;
+    public static String simulationLogFilename;
 
     public static void read(String filename) {
         try {
@@ -66,6 +67,9 @@ public class ParameterReader {
                 	alpha = Double.valueOf(value);
                     } else if (name.equals("beta")) {
                 	beta = Double.valueOf(value);
+                    } else if (name.equals("simulationLogFilename")) {
+                	simulationLogFilename = value;
+                	
                 	
                 	
                     } else {

@@ -24,12 +24,17 @@ import gridsim.ResGridlet;
 import gridsim.ResGridletList;
 
 import java.io.PrintWriter;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.Map;
+
+import org.joda.time.DateTime;
 
 
 /**
@@ -102,6 +107,10 @@ class DPSpaceShared extends AllocPolicy
     private double remoteOutputFlow; //(UNITS) total output data to be transferred out (counter)
     
     //for statistics purposes
+    private double firstPlanReceived = 0;
+    private double lastOutputReceived = 0;
+    private int initialNomberOfFiles = 0;
+    private double initialSizeOfFiles = 0;
     private int jobsFinished = 0;
     private double inputReceived = 0;
     private double outputSent = 0;
@@ -209,13 +218,16 @@ class DPSpaceShared extends AllocPolicy
 		&& this.pendingInputSize== getInputSize(this.pendingInputFiles)
 		&& this.readyOutputSize == getOutputSize(this.readyOutputFiles)
 		&& this.reservedOutputSize == getOutputSize(this.reservedOutputFiles)
-		&& this.pendingOutputSize == getOutputSize(this.pendingOutputFiles)		
+		&& this.pendingOutputSize == getOutputSize(this.pendingOutputFiles)
+		&& ( waitingInputSize + submittedInputSize + pendingInputSize + readyOutputSize + reservedOutputSize
+		       + pendingOutputSize + freeStorageSpace == storageSize )
 		){
 	    		write("Gridlet lists verification passed ..............OK");
 	}else{
-	    write("GRIDLET LIST VERIFICATION FAILED");
-	    this.wait(60000);
-	    throw new Exception(); 
+	    while(true){
+	      write("\n \n \n  \n \n \n  GRIDLET LIST VERIFICATION FAILED \n \n \n \n \n \n ");
+	    }
+	    //throw new Exception(); 
 	}
 	
     }
@@ -238,6 +250,8 @@ class DPSpaceShared extends AllocPolicy
 		return false;
 	    }
 	}
+	this.initialNomberOfFiles = this.waitingInputFiles.size();
+	this.initialSizeOfFiles = this.waitingInputSize;
 	return true;
     }
     
@@ -446,6 +460,8 @@ class DPSpaceShared extends AllocPolicy
 		//send without network delay
 		super.sim_schedule(gl.getSenderID(), GridSimTags.SCHEDULE_NOW,
 			RiftTags.OUTPUT_TRANSFER_ACK, gl); 
+		//remember the time when the last output was received. For makespan calculation
+		this.lastOutputReceived = GridSim.clock();
 	    }else{
 		this.receiveErrorCounter ++;
 		//send failure back to sender 
@@ -454,6 +470,7 @@ class DPSpaceShared extends AllocPolicy
 			RiftTags.OUTPUT_TRANSFER_FAIL, gl); 
 		return;
 	    }
+	    
 	    
 	    if (planIsSet){
 		processFiles();
@@ -779,6 +796,11 @@ class DPSpaceShared extends AllocPolicy
 	    LinkedList <LinkFlows> newPlan = (LinkedList <LinkFlows>) ev.get_data();	    
 	    LinkFlows tempData;
 	    
+	    //if this is the first plan, remember the time as the start of simulation
+	    if (neighborNodesIds.isEmpty()){
+		this.firstPlanReceived = GridSim.clock();
+	    }
+	    
 	    //clear old plan
 	    neighborNodesIds.clear();
 	    neighborNodesInputFlows.clear();
@@ -823,7 +845,7 @@ class DPSpaceShared extends AllocPolicy
 	    buf.append("IN:  " + neighborNodesInputFlows.toString() + "\n");
 	    buf.append("OUT: " + neighborNodesOutputFlows.toString() + "\n");
 	    
-	    buf.append("---------------------------------");
+	    buf.append("STATUS: -------");
 	    buf.append("\nfreeStorageSpace: " +freeStorageSpace + " waitingInputSize: " + waitingInputSize 
 		    + " readyOutputSize: " + readyOutputSize + "\n");
 	    buf.append("pending files: " + (this.pendingInputSize + this.pendingOutputSize) 
@@ -868,7 +890,7 @@ class DPSpaceShared extends AllocPolicy
 	    //print statistics
 	    write("~~~~~~~~~~~~~~~~~~~ REMAINING FLOWS OF OLD PLAN ~~~~~~~~~~~~~~~~~\n" 
 		    + planToString() + "\n"
-		    + "~~~~~~~~~~~~~~~~~~~~~~~~~~~ STATISTICS ~~~~~~~~~~~~~~~~~~~~~~~~~~\n"
+		    + "STATISTICS : -------------\n"
 		    + getStatusHeader() + "\n"
 		    + getStatusString() + "\n"
 		    + "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n"
@@ -908,6 +930,8 @@ class DPSpaceShared extends AllocPolicy
 	    buf.append(message);
 	    
 	    System.out.println(buf.toString());
+	    //write to file
+	    Logger.write(buf.toString());
 	    
 	    return;
 	}
@@ -916,21 +940,13 @@ class DPSpaceShared extends AllocPolicy
 	    String indent = " ";
 	    StringBuffer buf = new StringBuffer();	    
 	    buf.append("time" + indent);
-	    buf.append("resId" + indent);
-	    buf.append("resName" + indent);
-	    buf.append("CPUs" + indent);
-	    buf.append("freeCPUs" + indent);
-	    buf.append("storageSize" + indent);
-	    buf.append("freeStorageSpace" + indent);
-	    buf.append("waitingInputSize" + indent);
+	    buf.append("busyCPUs" + indent);
+	    buf.append("pendingInputSize" + indent);
+	    buf.append("pendingOutputSize" + indent);
 	    buf.append("readyOutputSize" + indent);
-	    buf.append("jobsFinished" + indent);
-	    buf.append("inputReceived" + indent);
-	    buf.append("outputSent" + indent);
-	    buf.append("waistedCPUCounter" + indent);
-	    buf.append("localProcessingFlow" + indent);
-	    buf.append("remoteInputFlow" + indent);
-	    buf.append("remoteOutputFlow" + indent);
+	    buf.append("reservedOutputSize" + indent);
+	    buf.append("submittedInputSize" + indent);
+	    buf.append("waitingInputSize" + indent);
 	    //buf.append( + indent);	    
 	    return buf.toString();
 	}
@@ -939,35 +955,45 @@ class DPSpaceShared extends AllocPolicy
 	    String indent = " ";
 	    StringBuffer buf = new StringBuffer();	    
 	    buf.append(GridSim.clock() + indent);
-	    buf.append(this.resId_ + indent);
-	    buf.append(this.resName_ + indent);
-	    buf.append(this.resource_.getNumPE() + indent);
-	    buf.append(this.resource_.getNumFreePE() + indent);
-	    buf.append(this.storageSize + indent);
-	    buf.append(this.freeStorageSpace + indent);
-	    buf.append(this.waitingInputSize + indent);
-	    buf.append(this.readyOutputSize + indent);
-	    buf.append(this.jobsFinished + indent);
-	    buf.append(this.inputReceived + indent);
-	    buf.append(this.outputSent + indent);
-	    buf.append(this.waistedCPUCounter + indent);
-	    buf.append(this.localProcessingFlow + indent);
-	    buf.append(this.remoteInputFlow + indent);
-	    buf.append(this.remoteOutputFlow + indent);
+	    buf.append(    ( (double) (this.resource_.getNumPE() - this.resource_.getNumFreePE() )
+		    / (double) this.resource_.getNumPE() )   + indent);	   
+	    buf.append( (this.pendingInputSize  / this.storageSize) + indent);
+	    buf.append( (this.pendingOutputSize  / this.storageSize) + indent);	    
+	    buf.append( (this.readyOutputSize  / this.storageSize) + indent);
+	    buf.append( (this.reservedOutputSize  / this.storageSize) + indent);
+	    buf.append( (this.submittedInputSize  / this.storageSize) + indent);
+	    buf.append( (this.waitingInputSize  / this.storageSize) + indent);
+
 	    //buf.append( + indent);	    
 	    return buf.toString();
 	}
 	
 	private void finilize(){
 	  //print statistics
-	    write("~~~~~~~~~~~~~~~~~~~ REMAINING FLOWS OF OLD PLAN ~~~~~~~~~~~~~~~~~\n" 
-		    + planToString() + "\n"
-		    + "~~~~~~~~~~~~~~~~~~~~~~~~~~~ FINAL STATISTICS ~~~~~~~~~~~~~~~~~~~~~\n"
-		    + getStatusHeader() + "\n"
-		    + getStatusString() + "\n"
-		    + "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n"
+	    double makespanSeconds = lastOutputReceived - firstPlanReceived; 
+	    Date makespan = new Date((long) (makespanSeconds * 1000));
+	    SimpleDateFormat myFormat = 
+	            new SimpleDateFormat("DD 'days' HH:mm:ss");
+	    
+	    write( "\n##########################FINAL STATISTICS for " + this.resName_+ " ##########################3\n"
+		    + " initial number of input files: " + this.initialNomberOfFiles
+		          + " size: " + this.initialSizeOfFiles + " " + DataUnits.getName()
+		    + "\n output files received: " + this.readyOutputFiles.size()
+		          +" size: " + this.readyOutputSize + " " + DataUnits.getName()
+		    		    +"\n jobsFinished: " + jobsFinished
+		    + "\n inputReceived: " + inputReceived + " " + DataUnits.getName()
+		    + "\n outputSent: " + outputSent + " " + DataUnits.getName()
+		    + "\n waistedCPUCounter: " + waistedCPUCounter 
+		       + " sending errors: " + this.sendErrorCounter + " receiving errors: " + this.receiveErrorCounter      
+		    + "\n firstPlanReceived: " + firstPlanReceived
+		    + "\n lastOutputReceived: " + lastOutputReceived
+		    + "\n duration: " + makespanSeconds + " seconds or: " + myFormat.format(makespan)
+
+
+		    + "\n##########################################################################################\n"
 		    );    	    
 	    write("exitting");
+	    fileWriter.println(getStatusString());
 	    fileWriter.close();
 	    return;
 	}

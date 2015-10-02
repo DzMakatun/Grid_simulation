@@ -2,6 +2,7 @@
 resources=input/resources.txt
 network=input/network.txt
 planerLogFilename=output/planer_log.txt
+simulationLogFilename=output/DataProduction.log
 dataUnitsName=MB
 dataUnitsSize=1048576
 # planning time interval in seconds

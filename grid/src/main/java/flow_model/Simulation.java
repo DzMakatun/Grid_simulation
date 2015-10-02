@@ -9,6 +9,8 @@ import gridsim.net.FIFOScheduler;
 import gridsim.net.RIPRouter;  // To use the new flow network package - GridSim 4.2
 import gridsim.util.SimReport;
 
+import java.io.FileWriter;
+import java.io.IOException;
 import java.util.Calendar;
 import java.util.LinkedList;
 
@@ -19,9 +21,6 @@ import java.util.LinkedList;
  * @author Uros Cibej and Anthony Sulistio
  */
 public class Simulation {
-
-    private static SimReport report_;  // logs every events
-	
     public static void main(String[] args) {
         System.out.println("Starting simulation ....");
 
@@ -30,13 +29,15 @@ public class Simulation {
                 System.out.println("Usage: java Main parameter_file");
                 return;
             }
+                       
             
-            report_ = new SimReport("output/Simulation_report");
 
             //reads parameters
-            write( "Parameters file: " + args[0]);
+            System.out.println( "Parameters file: " + args[0]);
             ParameterReader.read(args[0]);
-
+            
+            Logger.openFile(ParameterReader.simulationLogFilename);
+            write( "Parameters file: " + args[0]);
             int num_user = 1; // number of grid users
             Calendar calendar = Calendar.getInstance();
             boolean trace_flag = true; // means trace GridSim events
@@ -113,19 +114,16 @@ public class Simulation {
             //}
             
             write("\nFinish data grid simulation ...");
-            report_.finalWrite();
+            Logger.close();
         } catch (Exception e) {
             e.printStackTrace();
             System.out.println("Unwanted errors happen");
         }
     }
     
-    private static void write(String msg)
-    {
-        System.out.println(msg);
-        if (report_ != null) {
-            report_.write(msg);
-        }
+    private static void write(String msg){
+        System.out.println("Simulation: " + msg);
+        Logger.write("Simulation: " + msg);
     }
     
     private static String gridResourceToString(GridResource gr){
