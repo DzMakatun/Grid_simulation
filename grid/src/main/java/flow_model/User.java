@@ -104,17 +104,24 @@ class User extends GridUser {
     }
     
     private void initPlaner(){
-	        //INITIALIZE PLANER
+	
+	        //INITIALIZE PLANER and FlowManager
 		this.deltaT = ParameterReader.deltaT;
 		this.beta =  (float) ParameterReader.beta;	
 		solver = new DataProductionPlanner(ParameterReader.planerLogFilename, deltaT, beta);
+		LinkedList<LinkFlows> allLinkFlows = new LinkedList<LinkFlows>();
 		for(CompNode node : ResourceReader.planerNodes){
 		    solver.addNode(node);
+		    allLinkFlows.add(new LinkFlows(-node.getId(), "dummy_" + node.getName(), -1, node.getId(), -1));
 		}
 		for(NetworkLink link : DPNetworkReader.planerLinks){
 		    solver.addLink(link);
+		    allLinkFlows.add(
+			    new LinkFlows(link.getId(), link.getName(), link.getBandwidth(), link.getBeginNodeId(), 
+		        	    link.getEndNodeId() )  );
 		}	
-		//solver.PrintGridSetup();	
+		//solver.PrintGridSetup();
+		FlowManager.setLinks(allLinkFlows);
 		
 	        // This to give a time for GridResource entities to register their
 	        // services to GIS (GridInformationService) entity.
@@ -192,8 +199,7 @@ class User extends GridUser {
 	finish();
     }
     
-    private void finish(){
-	
+    private void finish(){	
 
        //ping resources
        //pingAllRes(resourceID);
@@ -201,7 +207,9 @@ class User extends GridUser {
 	
         ////////////////////////////////////////////////////////
         // shut down I/O ports
+	
         shutdownUserEntity();
+        FlowManager.initialized = false;
         terminateIOEntities();
         System.out.println(this.name_ + ":%%%% Exiting body() at time " +
             GridSim.clock());
@@ -289,27 +297,23 @@ class User extends GridUser {
 	solver.PrintGridSetup();
 	
 	//parse the solution
-        LinkedList<LinkFlows> plan = new LinkedList<LinkFlows>();
+        //LinkedList<LinkFlows> plan = new LinkedList<LinkFlows>();
         LinkFlows tempFlow;
         
-        //get flows of real network links 
+        //get and set flows of real network links 
         for (NetworkLink link : solver.getGridLinks()){
-            tempFlow = new LinkFlows(link.getId(), link.getName(), link.getBandwidth(), link.getBeginNodeId(), 
-        	    link.getEndNodeId(), link.getInputFlow(), link.getOutputFlow());
-            plan.add(tempFlow);
+            FlowManager.getLinkFlows(link.getId()).setFlows(link.getInputFlow(), link.getOutputFlow());
         }
         
-        //get flows of dummy links
+        //get and set flows of dummy links
         for (CompNode node : solver.getGridNodes()){
-            tempFlow = new LinkFlows(-1, "dummy", 0, node.getId(), 
-        	    -1, node.getNettoInputFlow(), 0);
-            plan.add(tempFlow);
+            FlowManager.getLinkFlows(-node.getId()).setFlows(node.getNettoInputFlow(), 0);
         }
 
         //printPlan(plan);
         //record statistics
         fileWriter.println(getLinkPlannedUsage());
- 	return plan;
+ 	return FlowManager.getLinks();
      }
     
     /**

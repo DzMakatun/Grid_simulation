@@ -100,8 +100,9 @@ class DPSpaceShared extends AllocPolicy
 	
     //properties to store the plan
     private ArrayList<Integer> neighborNodesIds = new ArrayList<Integer>(); //IDs of directly connected nodes
-    private ArrayList<Double> neighborNodesInputFlows = new ArrayList<Double>(); //amoount of data to send to each node
-    private ArrayList<Double> neighborNodesOutputFlows = new ArrayList<Double>(); //amoount of data to send to each node
+    private ArrayList<Double> neighborNodesInputFlows = new ArrayList<Double>(); //amount of data to send to each node
+    private ArrayList<Double> neighborNodesOutputFlows = new ArrayList<Double>(); //amount of data to send to each node
+    private ArrayList<LinkFlows> outgoingLinkFlows = new ArrayList<LinkFlows>(); //to keep statistics of links
     private double localProcessingFlow; //(UNITS) input data to be processed locally (counter)
     private double remoteInputFlow; //(UNITS) total input data to be transferred out (counter)
     private double remoteOutputFlow; //(UNITS) total output data to be transferred out (counter)
@@ -430,6 +431,11 @@ class DPSpaceShared extends AllocPolicy
 		double size = gl.getGridletOutputSize();
 		this.pendingOutputSize -= size;
 		this.freeStorageSpace += size; //remove the file from storage
+		gl.getUsedLink().addOutputTransfer(size);//update link statistics
+		//DEBUG
+		write( FlowManager.getNamesLine() + "\n"
+			+ FlowManager.getConsumptionLine(30000) );
+		write("but Flow Manager thinks: " + FlowManager.getLinkFlows(gl.getUsedLink().id).outputSent);
 	    }else{
 		write("ERROR PENDING OUTPUT FILE NOT REGISTERED: " + gl.getGridletID());
 	    }	
@@ -446,6 +452,7 @@ class DPSpaceShared extends AllocPolicy
 		double size = gl.getGridletFileSize();
 		this.pendingInputSize -= size;
 		this.freeStorageSpace += size; //remove the file from storage
+		gl.getUsedLink().addInputTransfer(size);//update link statistics
 	    }else{
 		write("ERROR PENDING INPUT FILE NOT REGISTERED: " + gl.getGridletID());
 	    }	
@@ -721,6 +728,7 @@ class DPSpaceShared extends AllocPolicy
 	    write(" sending input file " + gl.getGridletID() + " of size " + gl.getGridletFileSize() 
 		    + "(bytes) to resource " + neighborNodesIds.get(j));
 	    gl.setSenderID(this.resId_);
+	    gl.setUsedLink(this.outgoingLinkFlows.get(j)); //for link statistics
 	    IO_data data = new IO_data(gl, gl.getGridletFileSize(), neighborNodesIds.get(j));
 	    //DEBUG	   
 	    //write("sending IO_data: " + data.toString());
@@ -761,6 +769,7 @@ class DPSpaceShared extends AllocPolicy
 	    
 	    //send
 	    gl.setSenderID(this.resId_);
+	    gl.setUsedLink(this.outgoingLinkFlows.get(j)); //for link statistics
 	    IO_data data =  new IO_data(gl, gl.getGridletOutputSize(), neighborNodesIds.get(j) );
 	    //DEBUG
 	    // write("sending IO_data: " + data.toString());
@@ -805,6 +814,7 @@ class DPSpaceShared extends AllocPolicy
 	    neighborNodesIds.clear();
 	    neighborNodesInputFlows.clear();
 	    neighborNodesOutputFlows.clear();
+	    outgoingLinkFlows.clear();
 	    for (int i = 0; i < newPlan.size(); i++) {
 		tempData = newPlan.get(i);
 		if (tempData.fromID == resId_) {
@@ -815,6 +825,7 @@ class DPSpaceShared extends AllocPolicy
 			neighborNodesIds.add(tempData.toID);
 			neighborNodesInputFlows.add(tempData.inputFlow);
 			neighborNodesOutputFlows.add(tempData.outputFlow);
+			outgoingLinkFlows.add(tempData);
 		    }
 		}
 	    }    

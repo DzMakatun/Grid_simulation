@@ -105,6 +105,10 @@ public class Simulation {
             //check network type
             write( "Network type: " + GridSim.getNetworkType()  );
             //GridSim.enableDebugMode();
+            
+            //create network monitor
+            NetworkMonitor netMon= new NetworkMonitor("NetworkMonitor");
+            plannerRouter.attachHost(netMon, new FIFOScheduler("NetworkMonitor"+"_router_scheduler"));  
 
             GridSim.startGridSimulation();
             

@@ -9,6 +9,7 @@ import gridsim.datagrid.*;
  */
 public class DPGridlet extends Gridlet{
        private int senderID; //the previous resource, that send this gridlet
+       private LinkFlows usedLink;//the link which was used for the last transfer
 
 	public DPGridlet(int id, double length, long inputSize, long outputSize, boolean trace) {
 		super(id, length, inputSize, outputSize, trace);
@@ -57,6 +58,16 @@ public class DPGridlet extends Gridlet{
 
 	public void setSenderID(int senderID) {
 	    this.senderID = senderID;
+	}
+
+
+	public LinkFlows getUsedLink() {
+	    return usedLink;
+	}
+
+
+	public void setUsedLink(LinkFlows usedLink) {
+	    this.usedLink = usedLink;
 	}
 
 }
