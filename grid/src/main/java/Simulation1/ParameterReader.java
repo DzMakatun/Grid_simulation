@@ -35,23 +35,26 @@ public class ParameterReader {
             String name;
             String value;
             StringTokenizer str;
+            
+            String prefix = "F:/git/Grid_simulation/grid/src/main/java/Simulation1/";
 
             while ((line = buf.readLine()) != null) {
                 if (!line.startsWith("#")) { //ignore comments
+                    System.out.println(line);
                     str = new StringTokenizer(line);
 
                     //parse the name and size of file
                     name = str.nextToken("=");
                     value = str.nextToken();
-
+                    
                     if (name.equals("files")) {
-                        filesFilename = value;
+                        filesFilename = prefix + value;
                     } else if (name.equals("network")) {
-                        networkFilename = value;
+                        networkFilename = prefix + value;
                     } else if (name.equals("resources")) {
-                        resourceFilename = value;
+                        resourceFilename = prefix + value;
                     } else if (name.equals("users")) {
-                        usersFilename = value;
+                        usersFilename = prefix + value;
                     } else if (name.equals("numUsers")) {
                         numUsers = Integer.parseInt(value);
                     } else if (name.equals("topRCrouter")) {

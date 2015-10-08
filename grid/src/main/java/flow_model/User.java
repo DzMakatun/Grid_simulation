@@ -35,7 +35,7 @@ import networkflows.planner.NetworkLink;
  * @author Uros Cibej and Anthony Sulistio
  * @author Dzmitry Makatun
  */
-class User extends GridUser {
+public class User extends GridUser {
     private String name_;
     private int myId_;
     private int totalResource;
@@ -59,7 +59,7 @@ class User extends GridUser {
     
 
     // constructor
-    User(String name, double baud_rate, double delay, int MTU) throws Exception {
+    public User(String name, double baud_rate, double delay, int MTU) throws Exception {
     	
     	//super(name, new SimpleLink(name + "_link", baud_rate, delay, MTU));
 
@@ -256,21 +256,23 @@ class User extends GridUser {
 	double waitingInputSize = (Double) status.get("waitingInputSize");
 	double readyOutputSize = (Double) status.get("readyOutputSize");
 	double freeStorageSpace = (Double) status.get("freeStorageSpace");
-	int submittedInputFiles = (Integer) status.get("submittedInputFiles");
+	double submittedInputSize = (Double) status.get("submittedInputSize");
+	int busyCPUS = (Integer) status.get("busyCPUS");
+	double reservedOutputSize = (Double) status.get("reservedOutputSize");
 
+	
 	//will check if there is unprocessed input
 	//or untransferred output
 	boolean hasMoreWorkToDo = false;
 	if (waitingInputSize > 0 //if any node has waiting input files
-		|| submittedInputFiles > 0 //if jobs are running
+		|| submittedInputSize > 0 //if jobs are running
 		|| (! isOutputDestination && readyOutputSize > 0) ){ //if not a destination node has ready output files
 	    hasMoreWorkToDo = true;
 	}
 
-        
 	
 	if ( solver.updateNode(id, (long) waitingInputSize, (long) readyOutputSize,
-		(long) waitingInputSize, (long) freeStorageSpace) ){
+		(long) waitingInputSize, (long) freeStorageSpace, busyCPUS,  (long) freeStorageSpace, (long) reservedOutputSize) ){
 	    //this.updateCounter++;
 	    write("updated status of node " + id + ":" + name);
 	}else{

@@ -1,12 +1,12 @@
 # file with gridlets in specified in resources
-resources=input/resources.txt
-network=input/network.txt
-planerLogFilename=output/planer_log.txt
-simulationLogFilename=output/DataProduction.log
+resources=F:/git/Grid_simulation/grid/src/main/java/flow_model/input/resources.txt
+network=F:/git/Grid_simulation/grid/src/main/java/flow_model/input/network.txt
+planerLogFilename=F:/git/Grid_simulation/grid/src/main/java/flow_model/output/planer_log.txt
+simulationLogFilename=F:/git/Grid_simulation/grid/src/main/java/flow_model/output/DataProduction.log
 dataUnitsName=MB
 dataUnitsSize=1048576
 # planning time interval in seconds
-deltaT=300000
+deltaT=100000
 # job input size / job duraton (consider units)
 alpha=1
 #job output size / input size

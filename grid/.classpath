@@ -29,5 +29,6 @@
 	<classpathentry kind="lib" path="lib/joda-time-2.4.jar"/>
 	<classpathentry exported="true" kind="src" path="/GridSim"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/planner"/>
+	<classpathentry kind="lib" path="/GridSim/jars/gridsim.jar"/>
 	<classpathentry kind="output" path="target/classes"/>
 </classpath>

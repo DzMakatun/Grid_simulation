@@ -39,7 +39,8 @@ public class DataGridSim {
             }
 
             //read parameters
-            ParameterReader.read(args[0]);
+            String prefix = "F:/git/Grid_simulation/grid/src/main/java/Simulation1/";
+            ParameterReader.read(prefix + "parameters.txt");
 
             int num_user = ParameterReader.numUsers; // number of grid users
             Calendar calendar = Calendar.getInstance();
@@ -66,6 +67,7 @@ public class DataGridSim {
             int mtu = Integer.MAX_VALUE; // max. transmission unit in bytes
 
             //read available files
+
             LinkedList files = FilesReader.read(ParameterReader.filesFilename);
 
             //-------------------------------------------

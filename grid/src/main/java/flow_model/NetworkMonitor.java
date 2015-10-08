@@ -15,13 +15,13 @@ public class NetworkMonitor extends GridSim{
     private String indent = " ";
     
     
-    NetworkMonitor(String name) throws Exception{
+    public NetworkMonitor(String name) throws Exception{
 	super(name, new SimpleLink("NetMonLink",Double.MAX_VALUE, 0.001, Integer.MAX_VALUE) );
 	this.myName = name;
 	this.myId_ = super.getEntityId(name);
         String filename = "output/" + "network_usage.csv";
 	fileWriter = new PrintWriter(filename, "UTF-8");
-	this.updateInterval = ParameterReader.deltaT / 10;
+	this.updateInterval = ParameterReader.deltaT / 4;
     }
     
     public void body(){

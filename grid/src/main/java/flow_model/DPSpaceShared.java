@@ -60,7 +60,7 @@ import org.joda.time.DateTime;
  * @see gridsim.ResourceCharacteristics
  * @invariant $none
  */
-class DPSpaceShared extends AllocPolicy
+public class DPSpaceShared extends AllocPolicy
 {
     private ResGridletList gridletQueueList_;     // Queue list
     private ResGridletList gridletInExecList_;    // Execution list
@@ -110,6 +110,7 @@ class DPSpaceShared extends AllocPolicy
     //for statistics purposes
     private double firstPlanReceived = 0;
     private double lastOutputReceived = 0;
+    private double lastOutputSend = 0;
     private int initialNomberOfFiles = 0;
     private double initialSizeOfFiles = 0;
     private int jobsFinished = 0;
@@ -432,10 +433,7 @@ class DPSpaceShared extends AllocPolicy
 		this.pendingOutputSize -= size;
 		this.freeStorageSpace += size; //remove the file from storage
 		gl.getUsedLink().addOutputTransfer(size);//update link statistics
-		//DEBUG
-		write( FlowManager.getNamesLine() + "\n"
-			+ FlowManager.getConsumptionLine(30000) );
-		write("but Flow Manager thinks: " + FlowManager.getLinkFlows(gl.getUsedLink().id).outputSent);
+		lastOutputSend = GridSim.clock(); //statistics
 	    }else{
 		write("ERROR PENDING OUTPUT FILE NOT REGISTERED: " + gl.getGridletID());
 	    }	
@@ -607,8 +605,8 @@ class DPSpaceShared extends AllocPolicy
 	  }	  
 	  //PROCESS WAITING INPUT FILES
 	  	
-	  //first send jobs to free CPUs
-	  while (waitingInputFiles.size() > 0 && localProcessingFlow > 0 
+	  //first send jobs to free CPUs // && localProcessingFlow > 0 
+	  while (isInputDestination == true && waitingInputFiles.size() > 0  
 	    && resource_.getNumFreePE() > 0 && freeStorageSpace > 0) {
 	      //write(" DEBUG: Inside processFiles(): first send jobs to free CPUs");   
 	    gl = (DPGridlet) waitingInputFiles.poll(); //this removes gl from the list	    
@@ -640,13 +638,13 @@ class DPSpaceShared extends AllocPolicy
 	  //write(" DEBUG: processFiles() exited");
 	  
 	  //DEBUG
-	  try {
-	    verifyGridletLists();
-	} catch (Exception e) {
+	  //try {
+	    //verifyGridletLists();
+	//} catch (Exception e) {
 	    // TODO Auto-generated catch block
-	    e.printStackTrace();
+	   // e.printStackTrace();
 	    
-	}
+	//}
 	  return;
 	    
 	    
@@ -889,7 +887,10 @@ class DPSpaceShared extends AllocPolicy
 	    status.put("waitingInputSize", waitingInputSize);
 	    status.put("freeStorageSpace", freeStorageSpace);
 	    status.put("readyOutputSize", readyOutputSize);
-	    status.put("submittedInputFiles", submittedInputFiles.size());
+	    status.put("submittedInputSize", submittedInputSize);
+	    status.put("reservedOutputSize", reservedOutputSize);
+	    
+	    status.put("busyCPUS", this.resource_.getNumBusyPE());
 
 	    //status.put("waitingInputFiles", waitingInputFiles);
 	    
@@ -997,6 +998,7 @@ class DPSpaceShared extends AllocPolicy
 		    + "\n waistedCPUCounter: " + waistedCPUCounter 
 		       + " sending errors: " + this.sendErrorCounter + " receiving errors: " + this.receiveErrorCounter      
 		    + "\n firstPlanReceived: " + firstPlanReceived
+		    + "\n lastOutputSend: " + lastOutputSend		    
 		    + "\n lastOutputReceived: " + lastOutputReceived
 		    + "\n duration: " + makespanSeconds + " seconds or: " + myFormat.format(makespan)
 
@@ -1645,9 +1647,9 @@ class DPSpaceShared extends AllocPolicy
         // NOTE: Setting the internal event time too low will make the
         //       simulation more realistic, BUT will take longer time to
         //       run this simulation. Also, size of sim_trace will be HUGE!
-        if (gridletInExecList_.size() > 0) {
+        /*if (gridletInExecList_.size() > 0) {
             super.sendInternalEvent(60.0*60.0);
-        }
+        }*/ //performance upgrade
     }
 
     /**

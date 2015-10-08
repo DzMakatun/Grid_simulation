@@ -57,7 +57,7 @@ class SimUser extends DataGridUser {
         GridletReader gridletReader = new GridletReader();
         
         maxGridlet = 10000;
-        String gridletFilename = "KISTI_all_filtered.csv";
+        String gridletFilename = "F:/git/Grid_simulation/grid/src/main/java/flow_model/input/KISTI_all_filtered.csv";
         this.list_ = new GridletList();
 
         
@@ -197,7 +197,7 @@ class SimUser extends DataGridUser {
         		if(j % chunkSize == 0){
         			System.out.println("   ." + j + " / " + totalGridlet );
         		}
-            		success = super.gridletSubmit(gl, resourceFromID);
+            	success = super.gridletSubmit(gl, resourceFromID);
                 sendTime[j]=  GridSim.clock(); //remember the time when the gridlet was submited
                 j++;
                 if (j == totalGridlet){
