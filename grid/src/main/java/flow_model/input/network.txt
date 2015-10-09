@@ -1,4 +1,4 @@
 #node1 node2 baud_rate(Gbps)
 #RCF PDSF 0.1
-RCF KISTI 0.25
+RCF KISTI 2
 #PDSF KISTI 0.1

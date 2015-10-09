@@ -76,6 +76,7 @@ public class Simulation {
             
             //DPSpaceShared policy = null;
             ResourceCharacteristics character = null;
+            int storageId = -100500;
             write("RESOURCES: ");
             for(GridResource res: resList){
             	//adding routers
@@ -88,11 +89,19 @@ public class Simulation {
             	character = res.getResourceCharacteristics();
             	if ( character.getNumFreePE() == 1 ){
             	  plannerRouter = router; //select the router where to attach a planer
+            	  storageId = res.get_id();
             	  //collect all available gridlets here
             	    
             	}
             	
             	write(gridResourceToString(res));            	
+            }
+            
+            //set centrtal storage id
+            FastSpaceShared policy;
+            for(GridResource res: resList){
+        	policy = (FastSpaceShared) res.getAllocationPolicy();
+        	policy.setStorageId(storageId);
             }
 
             //READ NETWORK
@@ -112,6 +121,7 @@ public class Simulation {
             //CHOSE 2 OPTIONS
             //use this for normal filesize
             pusher.setGridletList(GridletReader.getGridletList(gridletFileName, gridletNumber));
+            pusher.setStorageId(storageId);
             
             //use this for 0 filesize (disables network delays)
             //pusher.setGridletListZeroFileSize(GridletReader.getGridletList(gridletFileName, gridletNumber));
@@ -122,8 +132,8 @@ public class Simulation {
             //GridSim.enableDebugMode();
             
             //create network monitor
-            //NetworkMonitor netMon= new NetworkMonitor("NetworkMonitor");
-            //plannerRouter.attachHost(netMon, new FIFOScheduler("NetworkMonitor"+"_router_scheduler"));  
+            NetworkMonitor netMon= new NetworkMonitor("NetworkMonitor");
+            plannerRouter.attachHost(netMon, new FIFOScheduler("NetworkMonitor"+"_router_scheduler"));  
 
             GridSim.startGridSimulation();
             

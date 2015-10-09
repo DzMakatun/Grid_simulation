@@ -6,7 +6,8 @@ simulationLogFilename=F:/git/Grid_simulation/grid/src/main/java/flow_model/outpu
 dataUnitsName=MB
 dataUnitsSize=1048576
 # planning time interval in seconds
-deltaT=100000
+#21600 s = 6 hours
+deltaT=21600
 # job input size / job duraton (consider units)
 alpha=1
 #job output size / input size

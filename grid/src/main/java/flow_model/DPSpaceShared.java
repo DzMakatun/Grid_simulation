@@ -89,6 +89,9 @@ public class DPSpaceShared extends AllocPolicy
     private double pendingOutputSize; //(UNITS) size of Output files in process of transfer
     int sendErrorCounter; //how many outgoing transfers were failed 
     int receiveErrorCounter; //how many incoming transfers were failed 
+    private double incommingTransferFailureFlag = 0;
+    private double outgoingTransferFailureFlag = 0;
+    private double jobSubmissionFailureFlag = 0;
     
 	
     private GridletList waitingInputFiles = new GridletList(); //Gridlets That has just arrived
@@ -388,6 +391,7 @@ public class DPSpaceShared extends AllocPolicy
 	 */
 	private void processInputTransferFail(Sim_event ev) {
 	    this.sendErrorCounter ++;
+	    this.outgoingTransferFailureFlag = 1.0;
 	    DPGridlet gl = (DPGridlet) ev.get_data();
 	    write("INPUT TRANSFER FAILURE, gridlet id: " + gl.getGridletID());
 	    if (this.pendingInputFiles.remove(gl)) {
@@ -398,7 +402,8 @@ public class DPSpaceShared extends AllocPolicy
 		
 	    }else{
 		write("ERROR PENDING INPUT FILE NOT REGISTERED: " + gl.getGridletID());
-	    }	
+	    }
+	    processFiles();
     }
 
 
@@ -409,6 +414,7 @@ public class DPSpaceShared extends AllocPolicy
 	 */
 	private void processOutputTransferFail(Sim_event ev) {
 	    this.sendErrorCounter ++;
+	    this.outgoingTransferFailureFlag = 1.0;
 	    DPGridlet gl = (DPGridlet) ev.get_data();
 	    if (this.pendingOutputFiles.remove(gl)) {
 		double size = gl.getGridletOutputSize();
@@ -418,7 +424,8 @@ public class DPSpaceShared extends AllocPolicy
 	    }else{
 		write("ERROR PENDING OUTPUT FILE NOT REGISTERED: " + gl.getGridletID());
 	    }	
-	
+	    //fileWriter.println(getStatusString());
+	    processFiles();
     }
 
 	/**
@@ -433,10 +440,13 @@ public class DPSpaceShared extends AllocPolicy
 		this.pendingOutputSize -= size;
 		this.freeStorageSpace += size; //remove the file from storage
 		gl.getUsedLink().addOutputTransfer(size);//update link statistics
-		lastOutputSend = GridSim.clock(); //statistics
+		//statistics
+		lastOutputSend = GridSim.clock(); 
+		this.outgoingTransferFailureFlag = 0.0;
 	    }else{
 		write("ERROR PENDING OUTPUT FILE NOT REGISTERED: " + gl.getGridletID());
 	    }	
+	    processFiles();
     }
 	
 	/**
@@ -450,10 +460,13 @@ public class DPSpaceShared extends AllocPolicy
 		double size = gl.getGridletFileSize();
 		this.pendingInputSize -= size;
 		this.freeStorageSpace += size; //remove the file from storage
+		//statistics
 		gl.getUsedLink().addInputTransfer(size);//update link statistics
+		this.outgoingTransferFailureFlag = 0.0;
 	    }else{
 		write("ERROR PENDING INPUT FILE NOT REGISTERED: " + gl.getGridletID());
-	    }	
+	    }
+	    processFiles();
     }
 
 	private void processIncommingOutputFile(Sim_event ev) {
@@ -467,8 +480,10 @@ public class DPSpaceShared extends AllocPolicy
 			RiftTags.OUTPUT_TRANSFER_ACK, gl); 
 		//remember the time when the last output was received. For makespan calculation
 		this.lastOutputReceived = GridSim.clock();
+		this.incommingTransferFailureFlag = 0.0;
 	    }else{
 		this.receiveErrorCounter ++;
+		this.incommingTransferFailureFlag = 1.0;
 		//send failure back to sender 
 		//send without network delay		
 		super.sim_schedule(gl.getSenderID(), GridSimTags.SCHEDULE_NOW,
@@ -521,8 +536,10 @@ public class DPSpaceShared extends AllocPolicy
 		
 		//statistics
 		this.inputReceived += gl.getGridletFileSize();
+		this.incommingTransferFailureFlag = 0.0;
 	    }else{
 		this.receiveErrorCounter ++;
+		this.incommingTransferFailureFlag = 1.0;
 		//send failure back to sender 	
 		//send without network delay
 		super.sim_schedule(gl.getSenderID(), GridSimTags.SCHEDULE_NOW,
@@ -605,9 +622,9 @@ public class DPSpaceShared extends AllocPolicy
 	  }	  
 	  //PROCESS WAITING INPUT FILES
 	  	
-	  //first send jobs to free CPUs // && localProcessingFlow > 0 
+	  //first send jobs to free CPUs // && localProcessingFlow > 0  && freeStorageSpace > 0
 	  while (isInputDestination == true && waitingInputFiles.size() > 0  
-	    && resource_.getNumFreePE() > 0 && freeStorageSpace > 0) {
+	    && resource_.getNumFreePE() > 0) {
 	      //write(" DEBUG: Inside processFiles(): first send jobs to free CPUs");   
 	    gl = (DPGridlet) waitingInputFiles.poll(); //this removes gl from the list	    
 	    if (! submitInputFile(gl) ){ 
@@ -671,11 +688,13 @@ public class DPSpaceShared extends AllocPolicy
 	        localProcessingFlow -= gl.getInputSizeInUnits(); //decrease the counter
 	        write(" Submitted gridlet " + gl.getGridletID() +" for processing, free CPUS: " 
 	        + this.resource_.getNumFreePE());
+	        jobSubmissionFailureFlag = 0.0;
 	        return true;
 	    }else{		
 	        write("WARNING failed to submit input file for processing: "+ gl.getGridletID()
 	        	+ " freeStorageSpace: " + this.freeStorageSpace
-	        	+ " free CPUS: " + this.resource_.getNumFreePE());	           
+	        	+ " free CPUS: " + this.resource_.getNumFreePE());
+	        jobSubmissionFailureFlag = 1.0;
 	        return false;    
 	    }		    
 	}
@@ -953,12 +972,16 @@ public class DPSpaceShared extends AllocPolicy
 	    StringBuffer buf = new StringBuffer();	    
 	    buf.append("time" + indent);
 	    buf.append("busyCPUs" + indent);
-	    buf.append("pendingInputSize" + indent);
-	    buf.append("pendingOutputSize" + indent);
-	    buf.append("readyOutputSize" + indent);
-	    buf.append("reservedOutputSize" + indent);
+	    buf.append("jobSubmissionFailureFlag" + indent);
+	    buf.append("incommingTransferFailureFlag" + indent);
+	    buf.append("outgoingTransferFailureFlag" + indent);
+	    
 	    buf.append("submittedInputSize" + indent);
+	    buf.append("reservedOutputSize" + indent);
 	    buf.append("waitingInputSize" + indent);
+	    buf.append("pendingInputSize" + indent);
+	    buf.append("readyOutputSize" + indent);
+	    buf.append("pendingOutputSize" + indent);	    
 	    //buf.append( + indent);	    
 	    return buf.toString();
 	}
@@ -967,15 +990,18 @@ public class DPSpaceShared extends AllocPolicy
 	    String indent = " ";
 	    StringBuffer buf = new StringBuffer();	    
 	    buf.append(GridSim.clock() + indent);
-	    buf.append(    ( (double) (this.resource_.getNumPE() - this.resource_.getNumFreePE() )
-		    / (double) this.resource_.getNumPE() )   + indent);	   
-	    buf.append( (this.pendingInputSize  / this.storageSize) + indent);
-	    buf.append( (this.pendingOutputSize  / this.storageSize) + indent);	    
-	    buf.append( (this.readyOutputSize  / this.storageSize) + indent);
-	    buf.append( (this.reservedOutputSize  / this.storageSize) + indent);
+	    buf.append(    ( (double) (this.resource_.getNumBusyPE())
+		    / (double) this.resource_.getNumPE() )   + indent);	
+	    buf.append( this.jobSubmissionFailureFlag + indent);
+	    buf.append( this.incommingTransferFailureFlag + indent);
+	    buf.append( this.outgoingTransferFailureFlag + indent);
+	    
 	    buf.append( (this.submittedInputSize  / this.storageSize) + indent);
+	    buf.append( (this.reservedOutputSize  / this.storageSize) + indent);
 	    buf.append( (this.waitingInputSize  / this.storageSize) + indent);
-
+	    buf.append( (this.pendingInputSize  / this.storageSize) + indent);
+	    buf.append( (this.readyOutputSize  / this.storageSize) + indent);
+	    buf.append( (this.pendingOutputSize  / this.storageSize) + indent);	 
 	    //buf.append( + indent);	    
 	    return buf.toString();
 	}

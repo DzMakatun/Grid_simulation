@@ -8,11 +8,13 @@
 
 package push_model;
 
+import java.io.PrintWriter;
 import java.util.Iterator;
 
 import eduni.simjava.Sim_event;
 import eduni.simjava.Sim_system;
-import gridsim.AllocPolicy;
+import flow_model.DPGridlet;
+import flow_model.FlowManager;
 import gridsim.*;
 
 
@@ -38,6 +40,8 @@ class FastSpaceShared extends AllocPolicy
     private ResGridletList gridletPausedList_;    // Pause list
     private double lastUpdateTime_;    // the last time Gridlets updated
     private int[] machineRating_;      // list of machine ratings available
+    private int storageId;
+    private PrintWriter fileWriter; 
 
 
     /**
@@ -71,7 +75,35 @@ class FastSpaceShared extends AllocPolicy
         this.gridletQueueList_  = new ResGridletList();
         this.lastUpdateTime_ = 0.0;
         this.machineRating_ = null;
+	String filename = "output/" + this.resName_ + "_statistics.csv";
+	fileWriter = new PrintWriter(filename, "UTF-8");
+	fileWriter.println(getStatusHeader() );
     }
+    
+    public void setStorageId(int id){
+	this.storageId = id;
+    }
+    
+	public String getStatusHeader(){
+	    String indent = " ";
+	    StringBuffer buf = new StringBuffer();	    
+	    buf.append("time" + indent);
+	    buf.append("busyCPUs" + indent);
+	    //buf.append( + indent);	    
+	    return buf.toString();
+	}
+	
+	public String getStatusString(){
+	    String indent = " ";
+	    StringBuffer buf = new StringBuffer();	    
+	    buf.append(GridSim.clock() + indent);
+	    buf.append(    ( (double) (this.resource_.getNumBusyPE() )
+		    / (double) this.resource_.getNumPE() )   + indent);	   
+
+
+	    //buf.append( + indent);	    
+	    return buf.toString();
+	}
 
     /**
      * Handles internal events that are coming to this entity.
@@ -99,6 +131,8 @@ class FastSpaceShared extends AllocPolicy
             if (ev.get_tag() == GridSimTags.END_OF_SIMULATION ||
                 super.isEndSimulation())
             {
+    	        fileWriter.println(getStatusString());
+    	        fileWriter.close();
                 break;
             }
 
@@ -135,6 +169,13 @@ class FastSpaceShared extends AllocPolicy
     {
         // update the current Gridlets in exec list up to this point in time
         updateGridletProcessing();
+        //update network counter
+        try{
+            DPGridlet dpGl  = (DPGridlet) gl;
+            dpGl.getUsedLink().addInputTransfer(gl.getGridletFileSize());
+        }finally{
+            
+        }
 
         // reset number of PE since at the moment, it is not supported
         if (gl.getNumPE() > 1)
@@ -176,6 +217,7 @@ class FastSpaceShared extends AllocPolicy
                           gl.getGridletID(), gl.getUserID()
             );
         }
+        fileWriter.println(getStatusString() );
     }
 
     /**
@@ -718,9 +760,17 @@ class FastSpaceShared extends AllocPolicy
         // due to timing issues in ResGridlet class
         rgl.setGridletStatus(status);
         rgl.finalizeGridlet();
-        super.sendFinishGridlet( rgl.getGridlet() );
+        
+        try {
+            DPGridlet dpGl = (DPGridlet) rgl.getGridlet();
+            dpGl.setUsedLink(FlowManager.getLinkFlows(this.resId_, storageId));
+	} catch (Exception e) {
+	    // TODO: handle exception
+	}
+	super.sendFinishGridlet( rgl.getGridlet() );
 
         allocateQueueGridlet();   // move Queued Gridlet into exec list
+        fileWriter.println(getStatusString() );
     }
 
     /**

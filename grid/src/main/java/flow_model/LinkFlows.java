@@ -38,7 +38,7 @@ public class LinkFlows {
      */
     public void addInputTransfer(double filesize){
 	this.inputSent += filesize;
-	System.out.println("InputSent: " + inputSent);
+	//System.out.println("InputSent: " + inputSent);
     }
     
     /**
@@ -47,7 +47,7 @@ public class LinkFlows {
      */
     public void addOutputTransfer(double filesize){
 	this.outputSent += filesize;
-	System.out.println("Output send: " + outputSent);
+	//System.out.println("Output send: " + outputSent);
     }
     
     @Override

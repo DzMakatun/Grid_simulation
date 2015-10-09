@@ -59,6 +59,7 @@ public class PushUser extends GridUser {
     private int updateCounter = 0;
     //writing statistics to a file
     private PrintWriter fileWriter; 
+    private int storageId;
     
 
     // constructor
@@ -86,6 +87,10 @@ public class PushUser extends GridUser {
         //String filename = "output/" + this.name_ + "_planned_net_usage.csv";
 	//fileWriter = new PrintWriter(filename, "UTF-8");
 
+    }
+    
+    public void setStorageId(int id){
+	this.storageId = id;
     }
     
     //get list of gridlets for submission
@@ -193,7 +198,7 @@ public class PushUser extends GridUser {
 	////////////////////////////////////////////////
 	// SUBMIT Gridlets
 	//init variables
-	Gridlet gl = null;
+	DPGridlet gl = null;
 	//IO_data data;
 	boolean success;
         double[] sendTime = new double[totalGridlet];
@@ -207,7 +212,7 @@ public class PushUser extends GridUser {
 	for(i = 0; i <  totalResource; i++){ 
 	    if (resourcePEs[i] == 1){continue;}//skip resources with 1 CPU
 	    for(k = 0; k < resourcePEs[i] && j < gridlets.size(); k++){
-		gl = (Gridlet) gridlets.get(j);
+		gl = (DPGridlet) gridlets.get(j);
 		if(j % chunkSize == 0){
 		    System.out.println("   ." + j + " / " + totalGridlet );
 		    //write(name_ + "Sending Gridlet #" + j + "with id " + gl.getGridletID() + " to PE " + k + " at " + resourceName[i] + " at time " + GridSim.clock());
@@ -215,6 +220,7 @@ public class PushUser extends GridUser {
 		//write(gridletToString(gl));
 		//success = super.gridletSubmit(gl, resourceID[i]);
 		gl.setUserID(myId_);
+		gl.setUsedLink(FlowManager.getLinkFlows(storageId, resourceID[i]));
 		sim_schedule(super.output, GridSimTags.SCHEDULE_NOW, GridSimTags.GRIDLET_SUBMIT,
 			new IO_data(gl, gl.getGridletFileSize() ,resourceID[i]) );
 		sendTime[j]=  GridSim.clock(); //remember the time when the gridlet was submited
@@ -235,12 +241,14 @@ public class PushUser extends GridUser {
 
 	// receives the gridlet back
 	for (i = 0; i < totalGridlet; i++){ //loop over received gridlets
-	    gl = (Gridlet) super.receiveEventObject();  // gets the Gridlet
+	    gl = (DPGridlet) super.receiveEventObject();  // gets the Gridlet
 	    if( i==0 ) { saturationStart = GridSim.clock();} //first gridlet received            
 	    receiveTime[gridlets.indexOf(gl)]=  GridSim.clock(); //remember the time when the gridlet was received
 	    receiveList_.add(gl);   // add into the received list            
 	    resourceFromID = gl.getResourceID(); //resource which has a free PE
 	    resourceFromName = GridSim.getEntityName(resourceFromID);
+	    //update network statistics
+	    gl.getUsedLink().addOutputTransfer(gl.getGridletOutputSize());
 	    //if(j % (list_.size() / 100) == 0){
 	    //write(name_ + ": Receiving Gridlet #" +
 	    //gl.getGridletID() + "from: " + resourceFromName + " at time = " + GridSim.clock() );
@@ -248,7 +256,7 @@ public class PushUser extends GridUser {
 
 	    if(j < totalGridlet){ //if not all gridlets are submitted
 		//submit next gridlet
-		gl = (Gridlet) gridlets.get(j);
+		gl = (DPGridlet) gridlets.get(j);
 		//if(j % (list_.size() / 100) == 0){
 		//write(name_ + "Sending next Gridlet #" + j + "with id " + gl.getGridletID() + " to " + resourceFromName + " at time " + GridSim.clock());
 		//}
@@ -258,6 +266,7 @@ public class PushUser extends GridUser {
 		}
 		//success = super.gridletSubmit(gl, resourceFromID);
 		gl.setUserID(myId_);
+		gl.setUsedLink(FlowManager.getLinkFlows(storageId, resourceFromID));
 		sim_schedule(super.output, GridSimTags.SCHEDULE_NOW, GridSimTags.GRIDLET_SUBMIT,
 			new IO_data(gl, gl.getGridletFileSize() ,resourceFromID) );
 		sendTime[j]=  GridSim.clock(); //remember the time when the gridlet was submited
@@ -273,7 +282,7 @@ public class PushUser extends GridUser {
 	////////////print statistics
 	//printGridletList(receiveList_, name_);
 	for (i = 0; i < gridlets.size(); i += gridlets.size() / 5){
-	    gl = (Gridlet) gridlets.get(i);
+	    gl = (DPGridlet) gridlets.get(i);
 	    printGridletHist(gl);
 	}
 
@@ -284,7 +293,7 @@ public class PushUser extends GridUser {
 	double inTransfer, outTransfer, totalTime, slowdown; 
 	String indent = "		";
 	for (i = 0; i < gridlets.size(); i += chunkSize / 5){
-	    gl = (Gridlet) gridlets.get(i);
+	    gl = (DPGridlet) gridlets.get(i);
 	    inTransfer = gl.getExecStartTime() - sendTime[i];
 	    outTransfer = receiveTime[i] - gl.getFinishTime();
 	    totalTime = receiveTime[i] - sendTime[i];
@@ -325,7 +334,7 @@ public class PushUser extends GridUser {
 	double gridletTransferTime;
 	double outgridletTransferTime;
 	for (j = 0; j < gridlets.size(); j++){ //loop over gridlets
-	    gl = (Gridlet) gridlets.get(j);
+	    gl = (DPGridlet) gridlets.get(j);
 	    for(i = 0; i <  totalResource; i++){ //loop over resources
 		if(gl.getResourceID() == resourceID[i]){
 		    jobs[i]++;
