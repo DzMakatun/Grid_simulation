@@ -24,8 +24,8 @@ import java.util.LinkedList;
 public class Simulation {
     public static void main(String[] args) {
 	String path = "F:/git/Grid_simulation/grid/src/main/java/flow_model/";
-	String gridletFileName = path + "input/KISTI_all_filtered.csv";
-	int gridletNumber = 10000;
+	String gridletFileName = path + "input/KISTI_60k_filtered.csv";
+	int gridletNumber = 60000;
 	
         System.out.println("Starting PUSH simulation ....");
 

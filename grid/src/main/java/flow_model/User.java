@@ -121,6 +121,7 @@ public class User extends GridUser {
 		        	    link.getEndNodeId() )  );
 		}	
 		//solver.PrintGridSetup();
+		solver.WriteGridODT("output/grid.dot");
 		FlowManager.setLinks(allLinkFlows);
 		
 	        // This to give a time for GridResource entities to register their
@@ -272,7 +273,7 @@ public class User extends GridUser {
 
 	
 	if ( solver.updateNode(id, (long) waitingInputSize, (long) readyOutputSize,
-		(long) waitingInputSize, (long) freeStorageSpace, busyCPUS,  (long) freeStorageSpace, (long) reservedOutputSize) ){
+		(long) waitingInputSize, (long) freeStorageSpace, busyCPUS,  (long) freeStorageSpace, (long) submittedInputSize, (long) reservedOutputSize) ){
 	    //this.updateCounter++;
 	    write("updated status of node " + id + ":" + name);
 	}else{

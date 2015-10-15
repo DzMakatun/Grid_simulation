@@ -21,7 +21,7 @@ public class NetworkMonitor extends GridSim{
 	this.myId_ = super.getEntityId(name);
         String filename = "output/" + "network_usage.csv";
 	fileWriter = new PrintWriter(filename, "UTF-8");
-	this.updateInterval = ParameterReader.deltaT / 4;
+	this.updateInterval = ParameterReader.deltaT;// / 4;
     }
     
     public void body(){

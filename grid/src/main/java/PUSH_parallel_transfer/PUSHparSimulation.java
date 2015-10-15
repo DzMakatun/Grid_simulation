@@ -1,4 +1,4 @@
-package no_network;
+package PUSH_parallel_transfer;
 
 import flow_model.*;
 import gridsim.GridResource;
@@ -6,7 +6,7 @@ import gridsim.GridSim;
 import gridsim.GridSimTags;
 import gridsim.ResourceCharacteristics;
 import gridsim.net.FIFOScheduler;
-import gridsim.net.RIPRouter;  // To use the new flow network package - GridSim 4.2
+import gridsim.net.flow.FlowRouter;  // To use the new flow network package - GridSim 4.2
 import gridsim.util.SimReport;
 
 import java.io.FileWriter;
@@ -21,29 +21,26 @@ import java.util.LinkedList;
  * and runs the simulation.
  * @author Uros Cibej and Anthony Sulistio
  */
-public class NoNetworkSimulation {
+public class PUSHparSimulation {
     public static void main(String[] args) {
 	String path = "F:/git/Grid_simulation/grid/src/main/java/flow_model/";
-	String gridletFileName = path + "input/KISTI_60k_filtered.csv";
+	String gridletFileName = path + "input/KISTI_7000_filtered.csv";
 	int gridletNumber = 60000;
 	
         System.out.println("Starting PUSH simulation ....");
 
         try {
-            if (args.length != 1) {
-                System.out.println("Usage: java Main parameter_file");
-                return;
-            }
+
                        
             
 
             //reads parameters
-            System.out.println( "Parameters file: " + args[0]);
-            ParameterReader.read(args[0]);
+            System.out.println( "Parameters file: " + path + "/input/parameters.txt");
+            ParameterReader.read(path + "/input/parameters.txt");
             
             
             Logger.openFile(ParameterReader.simulationLogFilename);
-            write( "Parameters file: " + args[0]);
+            write( "Parameters file: " + path + "/input/parameters.txt");
             int num_user = 1; // number of grid users
             Calendar calendar = Calendar.getInstance();
             boolean trace_flag = true; // means trace GridSim events
@@ -54,7 +51,7 @@ public class NoNetworkSimulation {
 
            
             //uses flow extension
-            GridSim.initNetworkType(GridSimTags.NET_PACKET_LEVEL);
+            GridSim.initNetworkType(GridSimTags.NET_FLOW_LEVEL);
             //Initializes the GridSim package
             System.out.println("Initializing GridSim package");            
             GridSim.init(num_user, calendar, trace_flag);
@@ -69,17 +66,18 @@ public class NoNetworkSimulation {
             
             ///////////
             //CREATEs RESOURCES
-            LinkedList<GridResource> resList = NoNetworkResReader.read(ParameterReader.resourceFilename);  
+            LinkedList<GridResource> resList = PushParResReader.read(ParameterReader.resourceFilename);  
             //adding routers
-            LinkedList<RIPRouter> routerList = new LinkedList<RIPRouter>();
-            RIPRouter router, plannerRouter = null;
+            LinkedList<FlowRouter> routerList = new LinkedList<FlowRouter>();
+            FlowRouter router, plannerRouter = null;
             
             //DPSpaceShared policy = null;
             ResourceCharacteristics character = null;
+            int storageId = -100500;
             write("RESOURCES: ");
             for(GridResource res: resList){
             	//adding routers
-            	router = new RIPRouter(res.get_name() + "_router", trace_flag);
+            	router = new FlowRouter(res.get_name() + "_router", trace_flag);
             	router.attachHost(res, new FIFOScheduler(res.get_name()
                         + "_router_scheduler"));            	
             	routerList.add(router);
@@ -88,30 +86,39 @@ public class NoNetworkSimulation {
             	character = res.getResourceCharacteristics();
             	if ( character.getNumFreePE() == 1 ){
             	  plannerRouter = router; //select the router where to attach a planer
+            	  storageId = res.get_id();
             	  //collect all available gridlets here
             	    
             	}
             	
             	write(gridResourceToString(res));            	
             }
+            
+            //set centrtal storage id
+            PushParSpaceShared policy;
+            for(GridResource res: resList){
+        	policy = (PushParSpaceShared) res.getAllocationPolicy();
+        	policy.setStorageId(storageId);
+            }
 
             //READ NETWORK
             System.out.println("ROUTERS:");
-            for (RIPRouter r:routerList){
-        	System.out.println(DPNetworkReader.routerToString(r));
+            for (FlowRouter r:routerList){
+        	System.out.println(PushParNetReader.routerToString(r));
             }
             
-            DPNetworkReader.createNetwork(routerList, ParameterReader.networkFilename);
-            DPNetworkReader.printLinks();
+            PushParNetReader.createNetwork(routerList, ParameterReader.networkFilename);
+            PushParNetReader.printLinks();
                  
             
             //CREATE USER RUNING PLANER
-            NoNetworkUser pusher = new NoNetworkUser("Pusher",
+            PushParUser pusher = new PushParUser("Pusher",
                     Double.MAX_VALUE, 0.001, Integer.MAX_VALUE);   
             
             //CHOSE 2 OPTIONS
             //use this for normal filesize
             pusher.setGridletList(GridletReader.getGridletList(gridletFileName, gridletNumber));
+            pusher.setStorageId(storageId);
             
             //use this for 0 filesize (disables network delays)
             //pusher.setGridletListZeroFileSize(GridletReader.getGridletList(gridletFileName, gridletNumber));
@@ -122,13 +129,13 @@ public class NoNetworkSimulation {
             //GridSim.enableDebugMode();
             
             //create network monitor
-            //NetworkMonitor netMon= new NetworkMonitor("NetworkMonitor");
-            //plannerRouter.attachHost(netMon, new FIFOScheduler("NetworkMonitor"+"_router_scheduler"));  
+            NetworkMonitor netMon= new NetworkMonitor("NetworkMonitor");
+            plannerRouter.attachHost(netMon, new FIFOScheduler("NetworkMonitor"+"_router_scheduler"));  
 
             GridSim.startGridSimulation();
             
             //write("ROUTERS:");
-            //for (RIPRouter r : routerList){
+            //for (FlowRouter r : routerList){
         	//r.printRoutingTable();
             //}
             

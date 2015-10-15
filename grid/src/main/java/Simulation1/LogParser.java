@@ -17,8 +17,8 @@ public class LogParser {
 	public static void main(String[] args) {
 		int maxJobs = Integer.MAX_VALUE;
 		String prefix = ""; //only jobs with input file starting with this prefix are included into results
-		String csvFile = "KISTIlog1.csv";
-		String outputFile = "KISTI_all_filtered.csv";		
+		String csvFile = "F:/KistProdDataDump/KistProdDataDump.csv";
+		String outputFile = "KISTI_100k_filtered.csv";		
 
 		
 		BufferedReader br = null;
@@ -89,6 +89,10 @@ public class LogParser {
 		double minBeta = Double.MAX_VALUE;
 		double maxBeta = 0;
 		
+		double realTimePerEvent;
+		double nEvents;
+
+		
 		
 		
 		
@@ -114,30 +118,36 @@ public class LogParser {
 					id = Integer.parseInt(jobData[0]);
 					InputFileName = jobData[8].replace("\"", "");
 					inputFileSize = Long.parseLong(jobData[10]) / (1024 * 1024); //in MB
-					outputFileSize = Long.parseLong(jobData[31]) / (1024 * 1024); //in MB		
+					outputFileSize = Long.parseLong(jobData[31]) / (1024 * 1024); //in MB	
 					
-					jobStart = formatter.parseDateTime(jobData[16].replace("\"", ""));
-					jobFinish = formatter.parseDateTime(jobData[17].replace("\"", ""));				
-					interval = new Interval(jobStart,jobFinish); //interval in milliseconds
-					duration = interval.toDurationMillis() / 1000; //duration in seconds
 					
-					inputTransferStart = formatter.parseDateTime(jobData[15].replace("\"", ""));
-					inputTransferFinish = formatter.parseDateTime(jobData[16].replace("\"", ""));
-					inputTransferinterval = new Interval(inputTransferStart,inputTransferFinish); //interval in milliseconds
-					inputTransferduration = inputTransferinterval.toDurationMillis() / 1000; //duration in seconds
+					realTimePerEvent = Double.parseDouble(jobData[28]); //s
+					nEvents = Double.parseDouble(jobData[29]); 
 					
-					outputTransferStart = formatter.parseDateTime(jobData[17].replace("\"", ""));
-					outputTransferFinish = formatter.parseDateTime(jobData[18].replace("\"", ""));
-					outputTransferinterval = new Interval(outputTransferStart,outputTransferFinish); //interval in milliseconds
-					outputTransferduration = outputTransferinterval.toDurationMillis() / 1000; //duration in seconds
+					//jobStart = formatter.parseDateTime(jobData[16].replace("\"", ""));
+					//jobFinish = formatter.parseDateTime(jobData[17].replace("\"", ""));				
+					//interval = new Interval(jobStart,jobFinish); //interval in milliseconds
+					//duration = interval.toDurationMillis() / 1000; //duration in seconds
 					
-					if (duration > 0 && inputFileSize > 0 && outputFileSize > 0 && InputFileName.startsWith(prefix)){// filterring good log records here
+					//inputTransferStart = formatter.parseDateTime(jobData[15].replace("\"", ""));
+					//inputTransferFinish = formatter.parseDateTime(jobData[16].replace("\"", ""));
+					//inputTransferinterval = new Interval(inputTransferStart,inputTransferFinish); //interval in milliseconds
+					//inputTransferduration = inputTransferinterval.toDurationMillis() / 1000; //duration in seconds
+					
+					//outputTransferStart = formatter.parseDateTime(jobData[17].replace("\"", ""));
+					//outputTransferFinish = formatter.parseDateTime(jobData[18].replace("\"", ""));
+					//outputTransferinterval = new Interval(outputTransferStart,outputTransferFinish); //interval in milliseconds
+					//outputTransferduration = outputTransferinterval.toDurationMillis() / 1000; //duration in seconds
+					
+					duration = realTimePerEvent * nEvents;
+					
+					if (duration > 12 * 3600 && inputFileSize > 0 && outputFileSize > 100 && InputFileName.startsWith(prefix)){// filterring good log records here
 						writer.write(line + "\n");
 						goodCounter++;
 						
 						//calculate statistics
-						inSpeed = inputFileSize / inputTransferduration;
-						outSpeed = outputFileSize / outputTransferduration;
+						//inSpeed = inputFileSize / inputTransferduration;
+						//outSpeed = outputFileSize / outputTransferduration;
 						alpha = duration / inputFileSize;
 						beta = outputFileSize / inputFileSize;
 						
@@ -153,25 +163,25 @@ public class LogParser {
 						if(outputFileSize > maxOutputSize){maxOutputSize = outputFileSize;} 
 						if(outputFileSize < minOutputSize){minOutputSize = outputFileSize;} 
 						
-						totalInputTransferDuration += inputTransferduration;
-						if(inputTransferduration > maxInputTransferDuration){maxInputTransferDuration = inputTransferduration;} 
-						if(inputTransferduration < minInputTransferDuration){minInputTransferDuration = inputTransferduration;} 
+						//totalInputTransferDuration += inputTransferduration;
+						//if(inputTransferduration > maxInputTransferDuration){maxInputTransferDuration = inputTransferduration;} 
+						//if(inputTransferduration < minInputTransferDuration){minInputTransferDuration = inputTransferduration;} 
 						
-						totalOutputTransferDuration += outputTransferduration;
-						if(outputTransferduration > maxOutputTransferDuration){maxOutputTransferDuration = outputTransferduration;} 
-						if(outputTransferduration < minOutputTransferDuration){minOutputTransferDuration = outputTransferduration;} 
+						//totalOutputTransferDuration += outputTransferduration;
+						//if(outputTransferduration > maxOutputTransferDuration){maxOutputTransferDuration = outputTransferduration;} 
+						//if(outputTransferduration < minOutputTransferDuration){minOutputTransferDuration = outputTransferduration;} 
 						
-						if(inSpeed > maxInputTransferSpeed){maxInputTransferSpeed = inSpeed;} 
-						if(inSpeed < minInputTransferSpeed){minInputTransferSpeed = inSpeed;} 
+						//if(inSpeed > maxInputTransferSpeed){maxInputTransferSpeed = inSpeed;} 
+						//if(inSpeed < minInputTransferSpeed){minInputTransferSpeed = inSpeed;} 
 						
-						if(outSpeed > maxOutputTransferSpeed){maxOutputTransferSpeed = outSpeed;} 
-						if(outSpeed < minOutputTransferSpeed){minOutputTransferSpeed = outSpeed;} 
+						//if(outSpeed > maxOutputTransferSpeed){maxOutputTransferSpeed = outSpeed;} 
+						//if(outSpeed < minOutputTransferSpeed){minOutputTransferSpeed = outSpeed;} 
 						
 						if(alpha > maxAlpha){maxAlpha = alpha;} 
 						if(alpha < minAlpha){minAlpha = alpha;} 
 						
-						if(outSpeed > maxBeta){maxBeta = outSpeed;} 
-						if(outSpeed < minBeta){minBeta = outSpeed;} 
+						//if(outSpeed > maxBeta){maxBeta = outSpeed;} 
+						//if(outSpeed < minBeta){minBeta = outSpeed;} 
 
 
 						
@@ -181,7 +191,7 @@ public class LogParser {
 				System.out.println("Failed to read line:" + line);
 				}catch (Exception e) {
 					//e.printStackTrace();
-					//System.out.println("Failed to read line:" + line);
+					System.out.println("Failed to read line:" + line);
 					}								
 				
 				

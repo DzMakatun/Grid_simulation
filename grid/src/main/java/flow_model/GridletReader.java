@@ -70,6 +70,9 @@ private static DPGridlet readGridlet(String line) {
 	long outputFileSize;
 	String InputFileName;
 	
+	double realTimePerEvent;
+	double nEvents;
+	
 	Interval interval;
 	double duration = 0;
 	DateTime jobStart;
@@ -89,13 +92,18 @@ private static DPGridlet readGridlet(String line) {
 		InputFileName = jobData[9].replace("\"", "");
 		inputFileSize = (Long) Long.parseLong(jobData[10]) / DataUnits.getSize(); //in units
 		outputFileSize = (Long) Long.parseLong(jobData[31]) / DataUnits.getSize() ;  //in units
+		realTimePerEvent = Double.parseDouble(jobData[28]); //s
+		nEvents = Double.parseDouble(jobData[29]); 
 		
-		
+		/* old method
 		
 		jobStart = formatter.parseDateTime(jobData[16].replace("\"", ""));
 		jobFinish = formatter.parseDateTime(jobData[17].replace("\"", ""));
 		interval = new Interval(jobStart,jobFinish); //interval in milliseconds
+		
 		duration = interval.toDurationMillis() / 1000; //duration in seconds
+		*/
+		duration = realTimePerEvent * nEvents;
 		
 		if (duration > 0 && inputFileSize > 0 && outputFileSize > 0 ){// filterring good log records here
 			//we create gridlets only from jobs that passed requirements

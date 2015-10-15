@@ -22,6 +22,7 @@ import java.util.LinkedList;
  */
 public class Simulation {
     public static void main(String[] args) {
+	long startTime = System.currentTimeMillis();
         System.out.println("Starting simulation ....");
 
         try {
@@ -118,6 +119,9 @@ public class Simulation {
             //}
             
             write("\nFinish data grid simulation ...");
+            long stopTime = System.currentTimeMillis();
+            long elapsedTime = stopTime - startTime;
+            write("runtime: " + elapsedTime/1000 + " (s)");
             Logger.close();
         } catch (Exception e) {
             e.printStackTrace();
