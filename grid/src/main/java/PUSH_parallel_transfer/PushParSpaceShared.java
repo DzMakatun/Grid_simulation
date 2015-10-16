@@ -15,6 +15,7 @@ import eduni.simjava.Sim_event;
 import eduni.simjava.Sim_system;
 import flow_model.DPGridlet;
 import flow_model.FlowManager;
+import flow_model.NodeStatRecorder;
 import flow_model.RiftTags;
 import gridsim.*;
 
@@ -113,6 +114,8 @@ class PushParSpaceShared extends AllocPolicy
      */
     public void body()
     {
+	//for global cpu usage monitoring
+	NodeStatRecorder.registerNode(resId_, resName_, resource_.getNumPE(), resource_.getNumPE() != 1);
         // Gets the PE's rating for each Machine in the list.
         // Assumed one Machine has same PE rating.
         MachineList list = super.resource_.getMachineList();
@@ -220,6 +223,8 @@ class PushParSpaceShared extends AllocPolicy
             );
         }
         fileWriter.println(getStatusString() );
+        //for global cpu monitoring
+        NodeStatRecorder.updateCpuUsage(resId_, resource_.getNumBusyPE());
     }
 
     /**
@@ -777,6 +782,8 @@ class PushParSpaceShared extends AllocPolicy
 	}
 	//super.sendFinishGridlet( rgl.getGridlet() );
         allocateQueueGridlet();   // move Queued Gridlet into exec list
+        //for global cpu monitoring
+        NodeStatRecorder.updateCpuUsage(resId_, resource_.getNumBusyPE());
         fileWriter.println(getStatusString() );
     }
 

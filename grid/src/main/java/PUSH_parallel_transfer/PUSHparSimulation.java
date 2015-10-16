@@ -23,8 +23,9 @@ import java.util.LinkedList;
  */
 public class PUSHparSimulation {
     public static void main(String[] args) {
+	long startTime = System.currentTimeMillis();
 	String path = "F:/git/Grid_simulation/grid/src/main/java/flow_model/";
-	String gridletFileName = path + "input/KISTI_7000_filtered.csv";
+	String gridletFileName = path + "input/KISTI_60k_filtered.csv";
 	int gridletNumber = 60000;
 	
         System.out.println("Starting PUSH simulation ....");
@@ -140,6 +141,9 @@ public class PUSHparSimulation {
             //}
             
             write("\nFinish data grid simulation ...");
+            long stopTime = System.currentTimeMillis();
+            long elapsedTime = stopTime - startTime;
+            write("runtime: " + elapsedTime/1000 + " (s)");
             Logger.close();
         } catch (Exception e) {
             e.printStackTrace();

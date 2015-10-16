@@ -180,7 +180,6 @@ public class DPSpaceShared extends AllocPolicy
 	fileWriter = new PrintWriter(filename, "UTF-8");
 	fileWriter.println(getStatusHeader() );
 	//fileWriter.println(getStatusString() );
-
     }
     
     /**
@@ -593,6 +592,8 @@ public class DPSpaceShared extends AllocPolicy
 		this.readyOutputSize += gl.getOutputSizeInUnits(); //update counter
 		//statisctics
 		this.jobsFinished++;
+	        //global CPuusage monitoring
+	        NodeStatRecorder.updateCpuUsage(resId_, resource_.getNumBusyPE());
 		
 	    }else{
 		write("Error: finished gridlet was unregisterred");
@@ -689,6 +690,8 @@ public class DPSpaceShared extends AllocPolicy
 	        write(" Submitted gridlet " + gl.getGridletID() +" for processing, free CPUS: " 
 	        + this.resource_.getNumFreePE());
 	        jobSubmissionFailureFlag = 0.0;
+	        //global CPuusage monitoring
+	        NodeStatRecorder.updateCpuUsage(resId_, resource_.getNumBusyPE());
 	        return true;
 	    }else{		
 	        write("WARNING failed to submit input file for processing: "+ gl.getGridletID()
@@ -1048,6 +1051,8 @@ public class DPSpaceShared extends AllocPolicy
     {
         // Gets the PE's rating for each Machine in the list.
         // Assumed one Machine has same PE rating.
+	//for global cpu usage monitoring
+	NodeStatRecorder.registerNode(resId_, resName_, resource_.getNumPE(), isInputDestination);
         MachineList list = super.resource_.getMachineList();
         int size = list.size();
         machineRating_ = new int[size];

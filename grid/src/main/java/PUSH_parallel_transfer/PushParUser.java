@@ -188,6 +188,8 @@ public class PushParUser extends GridUser {
 	        //this.continueDataProduction = true;        
 	        //write header to the statistics file
 		//fileWriter.println(getStatusHeader() );
+	        //for global monitoring purposes
+	        NodeStatRecorder.init("output/CpuUsage.csv");
     }
     
 
@@ -426,6 +428,7 @@ public class PushParUser extends GridUser {
         System.out.println(this.name_ + ":%%%% Exiting body() at time " +
             GridSim.clock());
         //fileWriter.close();
+        NodeStatRecorder.close();
     }   
  
 

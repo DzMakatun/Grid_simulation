@@ -72,6 +72,7 @@ public class Simulation {
             DPSpaceShared policy = null;
             write("RESOURCES: ");
             for(GridResource res: resList){
+        	
             	//adding routers
             	router = new RIPRouter(res.get_name() + "_router", trace_flag);
             	router.attachHost(res, new FIFOScheduler(res.get_name()
@@ -111,6 +112,7 @@ public class Simulation {
             NetworkMonitor netMon= new NetworkMonitor("NetworkMonitor");
             plannerRouter.attachHost(netMon, new FIFOScheduler("NetworkMonitor"+"_router_scheduler"));  
 
+            NodeStatRecorder.init("output/CpuUsage.csv");
             GridSim.startGridSimulation();
             
             //write("ROUTERS:");
