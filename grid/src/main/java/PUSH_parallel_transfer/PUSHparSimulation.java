@@ -25,8 +25,8 @@ public class PUSHparSimulation {
     public static void main(String[] args) {
 	long startTime = System.currentTimeMillis();
 	String path = "F:/git/Grid_simulation/grid/src/main/java/flow_model/";
-	String gridletFileName = path + "input/KISTI_60k_filtered.csv";
-	int gridletNumber = 60000;
+	String gridletFileName = path + "input/KISTI_7000_filtered.csv";
+	int gridletNumber = 7000;
 	
         System.out.println("Starting PUSH simulation ....");
 
@@ -132,9 +132,14 @@ public class PUSHparSimulation {
             //create network monitor
             NetworkMonitor netMon= new NetworkMonitor("NetworkMonitor");
             plannerRouter.attachHost(netMon, new FIFOScheduler("NetworkMonitor"+"_router_scheduler"));  
+            
+            //set background trafic
+            BackgroundTraficSetter.setupBackgroundTrafic("bla", resList);
 
             GridSim.startGridSimulation();
             
+            
+            write(BackgroundTraficSetter.getBackgroundSetupString());
             //write("ROUTERS:");
             //for (FlowRouter r : routerList){
         	//r.printRoutingTable();
@@ -153,7 +158,7 @@ public class PUSHparSimulation {
     
     private static void write(String msg){
         System.out.println("Simulation: " + msg);
-        Logger.write("Simulation: " + msg);
+        //Logger.write("Simulation: " + msg);
     }
     
     private static String gridResourceToString(GridResource gr){

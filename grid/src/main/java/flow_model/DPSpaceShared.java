@@ -124,7 +124,8 @@ public class DPSpaceShared extends AllocPolicy
     private PrintWriter fileWriter; 
 
     
-    
+    private double processedInput = 0; //input files submitted during last planning interval
+    private double createdOutput = 0; //output files created during last planing interval
 
 
     /**
@@ -438,7 +439,7 @@ public class DPSpaceShared extends AllocPolicy
 		double size = gl.getGridletOutputSize();
 		this.pendingOutputSize -= size;
 		this.freeStorageSpace += size; //remove the file from storage
-		gl.getUsedLink().addOutputTransfer(size);//update link statistics
+		//gl.getUsedLink().addOutputTransfer(size);//update link statistics
 		//statistics
 		lastOutputSend = GridSim.clock(); 
 		this.outgoingTransferFailureFlag = 0.0;
@@ -460,7 +461,7 @@ public class DPSpaceShared extends AllocPolicy
 		this.pendingInputSize -= size;
 		this.freeStorageSpace += size; //remove the file from storage
 		//statistics
-		gl.getUsedLink().addInputTransfer(size);//update link statistics
+		//gl.getUsedLink().addInputTransfer(size);//update link statistics
 		this.outgoingTransferFailureFlag = 0.0;
 	    }else{
 		write("ERROR PENDING INPUT FILE NOT REGISTERED: " + gl.getGridletID());
@@ -470,6 +471,7 @@ public class DPSpaceShared extends AllocPolicy
 
 	private void processIncommingOutputFile(Sim_event ev) {
 	    DPGridlet gl = (DPGridlet) ev.get_data();
+	    gl.getUsedLink().addOutputTransfer(gl.getGridletOutputSize());//update link statistics
 	    write("received output file of a gridlet " + gl.getGridletID());
 	    //add new input file to
 	    if (addOutputFile(gl) ){
@@ -480,6 +482,7 @@ public class DPSpaceShared extends AllocPolicy
 		//remember the time when the last output was received. For makespan calculation
 		this.lastOutputReceived = GridSim.clock();
 		this.incommingTransferFailureFlag = 0.0;
+		//if source and destination check, if all files are process
 	    }else{
 		this.receiveErrorCounter ++;
 		this.incommingTransferFailureFlag = 1.0;
@@ -523,6 +526,7 @@ public class DPSpaceShared extends AllocPolicy
 
 	private void processIncommingInputFile(Sim_event ev) {
 	    DPGridlet gl = (DPGridlet) ev.get_data();
+	    gl.getUsedLink().addInputTransfer(gl.getGridletFileSize()); //update statistics
 	    write("received input file of gridlet" + gl.getGridletID() 
 		    + " of size " + gl.getGridletFileSize() + " " + DataUnits.getName());
 	    //add new input file to
@@ -590,6 +594,7 @@ public class DPSpaceShared extends AllocPolicy
 		this.freeStorageSpace += gl.getInputSizeInUnits(); //clear disc space
 		this.readyOutputFiles.add(gl); //add output file to the ready list
 		this.readyOutputSize += gl.getOutputSizeInUnits(); //update counter
+		createdOutput += gl.getGridletOutputSize(); //output created during this planing interval
 		//statisctics
 		this.jobsFinished++;
 	        //global CPuusage monitoring
@@ -681,6 +686,7 @@ public class DPSpaceShared extends AllocPolicy
 	        waitingInputSize -= gl.getInputSizeInUnits(); 
 	        submittedInputFiles.add(gl);
 	        submittedInputSize += gl.getGridletFileSize();
+	        processedInput += gl.getGridletFileSize(); //submitted during this iteration
 	        //!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 	        //BUGFIX (otherwise job times are not calculated)
 	        gl.setResourceParameter(this.resId_,this.resource_.getCostPerSec());
@@ -835,6 +841,8 @@ public class DPSpaceShared extends AllocPolicy
 	    neighborNodesInputFlows.clear();
 	    neighborNodesOutputFlows.clear();
 	    outgoingLinkFlows.clear();
+	    this.processedInput = 0; //counter for current planing iteration
+	    this.createdOutput = 0; //counter for current planing iteration
 	    for (int i = 0; i < newPlan.size(); i++) {
 		tempData = newPlan.get(i);
 		if (tempData.fromID == resId_) {
@@ -911,6 +919,9 @@ public class DPSpaceShared extends AllocPolicy
 	    status.put("readyOutputSize", readyOutputSize);
 	    status.put("submittedInputSize", submittedInputSize);
 	    status.put("reservedOutputSize", reservedOutputSize);
+	    status.put("storageSize", this.storageSize);
+	    status.put("processedInput", this.processedInput);
+	    status.put("createdOutput", this.createdOutput);
 	    
 	    status.put("busyCPUS", this.resource_.getNumBusyPE());
 
@@ -981,9 +992,9 @@ public class DPSpaceShared extends AllocPolicy
 	    
 	    buf.append("submittedInputSize" + indent);
 	    buf.append("reservedOutputSize" + indent);
-	    buf.append("waitingInputSize" + indent);
-	    buf.append("pendingInputSize" + indent);
+	    buf.append("waitingInputSize" + indent);	    
 	    buf.append("readyOutputSize" + indent);
+	    buf.append("pendingInputSize" + indent);
 	    buf.append("pendingOutputSize" + indent);	    
 	    //buf.append( + indent);	    
 	    return buf.toString();
@@ -1002,14 +1013,15 @@ public class DPSpaceShared extends AllocPolicy
 	    buf.append( (this.submittedInputSize  / this.storageSize) + indent);
 	    buf.append( (this.reservedOutputSize  / this.storageSize) + indent);
 	    buf.append( (this.waitingInputSize  / this.storageSize) + indent);
-	    buf.append( (this.pendingInputSize  / this.storageSize) + indent);
 	    buf.append( (this.readyOutputSize  / this.storageSize) + indent);
+	    buf.append( (this.pendingInputSize  / this.storageSize) + indent);	    
 	    buf.append( (this.pendingOutputSize  / this.storageSize) + indent);	 
 	    //buf.append( + indent);	    
 	    return buf.toString();
 	}
 	
 	private void finilize(){
+
 	  //print statistics
 	    double makespanSeconds = lastOutputReceived - firstPlanReceived; 
 	    Date makespan = new Date((long) (makespanSeconds * 1000));

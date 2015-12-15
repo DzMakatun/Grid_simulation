@@ -86,6 +86,9 @@ public class NodeStatRecorder {
 	fileWriter.println( getStatusString());
     }
     
+    public static int getregisteredNodesNum(){
+	return nodes.size();
+    }
     
     
 

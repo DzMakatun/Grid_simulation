@@ -12,6 +12,7 @@
 			<attribute name="maven.pomderived" value="true"/>
 		</attributes>
 	</classpathentry>
+	<classpathentry exported="true" kind="src" path="/GridSim"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/J2SE-1.5">
 		<attributes>
 			<attribute name="maven.pomderived" value="true"/>
@@ -22,13 +23,21 @@
 			<attribute name="maven.pomderived" value="true"/>
 		</attributes>
 	</classpathentry>
-	<classpathentry exported="true" kind="lib" path="F:/git/Grid_simulation/grid/lib/gridsim.jar"/>
+	<classpathentry kind="lib" path="F:/git/Grid_simulation/grid/lib/gridsim.jar"/>
 	<classpathentry kind="lib" path="F:/git/Grid_simulation/grid/lib/simjava2.jar"/>
 	<classpathentry kind="lib" path="lib/joda-time-2.4-javadoc.jar"/>
 	<classpathentry kind="lib" path="lib/joda-time-2.4-sources.jar"/>
 	<classpathentry kind="lib" path="lib/joda-time-2.4.jar"/>
-	<classpathentry exported="true" kind="src" path="/GridSim"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/planner"/>
 	<classpathentry kind="lib" path="/GridSim/jars/gridsim.jar"/>
+	<classpathentry kind="lib" path="C:/Users/Dima/.m2/repository/com/xeiam/xchart/xchart/2.5.1/xchart-2.5.1.jar">
+		<attributes>
+			<attribute name="maven.pomderived" value="true"/>
+			<attribute name="maven.groupId" value="com.xeiam.xchart"/>
+			<attribute name="maven.artifactId" value="xchart"/>
+			<attribute name="maven.version" value="2.5.1"/>
+			<attribute name="maven.scope" value="compile"/>
+		</attributes>
+	</classpathentry>
 	<classpathentry kind="output" path="target/classes"/>
 </classpath>

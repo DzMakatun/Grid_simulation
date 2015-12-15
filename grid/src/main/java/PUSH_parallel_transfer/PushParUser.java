@@ -189,6 +189,10 @@ public class PushParUser extends GridUser {
 	        //write header to the statistics file
 		//fileWriter.println(getStatusHeader() );
 	        //for global monitoring purposes
+	        while(NodeStatRecorder.getregisteredNodesNum() != totalResource){
+	            write("waitenig for all res to register");
+	            super.gridSimHold(100.0);
+	        }
 	        NodeStatRecorder.init("output/CpuUsage.csv");
     }
     

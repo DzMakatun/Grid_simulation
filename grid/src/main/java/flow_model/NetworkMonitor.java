@@ -44,6 +44,10 @@ public class NetworkMonitor extends GridSim{
                 break;
             }
             
+            if (ev.get_tag() == GridSimTags.JUNK_PKT){        	
+                System.out.println("NetworkMonitor: received JUNK_PKT");
+            }
+            
             if (ev.get_src() == myId_){
         	fileWriter.println(GridSim.clock() + indent + FlowManager.getConsumptionLine(updateInterval));
     	        FlowManager.resetCounters();

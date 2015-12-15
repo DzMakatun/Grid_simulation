@@ -148,6 +148,10 @@ public class User extends GridUser {
 	        //write header to the statistics file
 		fileWriter.println(getStatusHeader() );
 		//for CPU usage monitoring
+	        while(NodeStatRecorder.getregisteredNodesNum() != totalResource){
+	            write("waitenig for all res to register");
+	            super.gridSimHold(100.0);
+	        }
 		NodeStatRecorder.init("output/CpuUsage.csv");
     }
     
@@ -260,23 +264,29 @@ public class User extends GridUser {
 	double waitingInputSize = (Double) status.get("waitingInputSize");
 	double readyOutputSize = (Double) status.get("readyOutputSize");
 	double freeStorageSpace = (Double) status.get("freeStorageSpace");
+	double storageSize = (Double) status.get("storageSize");
 	double submittedInputSize = (Double) status.get("submittedInputSize");
 	int busyCPUS = (Integer) status.get("busyCPUS");
 	double reservedOutputSize = (Double) status.get("reservedOutputSize");
+	
+	double createdOutput = (Double) status.get("createdOutput");
+	double processedInput = (Double) status.get("processedInput");
 
 	
 	//will check if there is unprocessed input
 	//or untransferred output
 	boolean hasMoreWorkToDo = false;
 	if (waitingInputSize > 0 //if any node has waiting input files
-		|| submittedInputSize > 0 //if jobs are running
-		|| (! isOutputDestination && readyOutputSize > 0) ){ //if not a destination node has ready output files
+		//|| submittedInputSize > 0 //if jobs are running
+		|| (! isOutputDestination &&  freeStorageSpace != storageSize) ) { //if not a destination node has ready output files // readyOutputSize > 0)
 	    hasMoreWorkToDo = true;
 	}
 
 	
 	if ( solver.updateNode(id, (long) waitingInputSize, (long) readyOutputSize,
-		(long) waitingInputSize, (long) freeStorageSpace, busyCPUS,  (long) freeStorageSpace, (long) submittedInputSize, (long) reservedOutputSize) ){
+		(long) waitingInputSize, (long) freeStorageSpace, busyCPUS,
+		(long) freeStorageSpace, (long) submittedInputSize, (long) reservedOutputSize, 
+		processedInput, createdOutput )){
 	    //this.updateCounter++;
 	    write("updated status of node " + id + ":" + name);
 	}else{

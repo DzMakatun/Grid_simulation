@@ -15,6 +15,7 @@ import eduni.simjava.Sim_event;
 import eduni.simjava.Sim_system;
 import flow_model.DPGridlet;
 import flow_model.FlowManager;
+import flow_model.NodeStatRecorder;
 import gridsim.*;
 
 
@@ -112,6 +113,8 @@ class FastSpaceShared extends AllocPolicy
      */
     public void body()
     {
+	//for global cpu usage monitoring
+	NodeStatRecorder.registerNode(resId_, resName_, resource_.getNumPE(), resource_.getNumPE() != 1);
         // Gets the PE's rating for each Machine in the list.
         // Assumed one Machine has same PE rating.
         MachineList list = super.resource_.getMachineList();
@@ -173,8 +176,10 @@ class FastSpaceShared extends AllocPolicy
         try{
             DPGridlet dpGl  = (DPGridlet) gl;
             dpGl.getUsedLink().addInputTransfer(gl.getGridletFileSize());
+        }catch (Exception e){
+            e.printStackTrace();
         }finally{
-            
+                    
         }
 
         // reset number of PE since at the moment, it is not supported
@@ -218,6 +223,8 @@ class FastSpaceShared extends AllocPolicy
             );
         }
         fileWriter.println(getStatusString() );
+      //for global cpu monitoring
+        NodeStatRecorder.updateCpuUsage(resId_, resource_.getNumBusyPE());
     }
 
     /**
@@ -771,6 +778,8 @@ class FastSpaceShared extends AllocPolicy
 
         allocateQueueGridlet();   // move Queued Gridlet into exec list
         fileWriter.println(getStatusString() );
+        //for global cpu monitoring
+        NodeStatRecorder.updateCpuUsage(resId_, resource_.getNumBusyPE());
     }
 
     /**

@@ -113,13 +113,17 @@ public class Simulation {
             plannerRouter.attachHost(netMon, new FIFOScheduler("NetworkMonitor"+"_router_scheduler"));  
 
             NodeStatRecorder.init("output/CpuUsage.csv");
+            
+            //setup backgroung traffic
+            BackgroundTraficSetter.setupBackgroundTrafic("bla", resList);
+            
             GridSim.startGridSimulation();
             
             //write("ROUTERS:");
             //for (RIPRouter r : routerList){
         	//r.printRoutingTable();
             //}
-            
+            write(BackgroundTraficSetter.getBackgroundSetupString());
             write("\nFinish data grid simulation ...");
             long stopTime = System.currentTimeMillis();
             long elapsedTime = stopTime - startTime;

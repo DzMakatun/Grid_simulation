@@ -1,5 +1,6 @@
 package push_model;
 
+import eduni.simjava.distributions.Sim_uniform_obj;
 import flow_model.*;
 import gridsim.GridResource;
 import gridsim.GridSim;
@@ -8,6 +9,7 @@ import gridsim.ResourceCharacteristics;
 import gridsim.net.FIFOScheduler;
 import gridsim.net.RIPRouter;  // To use the new flow network package - GridSim 4.2
 import gridsim.util.SimReport;
+import gridsim.util.TrafficGenerator;
 
 import java.io.FileWriter;
 import java.io.IOException;
@@ -25,7 +27,7 @@ public class Simulation {
     public static void main(String[] args) {
 	String path = "F:/git/Grid_simulation/grid/src/main/java/flow_model/";
 	String gridletFileName = path + "input/KISTI_7000_filtered.csv";
-	int gridletNumber = 60000;
+	int gridletNumber = 7000;
 	
         System.out.println("Starting PUSH simulation ....");
 
@@ -134,9 +136,12 @@ public class Simulation {
             //create network monitor
             NetworkMonitor netMon= new NetworkMonitor("NetworkMonitor");
             plannerRouter.attachHost(netMon, new FIFOScheduler("NetworkMonitor"+"_router_scheduler"));  
+            
+            //BackgroundTraficSetter.setupBackgroundTrafic("bla", resList);
 
             GridSim.startGridSimulation();
             
+            write(BackgroundTraficSetter.getBackgroundSetupString());
             //write("ROUTERS:");
             //for (RIPRouter r : routerList){
         	//r.printRoutingTable();
@@ -152,7 +157,7 @@ public class Simulation {
     
     private static void write(String msg){
         System.out.println("Simulation: " + msg);
-        Logger.write("Simulation: " + msg);
+        //Logger.write("Simulation: " + msg);
     }
     
     private static String gridResourceToString(GridResource gr){

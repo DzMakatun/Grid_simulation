@@ -160,13 +160,17 @@ public class PushUser extends GridUser {
 	            // Resource list contains list of resource IDs not grid resource
 	            // objects.
 	            resourceID[i] = ( (Integer)resList.get(i) ).intValue();
-
+	            write("sending res. char. request to " + resourceID[i]);
 	            // Requests to resource entity to send its characteristics
 	            super.send(resourceID[i], GridSimTags.SCHEDULE_NOW,
 	                       GridSimTags.RESOURCE_CHARACTERISTICS, this.myId_);
 
 	            // waiting to get a resource characteristics
-	            resChar = (ResourceCharacteristics) super.receiveEventObject();
+	            write("after send");
+	            Object obj = super.receiveEventObject();
+	            write(obj.toString());
+	            //Sim_event ev = (Sim_event); 
+	            resChar = (ResourceCharacteristics) obj; //super.receiveEventObject();
 	            resourceName[i] = resChar.getResourceName();
 	            resourcePEs[i] = resChar.getNumPE();
 
@@ -187,6 +191,12 @@ public class PushUser extends GridUser {
 	        //this.continueDataProduction = true;        
 	        //write header to the statistics file
 		//fileWriter.println(getStatusHeader() );
+	        //global CPU monitoring
+	        while(NodeStatRecorder.getregisteredNodesNum() != totalResource){
+	            write("waitenig for all res to register");
+	            super.gridSimHold(100.0);
+	        }
+	        NodeStatRecorder.init("output/CpuUsage.csv");
     }
     
 
@@ -214,7 +224,7 @@ public class PushUser extends GridUser {
 	    for(k = 0; k < resourcePEs[i] && j < gridlets.size(); k++){
 		gl = (DPGridlet) gridlets.get(j);
 		if(j % chunkSize == 0){
-		    System.out.println("   ." + j + " / " + totalGridlet );
+		    System.out.println(GridSim.clock() + "  processed: " + j + " / " + totalGridlet );
 		    //write(name_ + "Sending Gridlet #" + j + "with id " + gl.getGridletID() + " to PE " + k + " at " + resourceName[i] + " at time " + GridSim.clock());
 		}
 		//write(gridletToString(gl));
@@ -262,7 +272,7 @@ public class PushUser extends GridUser {
 		//}
 
 		if(j % chunkSize == 0){
-		    System.out.println("   ." + j + " / " + totalGridlet );
+		    System.out.println(GridSim.clock() + "  processed: " + j + " / " + totalGridlet );
 		}
 		//success = super.gridletSubmit(gl, resourceFromID);
 		gl.setUserID(myId_);
@@ -420,6 +430,8 @@ public class PushUser extends GridUser {
         shutdownUserEntity();
         FlowManager.initialized = false;
         terminateIOEntities();
+        //close global CPU monitor
+        NodeStatRecorder.close();
         System.out.println(this.name_ + ":%%%% Exiting body() at time " +
             GridSim.clock());
         //fileWriter.close();
