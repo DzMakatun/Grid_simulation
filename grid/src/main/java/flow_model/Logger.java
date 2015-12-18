@@ -6,14 +6,15 @@ import java.io.PrintWriter;
 
 public class Logger {
     //writing statistics to a file
-    private static PrintWriter report_; 
+    private static PrintWriter report_ = null; 
     
     Logger(String filename){
     }
     
     public static void openFile(String filename){
+	if (report_ != null) {return;}
 	try {
-	    report_= new PrintWriter(ParameterReader.simulationLogFilename, "UTF-8");
+	    report_= new PrintWriter(filename, "UTF-8");
 	} catch (IOException e) {
 	    System.out.print("Failed to create a log file");
 	    // TODO Auto-generated catch block

@@ -125,6 +125,15 @@ public class DPNetworkReader {
 	}
     }
     
+    public static String getLinksString(){
+	StringBuffer buf = new StringBuffer();
+	buf.append("LINKS:\n");
+	for (SimpleLink link: links){
+	    buf.append(linkToString(link) + "\n");
+	}
+	return buf.toString();
+    }
+    
     public static String linkToString(SimpleLink link){
 	StringBuffer buf = new StringBuffer();
 	buf.append(link.get_id() + " ");

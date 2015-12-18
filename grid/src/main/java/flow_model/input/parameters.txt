@@ -1,4 +1,6 @@
-# file with gridlets in specified in resources
+#WARNING for PLANNER file with gridlets is specified in resources
+maxGridlets=7000
+gridletsFilename=F:/git/Grid_simulation/grid/src/main/java/flow_model/input/KISTI_7000_filtered.csv
 #resources=F:/git/Grid_simulation/grid/src/main/java/flow_model/input/resources.txt
 #network=F:/git/Grid_simulation/grid/src/main/java/flow_model/input/network.txt
 resources=F:/git/Grid_simulation/grid/src/main/java/flow_model/input/1remote.txt

@@ -82,7 +82,7 @@ public class User extends GridUser {
         //      name + ", and id = " + this.myId_);
         
         //write statistics for planned link bandwith consumprion
-        String filename = "output/" + this.name_ + "_planned_net_usage.csv";
+        String filename = "output/" + DataUnits.getPrefix() + "_" + this.name_ + "_planned_net_usage.csv";
 	fileWriter = new PrintWriter(filename, "UTF-8");
 
     }
@@ -108,7 +108,9 @@ public class User extends GridUser {
 	        //INITIALIZE PLANER and FlowManager
 		this.deltaT = ParameterReader.deltaT;
 		this.beta =  (float) ParameterReader.beta;	
-		solver = new DataProductionPlanner(ParameterReader.planerLogFilename, deltaT, beta);
+		//solver = new DataProductionPlanner(ParameterReader.planerLogFilename, deltaT, beta);
+		String plannerLogFilename = "output/" + DataUnits.getPrefix() + "_planner.log";
+		solver = new DataProductionPlanner(plannerLogFilename, deltaT, beta);
 		LinkedList<LinkFlows> allLinkFlows = new LinkedList<LinkFlows>();
 		for(CompNode node : ResourceReader.planerNodes){
 		    solver.addNode(node);
@@ -121,13 +123,13 @@ public class User extends GridUser {
 		        	    link.getEndNodeId() )  );
 		}	
 		//solver.PrintGridSetup();
-		solver.WriteGridODT("output/grid.dot");
+		//solver.WriteGridODT("output/grid.dot");
 		FlowManager.setLinks(allLinkFlows);
 		
 	        // This to give a time for GridResource entities to register their
 	        // services to GIS (GridInformationService) entity.
 	        super.gridSimHold(1000.0);
-	        System.out.println(name_ + ": retrieving GridResourceList");
+	        write("retrieving GridResourceList");
 	        LinkedList resList = super.getGridResourceList();
 	        
 	        // initialises all the containers
@@ -149,10 +151,16 @@ public class User extends GridUser {
 		fileWriter.println(getStatusHeader() );
 		//for CPU usage monitoring
 	        while(NodeStatRecorder.getregisteredNodesNum() != totalResource){
-	            write("waitenig for all res to register");
-	            super.gridSimHold(100.0);
+	            write("waiting for all res to register");
+	            try {
+			super.wait(1000);
+		    } catch (InterruptedException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		    }
 	        }
-		NodeStatRecorder.init("output/CpuUsage.csv");
+	        String nodeStatFilename = "output/" + DataUnits.getPrefix() + "PLANNER_CpuUsage.csv";
+		NodeStatRecorder.start(nodeStatFilename);
     }
     
 
@@ -168,7 +176,7 @@ public class User extends GridUser {
 	Map status;
 	
 	while (continueDataProduction){
-	    write("######################## planningIteration: " + planningIteration + " #######################");
+	    //write("######################## planningIteration: " + planningIteration + " #######################");
 	    planningIteration ++;
 	    /////////////////////////////////////////////////
 	    //GET resource statuses
@@ -194,7 +202,7 @@ public class User extends GridUser {
 	        
 	   //send plan
 	   for(int i = 0; i <  totalResource; i++){          
-	       write("sending new plan to resource " + resourceID[i]);
+	       //write("sending new plan to resource " + resourceID[i]);
 	       //send without network delay
 	       super.sim_schedule(resourceID[i], GridSimTags.SCHEDULE_NOW, RiftTags.NEW_PLAN, newPlan);
 	   } 
@@ -218,8 +226,7 @@ public class User extends GridUser {
         shutdownUserEntity();
         FlowManager.initialized = false;
         terminateIOEntities();
-        System.out.println(this.name_ + ":%%%% Exiting body() at time " +
-            GridSim.clock());
+        write("Exited body() at time " + GridSim.clock());
         fileWriter.close();
         NodeStatRecorder.close();
     }
@@ -234,7 +241,7 @@ public class User extends GridUser {
 	//send requests
         for(int i = 0; i <  this.totalResource; i++){ 
                      
-            write("sending status request to resource " + this.resourceID[i]);
+            //write("sending status request to resource " + this.resourceID[i]);
             //send without network delay
             super.sim_schedule(this.resourceID[i], GridSimTags.SCHEDULE_NOW, RiftTags.STATUS_REQUEST, this.myId_);
             //send(super.output, GridSimTags.SCHEDULE_NOW, RiftTags.STATUS_REQUEST,
@@ -288,7 +295,7 @@ public class User extends GridUser {
 		(long) freeStorageSpace, (long) submittedInputSize, (long) reservedOutputSize, 
 		processedInput, createdOutput )){
 	    //this.updateCounter++;
-	    write("updated status of node " + id + ":" + name);
+	    //write("updated status of node " + id + ":" + name);
 	}else{
 	    write("WARNING failed to update node status (probably node not found)"  + id + ":" + name);
 	}      

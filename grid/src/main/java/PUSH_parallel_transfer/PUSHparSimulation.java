@@ -14,6 +14,8 @@ import java.io.IOException;
 import java.util.Calendar;
 import java.util.LinkedList;
 
+import org.joda.time.DateTime;
+
 
 /**
  * This is the main class of the simulation package. It reads all the parameters
@@ -24,27 +26,35 @@ import java.util.LinkedList;
 public class PUSHparSimulation {
     public static void main(String[] args) {
 	long startTime = System.currentTimeMillis();
-	String path = "F:/git/Grid_simulation/grid/src/main/java/flow_model/";
-	String gridletFileName = path + "input/KISTI_7000_filtered.csv";
-	int gridletNumber = 7000;
+	//String path = "F:/git/Grid_simulation/grid/src/main/java/flow_model/input/";
+	//String path = "input/";
+	//String gridletFileName = path + "KISTI_7000_filtered.csv";
+	//int gridletNumber = 7000;
 	
         System.out.println("Starting PUSH simulation ....");
 
         try {
 
-                       
+            if (args.length != 3) {
+                System.out.println("Usage: java Main parameter_file traceflag prefix");
+                return;
+            }
+             
+            //set prefix for all log files
+            DataUnits.setPrefix(args[2]);             
             
 
             //reads parameters
-            System.out.println( "Parameters file: " + path + "/input/parameters.txt");
-            ParameterReader.read(path + "/input/parameters.txt");
+            System.out.println( "Parameters file: " + args[0]);
+            ParameterReader.read(args[0]);
             
             
-            Logger.openFile(ParameterReader.simulationLogFilename);
-            write( "Parameters file: " + path + "/input/parameters.txt");
+            Logger.openFile("output/" + DataUnits.getPrefix() + "_PUSHpar_sim.log");
+            write( "Log file: output/" + DataUnits.getPrefix() + "_PUSHpar_sim.log");
+            write( "Parameters file: " + args[0]);
             int num_user = 1; // number of grid users
             Calendar calendar = Calendar.getInstance();
-            boolean trace_flag = true; // means trace GridSim events
+            boolean trace_flag = Boolean.parseBoolean(args[1]); // means trace GridSim events
            // boolean gisFlag = false; // means using custom gis instead
             
             //set data units for the simulation
@@ -54,7 +64,7 @@ public class PUSHparSimulation {
             //uses flow extension
             GridSim.initNetworkType(GridSimTags.NET_FLOW_LEVEL);
             //Initializes the GridSim package
-            System.out.println("Initializing GridSim package");            
+            write("Initializing GridSim package");            
             GridSim.init(num_user, calendar, trace_flag);
 
             
@@ -113,12 +123,12 @@ public class PUSHparSimulation {
                  
             
             //CREATE USER RUNING PLANER
-            PushParUser pusher = new PushParUser("Pusher",
+            PushParUser pusher = new PushParUser("PUSHpar",
                     Double.MAX_VALUE, 0.001, Integer.MAX_VALUE);   
             
             //CHOSE 2 OPTIONS
             //use this for normal filesize
-            pusher.setGridletList(GridletReader.getGridletList(gridletFileName, gridletNumber));
+            pusher.setGridletList(GridletReader.getGridletList(ParameterReader.gridletsFilename, ParameterReader.maxGridlets));
             pusher.setStorageId(storageId);
             
             //use this for 0 filesize (disables network delays)
@@ -134,12 +144,12 @@ public class PUSHparSimulation {
             plannerRouter.attachHost(netMon, new FIFOScheduler("NetworkMonitor"+"_router_scheduler"));  
             
             //set background trafic
-            BackgroundTraficSetter.setupBackgroundTrafic("bla", resList);
+            //BackgroundTraficSetter.setupBackgroundTrafic("bla", resList);
 
             GridSim.startGridSimulation();
             
             
-            write(BackgroundTraficSetter.getBackgroundSetupString());
+            //write(BackgroundTraficSetter.getBackgroundSetupString());
             //write("ROUTERS:");
             //for (FlowRouter r : routerList){
         	//r.printRoutingTable();
@@ -157,23 +167,20 @@ public class PUSHparSimulation {
     }
     
     private static void write(String msg){
-        System.out.println("Simulation: " + msg);
-        //Logger.write("Simulation: " + msg);
+	DateTime now = DateTime.now();
+        System.out.println(now.toString() +" Simulation: " + msg);        
+        Logger.write(now.toString() + " Simulation: " + msg);
     }
     
     private static String gridResourceToString(GridResource gr){
 	StringBuffer br = new StringBuffer();
-	ResourceCharacteristics characteristics = gr.getResourceCharacteristics();
-	
-	
+	ResourceCharacteristics characteristics = gr.getResourceCharacteristics();	
 	br.append("name: " + gr.get_name() + ", ");
 	br.append("id: " + gr.get_id() + ", ");
 	br.append("PEs: " + characteristics.getMachineList().getNumPE() + ", ");
-	//br.append("storage: " + ( (DPSpaceShared) gr.getAllocationPolicy() ).getStorageSize() + "(MB), ");
-	
+	//br.append("storage: " + ( (DPSpaceShared) gr.getAllocationPolicy() ).getStorageSize() + "(MB), ");	
 	br.append("MIPS: " +characteristics.getMIPSRatingOfOnePE()  + ", ");
-	//br.append("processingRate: " +characteristics.  + ", ");
-	
+	//br.append("processingRate: " +characteristics.  + ", ");	
 	br.append("link bandwidth: " + gr.getLink().getBaudRate()  + "(bit/s), ");
 	//br.append("stat: " + gr.get_stat().toString());
 	

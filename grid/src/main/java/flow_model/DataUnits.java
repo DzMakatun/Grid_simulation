@@ -15,6 +15,25 @@ public class DataUnits {
      */
     private static long size = 1024 * 1024;
     
+    /**
+     * prefix for all ouput files
+     */
+    private static String prefix = "TEST";
+    
+    /**
+     * @return the prefix
+     */
+    public static String getPrefix() {
+        return prefix;
+    }
+
+    /**
+     * @param prefix the prefix to set
+     */
+    public static void setPrefix(String prefix) {
+        DataUnits.prefix = prefix;
+    }
+
     public static void setUnits(String newName, long newSize){
 	DataUnits.name = newName;
 	DataUnits.size = newSize;

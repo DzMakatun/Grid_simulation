@@ -177,7 +177,7 @@ public class DPSpaceShared extends AllocPolicy
 	this.isInputDestination = isInputDestination;
 	this.isOutputSource = isOutputSource;
 	
-	String filename = "output/" + this.resName_ + "_statistics.csv";
+	String filename = "output/" + DataUnits.getPrefix() + "_" + this.resName_ + "_PLANNER_stat.csv";
 	fileWriter = new PrintWriter(filename, "UTF-8");
 	fileWriter.println(getStatusHeader() );
 	//fileWriter.println(getStatusString() );
@@ -354,24 +354,24 @@ public class DPSpaceShared extends AllocPolicy
 	                break;     
 	                
 	            case RiftTags.INPUT_TRANSFER_ACK:
-	        	write("received INPUT_TRANSFER_ACK");
+	        	//write("received INPUT_TRANSFER_ACK");
 	        	processInputTransferAck(ev);
 	                break;    
 	            
 	            case RiftTags.OUTPUT_TRANSFER_ACK:
-	        	write("received OUTPUT_TRANSFER_ACK");
+	        	//write("received OUTPUT_TRANSFER_ACK");
 	        	processOutputTransferAck(ev);
 	                break;  
 	           
 
 	                
 	            case RiftTags.INPUT_TRANSFER_FAIL:
-	        	write("received INPUT_TRANSFER_FAIL");
+	        	//write("received INPUT_TRANSFER_FAIL");
 	        	processInputTransferFail(ev);
 	                break;  
 	                
 	            case RiftTags.OUTPUT_TRANSFER_FAIL:
-	        	write("received OUTPUT_TRANSFER_FAIL");
+	        	//write("received OUTPUT_TRANSFER_FAIL");
 	        	processOutputTransferFail(ev);
 	                break;  
 	                
@@ -393,7 +393,7 @@ public class DPSpaceShared extends AllocPolicy
 	    this.sendErrorCounter ++;
 	    this.outgoingTransferFailureFlag = 1.0;
 	    DPGridlet gl = (DPGridlet) ev.get_data();
-	    write("INPUT TRANSFER FAILURE, gridlet id: " + gl.getGridletID());
+	    //write("INPUT TRANSFER FAILURE, gridlet id: " + gl.getGridletID());
 	    if (this.pendingInputFiles.remove(gl)) {
 		double size = gl.getGridletFileSize();
 		this.pendingInputSize -= size;
@@ -472,7 +472,7 @@ public class DPSpaceShared extends AllocPolicy
 	private void processIncommingOutputFile(Sim_event ev) {
 	    DPGridlet gl = (DPGridlet) ev.get_data();
 	    gl.getUsedLink().addOutputTransfer(gl.getGridletOutputSize());//update link statistics
-	    write("received output file of a gridlet " + gl.getGridletID());
+	    //write("received output file of a gridlet " + gl.getGridletID());
 	    //add new input file to
 	    if (addOutputFile(gl) ){
 		//send confirmation to sender
@@ -483,6 +483,13 @@ public class DPSpaceShared extends AllocPolicy
 		this.lastOutputReceived = GridSim.clock();
 		this.incommingTransferFailureFlag = 0.0;
 		//if source and destination check, if all files are process
+		//print the progress
+		if (this.isInputSource && ( this.readyOutputFiles.size() % (this.initialNomberOfFiles / 20) == 0 ) ){
+		    DateTime now = DateTime.now();
+		    System.out.println(now.toString() + " " + super.get_name() + " " + this.readyOutputFiles.size() + " / " 
+			    + this.initialNomberOfFiles);
+		}
+		
 	    }else{
 		this.receiveErrorCounter ++;
 		this.incommingTransferFailureFlag = 1.0;
@@ -515,10 +522,10 @@ public class DPSpaceShared extends AllocPolicy
 		
 	    }else{
 		//failed to accommodate a new file
-		write("WARNING RUNNING OUT OF STORAGE SPACE,"
-			+ " can't accomodate new input file, freeSpace: " 
-			+ this.freeStorageSpace + " fileSize: "
-			+ size);
+		//write("WARNING RUNNING OUT OF STORAGE SPACE,"
+		//	+ " can't accomodate new input file, freeSpace: " 
+		//	+ this.freeStorageSpace + " fileSize: "
+		//	+ size);
 		return false;
 	    }
 	}
@@ -527,8 +534,8 @@ public class DPSpaceShared extends AllocPolicy
 	private void processIncommingInputFile(Sim_event ev) {
 	    DPGridlet gl = (DPGridlet) ev.get_data();
 	    gl.getUsedLink().addInputTransfer(gl.getGridletFileSize()); //update statistics
-	    write("received input file of gridlet" + gl.getGridletID() 
-		    + " of size " + gl.getGridletFileSize() + " " + DataUnits.getName());
+	    //write("received input file of gridlet" + gl.getGridletID() 
+		//    + " of size " + gl.getGridletFileSize() + " " + DataUnits.getName());
 	    //add new input file to
 	    if (addInputFile(gl) ){
 		//send confirmation to sender
@@ -571,10 +578,10 @@ public class DPSpaceShared extends AllocPolicy
 		
 	    }else{
 		//failed to accommodate a new file
-		write("WARNING RUNNING OUT OF STORAGE SPACE,"
-			+ " can't accomodate new input file, freeSpace: " 
-			+ this.freeStorageSpace + " fileSize: "
-			+ size);
+		//write("WARNING RUNNING OUT OF STORAGE SPACE,"
+		//	+ " can't accomodate new input file, freeSpace: " 
+		//	+ this.freeStorageSpace + " fileSize: "
+		//	+ size);
 		return false;
 	    }
 	}
@@ -587,7 +594,7 @@ public class DPSpaceShared extends AllocPolicy
 	private void processFinishedJob(DPGridlet gl){
 	    //remove input file from the disk
 	    //and check if it was registered properly
-	    write("Gridlet " + gl.getGridletID() + " finished processing. free CPUS + " + this.resource_.getNumFreePE() );
+	    //write("Gridlet " + gl.getGridletID() + " finished processing. free CPUS + " + this.resource_.getNumFreePE() );
 	    if (this.submittedInputFiles.remove(gl) && this.reservedOutputFiles.remove(gl) ){
 		this.submittedInputSize -= gl.getGridletFileSize();
 		this.reservedOutputSize -= gl.getGridletOutputSize();
@@ -693,16 +700,16 @@ public class DPSpaceShared extends AllocPolicy
 	        /////////////////////////////////
 	        gridletSubmit(gl, false); // submit to policy for execution 
 	        localProcessingFlow -= gl.getInputSizeInUnits(); //decrease the counter
-	        write(" Submitted gridlet " + gl.getGridletID() +" for processing, free CPUS: " 
-	        + this.resource_.getNumFreePE());
+	        //write(" Submitted gridlet " + gl.getGridletID() +" for processing, free CPUS: " 
+	        //+ this.resource_.getNumFreePE());
 	        jobSubmissionFailureFlag = 0.0;
 	        //global CPuusage monitoring
 	        NodeStatRecorder.updateCpuUsage(resId_, resource_.getNumBusyPE());
 	        return true;
 	    }else{		
-	        write("WARNING failed to submit input file for processing: "+ gl.getGridletID()
-	        	+ " freeStorageSpace: " + this.freeStorageSpace
-	        	+ " free CPUS: " + this.resource_.getNumFreePE());
+	        //write("WARNING failed to submit input file for processing: "+ gl.getGridletID()
+	        //	+ " freeStorageSpace: " + this.freeStorageSpace
+	        //	+ " free CPUS: " + this.resource_.getNumFreePE());
 	        jobSubmissionFailureFlag = 1.0;
 	        return false;    
 	    }		    
@@ -722,8 +729,8 @@ public class DPSpaceShared extends AllocPolicy
 		return true;		
 	    }else{
 		//failed to accommodate a new file
-		write("WARNING RUNNING OUT OF STORAGE SPACE, can't create an output file: " + gl.getGridletID()
-			+ " freeStorageSpace: " + this.freeStorageSpace);
+		//write("WARNING RUNNING OUT OF STORAGE SPACE, can't create an output file: " + gl.getGridletID()
+		//	+ " freeStorageSpace: " + this.freeStorageSpace);
 		return false;
 	    }
 	}
@@ -751,8 +758,8 @@ public class DPSpaceShared extends AllocPolicy
 	    }
 	    
 	    //send	    
-	    write(" sending input file " + gl.getGridletID() + " of size " + gl.getGridletFileSize() 
-		    + "(bytes) to resource " + neighborNodesIds.get(j));
+	    //write(" sending input file " + gl.getGridletID() + " of size " + gl.getGridletFileSize() 
+		//    + "(bytes) to resource " + neighborNodesIds.get(j));
 	    gl.setSenderID(this.resId_);
 	    gl.setUsedLink(this.outgoingLinkFlows.get(j)); //for link statistics
 	    IO_data data = new IO_data(gl, gl.getGridletFileSize(), neighborNodesIds.get(j));
@@ -811,9 +818,9 @@ public class DPSpaceShared extends AllocPolicy
 	    this.pendingOutputSize += size;
 	    //freeStorageSpace +=  size; //this "deletes" the file, 	    
 	    //later file has to be deleted when a confirmation is received    
-	    write("send output file " + gl.getGridletID()  +" of size "  + gl.getGridletOutputSize() 
-		    + "to resource " + neighborNodesIds.get(j)
-		    + " remaining flow" + neighborNodesOutputFlows.get(j));	    
+	    //write("send output file " + gl.getGridletID()  +" of size "  + gl.getGridletOutputSize() 
+		//    + "to resource " + neighborNodesIds.get(j)
+		  //  + " remaining flow" + neighborNodesOutputFlows.get(j));	    
 		
 	    //statistics
 	    this.outputSent += size;
@@ -866,7 +873,7 @@ public class DPSpaceShared extends AllocPolicy
 		remoteOutputFlow += neighborNodesOutputFlows.get(i);
 	    }
 	    this.planIsSet = true;
-	    write(planToString());
+	    //write(planToString());
 	    processFiles(); // after the new plan is setup we have to process what was left before
 	}
 	
@@ -901,7 +908,7 @@ public class DPSpaceShared extends AllocPolicy
 	 */
 	private void processStatusRequest(Sim_event ev) {
 	    planerId = (Integer) ev.get_data();
-	    write("Procesing status request. planerId is: " + planerId);
+	    //write("Procesing status request. planerId is: " + planerId);
 	    	    
 	    //create status message
 	    Map status = new HashMap();
@@ -933,13 +940,13 @@ public class DPSpaceShared extends AllocPolicy
            );
 	    
 	    //print statistics
-	    write("~~~~~~~~~~~~~~~~~~~ REMAINING FLOWS OF OLD PLAN ~~~~~~~~~~~~~~~~~\n" 
-		    + planToString() + "\n"
-		    + "STATISTICS : -------------\n"
-		    + getStatusHeader() + "\n"
-		    + getStatusString() + "\n"
-		    + "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n"
-		    );    	    
+	    //write("~~~~~~~~~~~~~~~~~~~ REMAINING FLOWS OF OLD PLAN ~~~~~~~~~~~~~~~~~\n" 
+		//    + planToString() + "\n"
+	    	//  + "STATISTICS : -------------\n"
+	    	//+ getStatusHeader() + "\n"
+		//    + getStatusString() + "\n"
+		//    + "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n"
+		//    );    	    
 	    
 	    fileWriter.println(getStatusString() );
 	    return;
@@ -976,8 +983,7 @@ public class DPSpaceShared extends AllocPolicy
 	    
 	    System.out.println(buf.toString());
 	    //write to file
-	    Logger.write(buf.toString());
-	    
+	    Logger.write(buf.toString());	    
 	    return;
 	}
 	
@@ -1041,7 +1047,7 @@ public class DPSpaceShared extends AllocPolicy
 		    + "\n firstPlanReceived: " + firstPlanReceived
 		    + "\n lastOutputSend: " + lastOutputSend		    
 		    + "\n lastOutputReceived: " + lastOutputReceived
-		    + "\n duration: " + makespanSeconds + " seconds or: " + myFormat.format(makespan)
+		    + "\n Makespan: " + makespanSeconds + " seconds or: " + myFormat.format(makespan)
 
 
 		    + "\n##########################################################################################\n"

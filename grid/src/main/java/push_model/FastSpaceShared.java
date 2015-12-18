@@ -14,6 +14,7 @@ import java.util.Iterator;
 import eduni.simjava.Sim_event;
 import eduni.simjava.Sim_system;
 import flow_model.DPGridlet;
+import flow_model.DataUnits;
 import flow_model.FlowManager;
 import flow_model.NodeStatRecorder;
 import gridsim.*;
@@ -76,7 +77,7 @@ class FastSpaceShared extends AllocPolicy
         this.gridletQueueList_  = new ResGridletList();
         this.lastUpdateTime_ = 0.0;
         this.machineRating_ = null;
-	String filename = "output/" + this.resName_ + "_statistics.csv";
+        String filename = "output/" + DataUnits.getPrefix() + "_" + this.resName_ + "_PUSHseq_stat.csv";
 	fileWriter = new PrintWriter(filename, "UTF-8");
 	fileWriter.println(getStatusHeader() );
     }

@@ -7,12 +7,11 @@ import gridsim.GridSimTags;
 import gridsim.ResourceCharacteristics;
 import gridsim.net.FIFOScheduler;
 import gridsim.net.RIPRouter;  // To use the new flow network package - GridSim 4.2
-import gridsim.util.SimReport;
 
-import java.io.FileWriter;
-import java.io.IOException;
 import java.util.Calendar;
 import java.util.LinkedList;
+
+import org.joda.time.DateTime;
 
 /**
  * This is the main class of the simulation package. It reads all the parameters
@@ -26,22 +25,22 @@ public class Simulation {
         System.out.println("Starting simulation ....");
 
         try {
-            if (args.length != 1) {
-                System.out.println("Usage: java Main parameter_file");
+            if (args.length != 3) {
+                System.out.println("Usage: java Main parameter_file traceflag prefix");
                 return;
             }
-                       
-            
-
+             
+            //set prefix for all log files
+            DataUnits.setPrefix(args[2]); 
             //reads parameters
             System.out.println( "Parameters file: " + args[0]);
             ParameterReader.read(args[0]);
             
-            Logger.openFile(ParameterReader.simulationLogFilename);
+            Logger.openFile("output/" + DataUnits.getPrefix() + "_PLANNER_sim.log");
             write( "Parameters file: " + args[0]);
             int num_user = 1; // number of grid users
             Calendar calendar = Calendar.getInstance();
-            boolean trace_flag = true; // means trace GridSim events
+            boolean trace_flag = Boolean.parseBoolean(args[1]); // means trace GridSim events
            // boolean gisFlag = false; // means using custom gis instead
             
             //set data units for the simulation
@@ -51,7 +50,7 @@ public class Simulation {
             //uses flow extension
             GridSim.initNetworkType(GridSimTags.NET_PACKET_LEVEL);
             //Initializes the GridSim package
-            System.out.println("Initializing GridSim package");            
+            write("Initializing GridSim package");            
             GridSim.init(num_user, calendar, trace_flag);
 
             
@@ -90,13 +89,13 @@ public class Simulation {
             }
 
             //READ NETWORK
-            System.out.println("ROUTERS:");
+            write("ROUTERS:");
             for (RIPRouter r:routerList){
-        	System.out.println(DPNetworkReader.routerToString(r));
+        	write(DPNetworkReader.routerToString(r));
             }
             
             DPNetworkReader.createNetwork(routerList, ParameterReader.networkFilename);
-            DPNetworkReader.printLinks();
+            write(DPNetworkReader.getLinksString() );
                  
             
             //CREATE USER RUNING PLANER
@@ -112,10 +111,9 @@ public class Simulation {
             NetworkMonitor netMon= new NetworkMonitor("NetworkMonitor");
             plannerRouter.attachHost(netMon, new FIFOScheduler("NetworkMonitor"+"_router_scheduler"));  
 
-            NodeStatRecorder.init("output/CpuUsage.csv");
             
             //setup backgroung traffic
-            BackgroundTraficSetter.setupBackgroundTrafic("bla", resList);
+            //BackgroundTraficSetter.setupBackgroundTrafic("bla", resList);
             
             GridSim.startGridSimulation();
             
@@ -123,7 +121,7 @@ public class Simulation {
             //for (RIPRouter r : routerList){
         	//r.printRoutingTable();
             //}
-            write(BackgroundTraficSetter.getBackgroundSetupString());
+            //write(BackgroundTraficSetter.getBackgroundSetupString());
             write("\nFinish data grid simulation ...");
             long stopTime = System.currentTimeMillis();
             long elapsedTime = stopTime - startTime;
@@ -136,26 +134,22 @@ public class Simulation {
     }
     
     private static void write(String msg){
-        System.out.println("Simulation: " + msg);
-        Logger.write("Simulation: " + msg);
+	DateTime now = DateTime.now();
+        System.out.println(now.toString() + " Simulation: " + msg);        
+        Logger.write(now.toString() + " Simulation: " + msg);
     }
     
     private static String gridResourceToString(GridResource gr){
 	StringBuffer br = new StringBuffer();
-	ResourceCharacteristics characteristics = gr.getResourceCharacteristics();
-	
-	
+	ResourceCharacteristics characteristics = gr.getResourceCharacteristics();	
 	br.append("name: " + gr.get_name() + ", ");
 	br.append("id: " + gr.get_id() + ", ");
 	br.append("PEs: " + characteristics.getMachineList().getNumPE() + ", ");
-	br.append("storage: " + ( (DPSpaceShared) gr.getAllocationPolicy() ).getStorageSize() + "(MB), ");
-	
+	br.append("storage: " + ( (DPSpaceShared) gr.getAllocationPolicy() ).getStorageSize() + "(MB), ");	
 	br.append("MIPS: " +characteristics.getMIPSRatingOfOnePE()  + ", ");
-	//br.append("processingRate: " +characteristics.  + ", ");
-	
+	//br.append("processingRate: " +characteristics.  + ", ");	
 	br.append("link bandwidth: " + gr.getLink().getBaudRate()  + "(bit/s), ");
-	//br.append("stat: " + gr.get_stat().toString());
-	
+	//br.append("stat: " + gr.get_stat().toString());	
 	return br.toString();
 	
     }

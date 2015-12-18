@@ -16,7 +16,7 @@ public class NodeStatRecorder {
     /*
      * when all the nodes are register this must be called
      */
-    public static void init(String filename){
+    public static void start(String filename){
 	System.out.println("Initializing NodeStatRecorder with " + nodes.size() + " nodes");
 	try {
 	    fileWriter = new PrintWriter(filename, "UTF-8");

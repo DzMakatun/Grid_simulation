@@ -46,7 +46,6 @@ public class ParameterReader {
             while ((line = buf.readLine()) != null) {
                 if (!line.startsWith("#")) { //ignore comments
                     str = new StringTokenizer(line);
-
                     //parse the name and size of file
                     name = str.nextToken("=");
                     value = str.nextToken();
@@ -69,7 +68,10 @@ public class ParameterReader {
                 	beta = Double.valueOf(value);
                     } else if (name.equals("simulationLogFilename")) {
                 	simulationLogFilename = value;
-                	
+                    } else if (name.equals("gridletsFilename")) {
+                	gridletsFilename = value;
+                    } else if (name.equals("maxGridlets")) {
+                	maxGridlets = Integer.valueOf(value);
                 	
                 	
                     } else {

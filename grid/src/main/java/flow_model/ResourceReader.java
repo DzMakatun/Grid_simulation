@@ -109,13 +109,13 @@ public class ResourceReader {
                     policy.addInitialInputFiles(gridletList);       
                     
                     //Print Gridlet list
-                    System.out.println("GRIDLETS at " + r1.get_id() + ":" + r1.get_name());
+                    System.out.println(gridletList.size() + " GRIDLETS at " + r1.get_id() + ":" + r1.get_name());
                     DPGridlet gridlet;
                     
-                    for (Gridlet gl : gridletList){
-                	gridlet = (DPGridlet) gl;
-                	System.out.println(gridlet.toStringShort());
-                    }
+                    //for (Gridlet gl : gridletList){
+                	//gridlet = (DPGridlet) gl;
+                	//System.out.println(gridlet.toStringShort());
+                    //}
                 }
                 
                // add resource to the list
