@@ -116,7 +116,7 @@ class PushParSpaceShared extends AllocPolicy
     public void body()
     {
 	//for global cpu usage monitoring
-	NodeStatRecorder.registerNode(resId_, resName_, resource_.getNumPE(), resource_.getNumPE() != 1);
+	//NodeStatRecorder.registerNode(resId_, resName_, resource_.getNumPE(), resource_.getNumPE() != 1);
         // Gets the PE's rating for each Machine in the list.
         // Assumed one Machine has same PE rating.
         MachineList list = super.resource_.getMachineList();

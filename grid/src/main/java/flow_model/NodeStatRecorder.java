@@ -33,7 +33,9 @@ public class NodeStatRecorder {
     }
     
     public static void close(){
-	fileWriter.close();
+	if (fileWriter != null){
+	    fileWriter.close();
+	}	
 	System.out.println("NodeStatRecorder exited"); 
     }
     

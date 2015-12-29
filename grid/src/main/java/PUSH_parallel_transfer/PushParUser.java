@@ -163,6 +163,7 @@ public class PushParUser extends GridUser {
 
 	            write("Received ResourceCharacteristics from " +
 	                    resourceName[i] + ", with id = " + resourceID[i] + " with  " + resourcePEs[i] + " PEs");
+	            NodeStatRecorder.registerNode(resourceID[i], resourceName[i], (int) resourcePEs[i], resourcePEs[i] != 1);
 
 	            // record this event into "stat.txt" file
 	            //super.recordStatistics("\"Received ResourceCharacteristics " +
@@ -175,19 +176,6 @@ public class PushParUser extends GridUser {
 	        	totalPEs += resourcePEs[i];
 	        }
 	        
-	        //this.continueDataProduction = true;        
-	        //write header to the statistics file
-		//fileWriter.println(getStatusHeader() );
-	        //for global monitoring purposes
-	        while(NodeStatRecorder.getregisteredNodesNum() != totalResource){
-	            write("waiting for all res to register");
-	            try {
-			super.wait(1000);
-		    } catch (InterruptedException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		    }
-	        }
 	        String nodeStatFilename = "output/" + DataUnits.getPrefix() + "PUSHpar_CpuUsage.csv";
 		NodeStatRecorder.start(nodeStatFilename);
     }

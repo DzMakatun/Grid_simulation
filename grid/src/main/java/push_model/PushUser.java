@@ -150,7 +150,7 @@ public class PushUser extends GridUser {
 	            // Resource list contains list of resource IDs not grid resource
 	            // objects.
 	            resourceID[i] = ( (Integer)resList.get(i) ).intValue();
-	            write("sending res. char. request to " + resourceID[i]);
+	            //write("sending res. char. request to " + resourceID[i]);
 	            // Requests to resource entity to send its characteristics
 	            super.send(resourceID[i], GridSimTags.SCHEDULE_NOW,
 	                       GridSimTags.RESOURCE_CHARACTERISTICS, this.myId_);
@@ -166,6 +166,7 @@ public class PushUser extends GridUser {
 
 	            write("Received ResourceCharacteristics from " +
 	                    resourceName[i] + ", with id = " + resourceID[i] + " with  " + resourcePEs[i] + " PEs");
+	            NodeStatRecorder.registerNode(resourceID[i], resourceName[i], (int) resourcePEs[i], resourcePEs[i] != 1);
 
 	            // record this event into "stat.txt" file
 	            //super.recordStatistics("\"Received ResourceCharacteristics " +
@@ -178,19 +179,6 @@ public class PushUser extends GridUser {
 	        	totalPEs += resourcePEs[i];
 	        }
 	        
-	        //this.continueDataProduction = true;        
-	        //write header to the statistics file
-		//fileWriter.println(getStatusHeader() );
-	        //global CPU monitoring
-	        while(NodeStatRecorder.getregisteredNodesNum() != totalResource){
-	            write("waiting for all res to register");
-	            try {
-			super.wait(1000);
-		    } catch (InterruptedException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		    }
-	        }
 	        String nodeStatFilename = "output/" + DataUnits.getPrefix() + "PUSHseq_CpuUsage.csv";
 		NodeStatRecorder.start(nodeStatFilename);
     }

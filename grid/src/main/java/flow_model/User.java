@@ -115,6 +115,7 @@ public class User extends GridUser {
 		for(CompNode node : ResourceReader.planerNodes){
 		    solver.addNode(node);
 		    allLinkFlows.add(new LinkFlows(-node.getId(), "dummy_" + node.getName(), -1, node.getId(), -1));
+		    
 		}
 		for(NetworkLink link : DPNetworkReader.planerLinks){
 		    solver.addLink(link);
@@ -122,8 +123,8 @@ public class User extends GridUser {
 			    new LinkFlows(link.getId(), link.getName(), link.getBandwidth(), link.getBeginNodeId(), 
 		        	    link.getEndNodeId() )  );
 		}	
-		//solver.PrintGridSetup();
-		//solver.WriteGridODT("output/grid.dot");
+		solver.PrintGridSetup();		
+		solver.WriteGridODT("output/" + DataUnits.getPrefix() +"_grid.dot");
 		FlowManager.setLinks(allLinkFlows);
 		
 	        // This to give a time for GridResource entities to register their
@@ -139,26 +140,33 @@ public class User extends GridUser {
 	        this.resourceName = new String[this.totalResource];
 	        
 	        //get characteristics of resources
+	        ResourceCharacteristics resChar;
 	        for (int i = 0; i < totalResource; i++)
 	        {
 	            // Resource list contains list of resource IDs not grid resource
 	            // objects.
 	            resourceID[i] = ( (Integer)resList.get(i) ).intValue();
+	            super.send(resourceID[i], GridSimTags.SCHEDULE_NOW,
+	                       GridSimTags.RESOURCE_CHARACTERISTICS, this.myId_);
+
+	            // waiting to get a resource characteristics
+	            //write("after send");
+	            Object obj = super.receiveEventObject();
+	            //write(obj.toString());
+	            //Sim_event ev = (Sim_event); 
+	            resChar = (ResourceCharacteristics) obj; //super.receiveEventObject();
+
+
+	            write("Received ResourceCharacteristics from " +
+	        	    resChar.getResourceName() + ", with id = " + resourceID[i] + " with  " + resChar.getNumPE() + " PEs");
+	            NodeStatRecorder.registerNode(resourceID[i], resChar.getResourceName(), (int) resChar.getNumPE(), resChar.getNumPE() != 1);
 	        }
 	        
 	        this.continueDataProduction = true;        
 	        //write header to the statistics file
 		fileWriter.println(getStatusHeader() );
 		//for CPU usage monitoring
-	        while(NodeStatRecorder.getregisteredNodesNum() != totalResource){
-	            write("waiting for all res to register");
-	            try {
-			super.wait(1000);
-		    } catch (InterruptedException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		    }
-	        }
+	       
 	        String nodeStatFilename = "output/" + DataUnits.getPrefix() + "PLANNER_CpuUsage.csv";
 		NodeStatRecorder.start(nodeStatFilename);
     }

@@ -34,11 +34,13 @@ public class LogParser {
 	            {"st_physics_", "st_laser_",  "st_zerobias_",  "st_fms_",  "st_mtd_", "st_jet_adc_",  "st_jet_", "st_fgt_", "st_daqtenk_", "st_tof", "st_hlt_",  "_adc_"};
 	        //{"st_physics_","st_zerobias_", "st_fgt_", "st_mtd_", "st_fms_", "st_hlt_" };
 		int seriesNo = 0;
-	        int maxJobs = 106000;//Integer.MAX_VALUE;
-		String prefix = "st_physics_adc_"; //only jobs with input file starting with this prefix are included into results
+	        int maxJobs = 600000;//Integer.MAX_VALUE;
+		//String prefix = "st_physics_adc_"; //only jobs with input file starting with this prefix are included into results
 		//String csvFile = "KISTI_60k_filtered.csv";
-		String csvFile = "F:/KistProdDataDump/KistProdDataDump.csv";
-		String outputFile = "delete_me.csv";		
+		//String csvFile = "F:/KistProdDataDump/KistProdDataDump.csv";
+		String csvFile = "F:/KistProdDataDump/500kJobs.csv";
+		//String outputFile = "F:/KistProdDataDump/all_filtered.csv";	
+		String outputFile = "delete.me";
 
 		
 		BufferedReader br = null;
@@ -187,7 +189,10 @@ public class LogParser {
 					beta = outputFileSize / (double) inputFileSize;
 					
 					//if (duration > 12 * 3600 && inputFileSize > 0 && outputFileSize > 100 && InputFileName.startsWith(prefix) && alpha < 100 && beta < 1.5 && beta > 0.3){// filterring good log records here
-					if (duration > 0 &&  inputFileSize > 0 && outputFileSize > 0 && alpha > 0 && beta > 0 && beta <= 1){// filterring good log records here
+					if ( !InputFileName.contains("_adc_") 
+						&& alpha > 0
+						&& beta > 0
+						&& duration > 0 &&  inputFileSize > 0 && outputFileSize > 0 && beta < 1){// filterring good log records here
 						writer.write(line + "\n");
 						
 						
@@ -285,7 +290,7 @@ public class LogParser {
 		
 		System.out.println("");
 		System.out.println("--------------Statistics--------------------------------");
-		System.out.println("Input filename prefix: " + prefix);
+		//System.out.println("Input filename prefix: " + prefix);
 		System.out.println(totalCounter + " jobs were red from a file, " + goodCounter + " lines were written" );
 		System.out.println(String.format("%18s	%18s 	%18s	%18s	%18s", "Value","Total","Average","Min","Max"));
 		System.out.println(String.format("Duration (s)			%18f	%18f	%18f	%18f",totalDuration, totalDuration / goodCounter, minDuration, maxDuration));

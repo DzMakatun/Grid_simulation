@@ -252,7 +252,8 @@ public class DPSpaceShared extends AllocPolicy
 	    gridlet.setUserID(this.resId_);
 	    if ( ! addInputFile( gridlet ) ){
 		//if failed to add input file
-		return false;
+		//return false;
+		System.exit(13);
 	    }
 	}
 	this.initialNomberOfFiles = this.waitingInputFiles.size();
@@ -1070,7 +1071,7 @@ public class DPSpaceShared extends AllocPolicy
         // Gets the PE's rating for each Machine in the list.
         // Assumed one Machine has same PE rating.
 	//for global cpu usage monitoring
-	NodeStatRecorder.registerNode(resId_, resName_, resource_.getNumPE(), isInputDestination);
+	//NodeStatRecorder.registerNode(resId_, resName_, resource_.getNumPE(), isInputDestination);
         MachineList list = super.resource_.getMachineList();
         int size = list.size();
         machineRating_ = new int[size];
