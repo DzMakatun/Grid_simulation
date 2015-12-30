@@ -35,8 +35,8 @@ public class Simulation {
         System.out.println("Starting PUSH simulation ....");
 
         try {
-            if (args.length != 3) {
-                System.out.println("Usage: java Main parameter_file traceflag prefix");
+            if (args.length != 4) {
+                System.out.println("Usage: java Main parameter_file traceflag prefix background_traffic_level");
                 return;
             }
              
@@ -45,12 +45,11 @@ public class Simulation {
 
             //reads parameters
             System.out.println( "Parameters file: " + args[0]);
-            ParameterReader.read(args[0]);
-            
-            
+            ParameterReader.read(args[0]);                
             Logger.openFile("output/" + DataUnits.getPrefix() + "_PUSHseq_sim.log");
             write( "Log file: output/" + DataUnits.getPrefix() + "_PUSHseq_sim.log");
             write( "Parameters file: " + args[0]);
+            double backgroundFlow = Double.parseDouble(args[3]);
             int num_user = 1; // number of grid users
             Calendar calendar = Calendar.getInstance();
             boolean trace_flag = Boolean.parseBoolean(args[1]); // means trace GridSim events
@@ -142,7 +141,12 @@ public class Simulation {
             NetworkMonitor netMon= new NetworkMonitor("NetworkMonitor");
             plannerRouter.attachHost(netMon, new FIFOScheduler("NetworkMonitor"+"_router_scheduler"));  
             
-            //BackgroundTraficSetter.setupBackgroundTrafic("bla", resList);
+            //setup background traffic
+            if (backgroundFlow != 0){
+        	BackgroundTraficSetter.setupBackgroundTrafic(backgroundFlow, resList);
+            }else{
+        	write("Background traffic DISABLED");
+            }
 
             GridSim.startGridSimulation();
             
@@ -151,6 +155,12 @@ public class Simulation {
             //for (RIPRouter r : routerList){
         	//r.printRoutingTable();
             //}
+            if (backgroundFlow != 0){
+        	write(BackgroundTraficSetter.getBackgroundSetupString());
+            }else{
+        	write("Background traffic was DISABLED");
+            }
+            
             long stopTime = System.currentTimeMillis();
             long elapsedTime = stopTime - startTime;
             write("runtime: " + elapsedTime/1000 + " (s)");

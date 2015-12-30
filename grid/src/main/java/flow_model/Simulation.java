@@ -25,8 +25,8 @@ public class Simulation {
         System.out.println("Starting simulation ....");
 
         try {
-            if (args.length != 3) {
-                System.out.println("Usage: java Main parameter_file traceflag prefix");
+            if (args.length != 4) {
+                System.out.println("Usage: java Main parameter_file traceflag prefix background_traffic_level");
                 return;
             }
              
@@ -38,6 +38,7 @@ public class Simulation {
             
             Logger.openFile("output/" + DataUnits.getPrefix() + "_PLANNER_sim.log");
             write( "Parameters file: " + args[0]);
+            double backgroundFlow = Double.parseDouble(args[3]);
             int num_user = 1; // number of grid users
             Calendar calendar = Calendar.getInstance();
             boolean trace_flag = Boolean.parseBoolean(args[1]); // means trace GridSim events
@@ -112,8 +113,14 @@ public class Simulation {
             plannerRouter.attachHost(netMon, new FIFOScheduler("NetworkMonitor"+"_router_scheduler"));  
 
             
-            //setup backgroung traffic
-            //BackgroundTraficSetter.setupBackgroundTrafic("bla", resList);
+            //setup background traffic
+            if (backgroundFlow != 0){
+        	BackgroundTraficSetter.setupBackgroundTrafic(backgroundFlow, resList);
+            }else{
+        	write("Background traffic DISABLED");
+            }
+            
+            
             
             GridSim.startGridSimulation();
             
@@ -121,8 +128,14 @@ public class Simulation {
             //for (RIPRouter r : routerList){
         	//r.printRoutingTable();
             //}
-            //write(BackgroundTraficSetter.getBackgroundSetupString());
-            write("\nFinish data grid simulation ...");
+            
+            if (backgroundFlow != 0){
+        	write(BackgroundTraficSetter.getBackgroundSetupString());
+            }else{
+        	write("Background traffic was DISABLED");
+            }
+            
+            write("Finish data grid simulation ...");
             long stopTime = System.currentTimeMillis();
             long elapsedTime = stopTime - startTime;
             write("runtime: " + elapsedTime/1000 + " (s)");
