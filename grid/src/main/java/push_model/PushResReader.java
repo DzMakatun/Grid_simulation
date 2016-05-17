@@ -7,6 +7,8 @@ package push_model;
  * License:      GPL - http://www.gnu.org/copyleft/gpl.html
  */
 
+import flow_model.GridletReader;
+import flow_model.ParameterReader;
 import gridsim.GridResource;
 import gridsim.Gridlet;
 import gridsim.GridletList;
@@ -14,7 +16,12 @@ import gridsim.Machine;
 import gridsim.MachineList;
 import gridsim.ResourceCalendar;
 import gridsim.ResourceCharacteristics;
+import gridsim.net.FIFOScheduler;
+import gridsim.net.RIPRouter;
 import gridsim.net.SimpleLink;
+
+
+
 
 
 import java.io.BufferedReader;
@@ -42,14 +49,14 @@ public class PushResReader {
      * @return the list of resources which have been read from the file
      * @throws Exception
      */
-    public static LinkedList<GridResource> read(String filename) 
+    public static LinkedList<GridResource> read(String filename, LinkedList<RIPRouter> routerList) 
 	    throws Exception {
         LinkedList<GridResource> resourceList = null;
 
         try {
             FileReader fRead = new FileReader(filename);
             BufferedReader b = new BufferedReader(fRead);
-            resourceList = createResources(b);
+            resourceList = createResources(b, routerList);
         } catch (IOException exp) {
             System.out.println("File not found");
         }
@@ -64,7 +71,7 @@ public class PushResReader {
      * @return a list of created DataGridResources
      * @throws Exception
      */
-    private static LinkedList<GridResource> createResources(BufferedReader buf) throws Exception {
+    private static LinkedList<GridResource> createResources(BufferedReader buf, LinkedList<RIPRouter> routerList) throws Exception {
         String line;
         String resourceName;
         int PEs;
@@ -84,6 +91,9 @@ public class PushResReader {
         LinkedList<GridResource>  resourceList = new LinkedList();
         StringTokenizer str;
         //SpaceShared policy;
+        
+        RIPRouter router;
+        PushUser pusher;
 
         while ((line = buf.readLine()) != null) {
             str = new StringTokenizer(line);
@@ -100,27 +110,37 @@ public class PushResReader {
 
                 r1 = createStandardResource(resourceName, PEs, MIPSrate, storage_size,
                         isInputSource, isOutputDestination, isInputDestination, isOutputSource);
-                
+                //create router
+                router = new RIPRouter(r1.get_name() + "_router", false);
+            	router.attachHost(r1, new FIFOScheduler(r1.get_name()
+                        + "_router_scheduler"));            	
+            	
                 //if it is an input source, add initial gridlets to the storage
-                /*if (isInputSource) {
+                if (isInputSource) {
                     maxGridlets = Integer.parseInt(str.nextToken());
                     gridletFilename = str.nextToken();
                     GridletList gridletList = GridletReader.getGridletList(gridletFilename ,maxGridlets);
-                    policy = (DPSpaceShared) r1.getAllocationPolicy();                    	
-                    policy.addInitialInputFiles(gridletList);       
+                    
+                    //Create scheduller
+                    pusher = new PushUser("pusher-"+r1.get_name(),
+                            Double.MAX_VALUE, 0.001, Integer.MAX_VALUE);   
+
+                    pusher.setGridletList(gridletList);
+                    pusher.setStorageId(r1.get_id());
+                    
+                    
+                    router.attachHost(pusher, new FIFOScheduler(pusher.getName()+"_router_scheduler"));     
+  
                     
                     //Print Gridlet list
-                    System.out.println("GRIDLETS at " + r1.get_id() + ":" + r1.get_name());
-                    DPGridlet gridlet;
-                    
-                    for (Gridlet gl : gridletList){
-                	gridlet = (DPGridlet) gl;
-                	System.out.println(gridlet.toStringShort());
-                    }
-                } */
+                    System.out.println(gridletList.size() + " GRIDLETS at " + r1.get_id() + ":" + r1.get_name());
+
+
+                } 
                 
                // add resource to the list
                 resourceList.add(r1);
+                routerList.add(router);
                 
                 //WARNING CHECK THIS
                //create a CompNodeEntity for planner

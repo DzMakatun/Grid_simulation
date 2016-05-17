@@ -169,6 +169,7 @@ public class User extends GridUser {
 	       
 	        String nodeStatFilename = "output/" + DataUnits.getPrefix() + "PLANNER_CpuUsage.csv";
 		NodeStatRecorder.start(nodeStatFilename);
+		//LFNmanager.printAllLFNstatuses();
     }
     
 
@@ -226,7 +227,7 @@ public class User extends GridUser {
 
        //ping resources
        //pingAllRes(resourceID);
-
+	//LFNmanager.printAllLFNstatuses();
 	
         ////////////////////////////////////////////////////////
         // shut down I/O ports

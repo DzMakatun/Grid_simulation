@@ -28,6 +28,8 @@ import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -117,8 +119,11 @@ public class DPSpaceShared extends AllocPolicy
     private int initialNomberOfFiles = 0;
     private double initialSizeOfFiles = 0;
     private int jobsFinished = 0;
-    private double inputReceived = 0;
-    private double outputSent = 0;
+    private double inputReceived = 0;//(UNITS) 
+    private double inputSent = 0; //(UNITS) input files transferred from the node
+    private double inputFilesSent = 0;// number of input files sent from this storage 
+    private double inputFilesSkipped = 0;//files submitted by other sources and removed from this storage
+    private double outputSent = 0;//(UNITS) 
     private int waistedCPUCounter = 0;
     //writing statistics to a file
     private PrintWriter fileWriter; 
@@ -254,6 +259,8 @@ public class DPSpaceShared extends AllocPolicy
 		//if failed to add input file
 		//return false;
 		System.exit(13);
+	    }else{
+		LFNmanager.registerInputFile(gridlet.getGridletID(), this.resName_);
 	    }
 	}
 	this.initialNomberOfFiles = this.waitingInputFiles.size();
@@ -261,6 +268,19 @@ public class DPSpaceShared extends AllocPolicy
 	return true;
     }
     
+    /**
+     * Sorts list of the waiting input files by the number of replicas,
+     * files with less replicas go first
+     */
+    private void sortInputQueue(){
+	Collections.sort(this.waitingInputFiles, 
+		new Comparator<Gridlet>() {
+	            public int compare(Gridlet gl1, Gridlet gl2) {
+	                return ( LFNmanager.getNumberOfReplicas( gl1.getGridletID() )
+	        	    .compareTo( LFNmanager.getNumberOfReplicas( gl2.getGridletID() ) ));
+	                }
+        });
+    }
     /**
      * Returns size of storage in (Units),
      * 
@@ -394,7 +414,7 @@ public class DPSpaceShared extends AllocPolicy
 	    this.sendErrorCounter ++;
 	    this.outgoingTransferFailureFlag = 1.0;
 	    DPGridlet gl = (DPGridlet) ev.get_data();
-	    //write("INPUT TRANSFER FAILURE, gridlet id: " + gl.getGridletID());
+	    write("INPUT TRANSFER FAILURE, gridlet id: " + gl.getGridletID());
 	    if (this.pendingInputFiles.remove(gl)) {
 		double size = gl.getGridletFileSize();
 		this.pendingInputSize -= size;
@@ -518,6 +538,9 @@ public class DPSpaceShared extends AllocPolicy
 		this.freeStorageSpace -= size;
 		this.readyOutputSize += size;
 		this.readyOutputFiles.add(gl);
+		//if (this.isInputSource){
+		//    write("received output file for" + gl.getGridletID());
+		//}
 		//write("remaining disk space: " + freeStorageSpace);
 		return true;
 		
@@ -575,6 +598,10 @@ public class DPSpaceShared extends AllocPolicy
 		this.waitingInputSize += size;
 		this.waitingInputFiles.add(gl);
 		//write("remaining disk space: " + freeStorageSpace);
+		if (this.isInputSource){
+		    LFNmanager.unCheckFile(gl.getGridletID());
+		}
+		
 		return true;
 		
 	    }else{
@@ -651,10 +678,25 @@ public class DPSpaceShared extends AllocPolicy
 	  //then forward the rest for remote processing
 	  while (waitingInputFiles.size() > 0 && remoteInputFlow > 0){
 	      //write(" DEBUG: Inside processFiles(): then forward the rest for remote processing");
-	      gl = (DPGridlet) waitingInputFiles.poll(); //this removes gl from the list
+
+	      gl = (DPGridlet) waitingInputFiles.poll();
+	      if (this.isInputSource){ //if this is the source check not to send same file twice from different sources
+		  if ( !LFNmanager.checkAndChange( gl.getGridletID() )  ){//if file is send by some other source
+		      //write("file " +gl.getGridletID() + " already send by other source");
+		      //delete file
+		      double size = gl.getGridletFileSize();
+		      this.freeStorageSpace += size;
+		      waitingInputSize -= size;
+		      this.inputFilesSkipped +=1;
+		      continue; //poll next file
+		  }
+                  //write("will send file" + gl.getGridletID());
+	      }
+	      //this removes gl from the list
 	      if ( ! transferInputFile(gl) ){
 		      //failed to transfer input file (probably no links with flow > 0)
 		      waitingInputFiles.add(gl); //return not submitted gridlet back to list
+		      LFNmanager.unCheckFile(gl.getGridletID());
 		      break;	
 	      }
 	  }	    
@@ -760,7 +802,7 @@ public class DPSpaceShared extends AllocPolicy
 	    
 	    //send	    
 	    //write(" sending input file " + gl.getGridletID() + " of size " + gl.getGridletFileSize() 
-		//    + "(bytes) to resource " + neighborNodesIds.get(j));
+		//    + "(bytes) to resource " + neighborNodesIds.get(j));	    
 	    gl.setSenderID(this.resId_);
 	    gl.setUsedLink(this.outgoingLinkFlows.get(j)); //for link statistics
 	    IO_data data = new IO_data(gl, gl.getGridletFileSize(), neighborNodesIds.get(j));
@@ -775,8 +817,12 @@ public class DPSpaceShared extends AllocPolicy
 	    waitingInputSize -= size;
 	    this.pendingInputFiles.add(gl);
 	    this.pendingInputSize += size;
-	    //freeStorageSpace +=  size; //this "deletes" the file, 
-	    //later file has to be deleted when a confirmation is received    	 
+	    //later file has to be deleted when a confirmation is received
+	    
+	    //statistics
+	    this.inputFilesSent += 1;
+	    this.inputSent += size;
+	    
 	    return true;
 	}
 	
@@ -839,9 +885,10 @@ public class DPSpaceShared extends AllocPolicy
 	    LinkedList <LinkFlows> newPlan = (LinkedList <LinkFlows>) ev.get_data();	    
 	    LinkFlows tempData;
 	    
-	    //if this is the first plan, remember the time as the start of simulation
+	    //if this is the first plan
 	    if (neighborNodesIds.isEmpty()){
-		this.firstPlanReceived = GridSim.clock();
+		sortInputQueue(); //sort waiting input files by the number of copies
+		this.firstPlanReceived = GridSim.clock(); //remember the start time of data production
 	    }
 	    
 	    //clear old plan
@@ -992,6 +1039,7 @@ public class DPSpaceShared extends AllocPolicy
 	    String indent = " ";
 	    StringBuffer buf = new StringBuffer();	    
 	    buf.append("time" + indent);
+	    buf.append("jobQueue" + indent);
 	    buf.append("busyCPUs" + indent);
 	    buf.append("jobSubmissionFailureFlag" + indent);
 	    buf.append("incommingTransferFailureFlag" + indent);
@@ -1011,6 +1059,14 @@ public class DPSpaceShared extends AllocPolicy
 	    String indent = " ";
 	    StringBuffer buf = new StringBuffer();	    
 	    buf.append(GridSim.clock() + indent);
+	    
+	    if (this.resource_.getNumPE() <= 1 ){
+		buf.append(  "0"   + indent);
+	    }else{
+		buf.append( ( (double) this.waitingInputFiles.size() ) / (double) this.resource_.getNumPE()   + indent);
+	    }
+	    
+	    
 	    buf.append(    ( (double) (this.resource_.getNumBusyPE())
 		    / (double) this.resource_.getNumPE() )   + indent);	
 	    buf.append( this.jobSubmissionFailureFlag + indent);
@@ -1038,11 +1094,14 @@ public class DPSpaceShared extends AllocPolicy
 	    write( "\n##########################FINAL STATISTICS for " + this.resName_+ " ##########################3\n"
 		    + " initial number of input files: " + this.initialNomberOfFiles
 		          + " size: " + this.initialSizeOfFiles + " " + DataUnits.getName()
-		    + "\n output files received: " + this.readyOutputFiles.size()
+		    + "\n input files send: " + this.inputFilesSent
+		          + " size: " + this.inputSent + " " + DataUnits.getName()
+		    + "\n output files stored: " + this.readyOutputFiles.size()
 		          +" size: " + this.readyOutputSize + " " + DataUnits.getName()
 		    		    +"\n jobsFinished: " + jobsFinished
-		    + "\n inputReceived: " + inputReceived + " " + DataUnits.getName()
+		    + "\n inputReceived: " + inputReceived + " " + DataUnits.getName()		   
 		    + "\n outputSent: " + outputSent + " " + DataUnits.getName()
+		     + "\n inputFilesSkipped: " + inputFilesSkipped + " "
 		    + "\n waistedCPUCounter: " + waistedCPUCounter 
 		       + " sending errors: " + this.sendErrorCounter + " receiving errors: " + this.receiveErrorCounter      
 		    + "\n firstPlanReceived: " + firstPlanReceived

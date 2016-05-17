@@ -870,6 +870,9 @@ class PushParSpaceShared extends AllocPolicy
 	     processIncommingFlow(ev);
 	     break;
 	           
+	     case GridSimTags.JUNK_PKT:
+		//write("received JUNK_PKT");
+		break;
 	     default:
 	     write("Unknown event received. tag: " + ev.get_tag());
 	     break;

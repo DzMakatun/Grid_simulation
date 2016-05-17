@@ -32,7 +32,7 @@ public class Simulation {
 	//String gridletFileName = path + "KISTI_7000_filtered.csv";
 	//int gridletNumber = 7000;
 	long startTime = System.currentTimeMillis();
-        System.out.println("Starting PUSH simulation ....");
+        System.out.println("Starting PUSH-SEQ simulation ....");
 
         try {
             if (args.length != 4) {
@@ -75,39 +75,20 @@ public class Simulation {
             
             ///////////
             //CREATEs RESOURCES
-            LinkedList<GridResource> resList = PushResReader.read(ParameterReader.resourceFilename);  
-            //adding routers
             LinkedList<RIPRouter> routerList = new LinkedList<RIPRouter>();
-            RIPRouter router, plannerRouter = null;
-            
-            //DPSpaceShared policy = null;
-            ResourceCharacteristics character = null;
-            int storageId = -100500;
-            write("RESOURCES: ");
-            for(GridResource res: resList){
-            	//adding routers
-            	router = new RIPRouter(res.get_name() + "_router", trace_flag);
-            	router.attachHost(res, new FIFOScheduler(res.get_name()
-                        + "_router_scheduler"));            	
-            	routerList.add(router);
-            	//setup TIER-0s
-            	//policy = (DPSpaceShared) res.getAllocationPolicy();
-            	character = res.getResourceCharacteristics();
-            	if ( character.getNumFreePE() == 1 ){
-            	  plannerRouter = router; //select the router where to attach a planer
-            	  storageId = res.get_id();
-            	  //collect all available gridlets here
-            	    
-            	}
-            	
-            	write(gridResourceToString(res));            	
-            }
+            LinkedList<GridResource> resList = PushResReader.read(ParameterReader.resourceFilename, routerList);  
+
+            int storageId = resList.getFirst().get_id();
+            RIPRouter mainRouter = routerList.getFirst(); //router to connect network monitor
+
             
             //set centrtal storage id
+            write("RESOURCES: ");
             FastSpaceShared policy;
             for(GridResource res: resList){
         	policy = (FastSpaceShared) res.getAllocationPolicy();
         	policy.setStorageId(storageId);
+        	write(gridResourceToString(res));  
             }
 
             //READ NETWORK
@@ -120,26 +101,14 @@ public class Simulation {
             DPNetworkReader.printLinks();
                  
             
-            //CREATE USER RUNING PLANER
-            PushUser pusher = new PushUser("PUSHseq",
-                    Double.MAX_VALUE, 0.001, Integer.MAX_VALUE);   
-            
-            //CHOSE 2 OPTIONS
-            //use this for normal filesize
-            pusher.setGridletList(GridletReader.getGridletList(ParameterReader.gridletsFilename, ParameterReader.maxGridlets));
-            pusher.setStorageId(storageId);
-            
-            //use this for 0 filesize (disables network delays)
-            //pusher.setGridletListZeroFileSize(GridletReader.getGridletList(gridletFileName, gridletNumber));
-            plannerRouter.attachHost(pusher, new FIFOScheduler("Pusher"+"_router_scheduler"));     
-           
             //check network type
             write( "Network type: " + GridSim.getNetworkType()  );
             //GridSim.enableDebugMode();
             
             //create network monitor
             NetworkMonitor netMon= new NetworkMonitor("NetworkMonitor");
-            plannerRouter.attachHost(netMon, new FIFOScheduler("NetworkMonitor"+"_router_scheduler"));  
+            mainRouter.attachHost(netMon, new FIFOScheduler("NetworkMonitor"+"_router_scheduler"));  
+            
             
             //setup background traffic
             if (backgroundFlow != 0){
@@ -183,6 +152,8 @@ public class Simulation {
 	ResourceCharacteristics characteristics = gr.getResourceCharacteristics();	
 	br.append("name: " + gr.get_name() + ", ");
 	br.append("id: " + gr.get_id() + ", ");
+	br.append("policy: " + " " + gr.getAllocationPolicy().get_id() + "'" + gr.getAllocationPolicy().get_name() + ", ");
+	
 	br.append("PEs: " + characteristics.getMachineList().getNumPE() + ", ");
 	//br.append("storage: " + ( (DPSpaceShared) gr.getAllocationPolicy() ).getStorageSize() + "(MB), ");	
 	br.append("MIPS: " +characteristics.getMIPSRatingOfOnePE()  + ", ");

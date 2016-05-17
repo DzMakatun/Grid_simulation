@@ -1,11 +1,13 @@
 #WARNING for PLANNER file with gridlets is specified in resources
-maxGridlets=7000
-gridletsFilename=F:/git/Grid_simulation/grid/src/main/java/flow_model/input/KISTI_7000_filtered.csv
-#gridletsFilename=F:/git/Grid_simulation/grid/src/main/java/flow_model/input/KISTI_60k_filtered.csv
+#maxGridlets=2000
+#gridletsFilename=F:/git/Grid_simulation/grid/src/main/java/flow_model/input/10kP1.csv
+#gridletsFilename=F:/git/Grid_simulation/grid/src/main/java/flow_model/input/all_filtered.csv
 #resources=F:/git/Grid_simulation/grid/src/main/java/flow_model/input/resources.txt
 #network=F:/git/Grid_simulation/grid/src/main/java/flow_model/input/network.txt
-resources=F:/git/Grid_simulation/grid/src/main/java/flow_model/input/1remote.txt
-network=F:/git/Grid_simulation/grid/src/main/java/flow_model/input/network1remote.txt
+#resources=F:/git/Grid_simulation/grid/src/main/java/flow_model/input/1remote.txt
+#network=F:/git/Grid_simulation/grid/src/main/java/flow_model/input/network1remote.txt
+resources=F:/git/Grid_simulation/grid/src/main/java/flow_model/input/2Tier-0.txt
+network=F:/git/Grid_simulation/grid/src/main/java/flow_model/input/2Tier-0network.txt
 #resources=F:/git/Grid_simulation/grid/src/main/java/flow_model/input/ATLAS_T1.txt
 #network=F:/git/Grid_simulation/grid/src/main/java/flow_model/input/ATLAS_T1_network.txt
 planerLogFilename=F:/git/Grid_simulation/grid/src/main/java/flow_model/output/planer_log.txt

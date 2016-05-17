@@ -23,7 +23,11 @@ import gridsim.util.SimReport;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.Map;
 
@@ -110,69 +114,65 @@ public class PushUser extends GridUser {
     	return br.toString();
     }
     
-    private void initPlaner(){
+    private void initPusher(){
 	
-	        //INITIALIZE PLANER and FlowManager
-		//this.deltaT = ParameterReader.deltaT;
-		//this.beta =  (float) ParameterReader.beta;	
-		//solver = new DataProductionPlanner(ParameterReader.planerLogFilename, deltaT, beta);
+		//initialize flow manager for statistics
 		LinkedList<LinkFlows> allLinkFlows = new LinkedList<LinkFlows>();
 		for(CompNode node : ResourceReader.planerNodes){
-		    //solver.addNode(node);
 		    allLinkFlows.add(new LinkFlows(-node.getId(), "dummy_" + node.getName(), -1, node.getId(), -1));
 		}
 		for(NetworkLink link : DPNetworkReader.planerLinks){
-		    //solver.addLink(link);
 		    allLinkFlows.add(
 			    new LinkFlows(link.getId(), link.getName(), link.getBandwidth(), link.getBeginNodeId(), 
 		        	    link.getEndNodeId() )  );
 		}	
-		//solver.PrintGridSetup();
 		FlowManager.setLinks(allLinkFlows);
 		
 	        // This to give a time for GridResource entities to register their
 	        // services to GIS (GridInformationService) entity.
 	        super.gridSimHold(1000.0);
 	        write(name_ + ": retrieving GridResourceList");
-	        LinkedList resList = super.getGridResourceList();
+	        LinkedList resList = super.getGridResourceList();        
+	        ResourceCharacteristics resChar;
+	        LinkedList<ResourceCharacteristics> processingNodes = new LinkedList<ResourceCharacteristics>();	        
+	        //get characteristics of resources
+	        int resID;
+	        for (Object res: resList) {
+	            resID = ( (Integer)res ).intValue();
+	            // Resource list contains list of resource IDs not grid resource
+	            // objects.
+	            // Requests to resource entity to send its characteristics
+	            super.send(resID, GridSimTags.SCHEDULE_NOW,
+	                       GridSimTags.RESOURCE_CHARACTERISTICS, this.myId_);
+	            Object obj = super.receiveEventObject();
+	            resChar = (ResourceCharacteristics) obj; //super.receiveEventObject();
+	            if (resChar.getNumPE() > 1){
+	        	    processingNodes.add(resChar);
+	            }
+	            write("Received ResourceCharacteristics from " +
+	        	    resChar.getResourceName() + ", with id = " + resChar.getResourceID() + " with  " + resChar.getNumPE() + " PEs");
+	            if (name_.equals("pusher-S1") ){
+	        	NodeStatRecorder.registerNode(resChar.getResourceID(), resChar.getResourceName() , (int) resChar.getNumPE(), resChar.getNumPE() != 1);
+	            }	           
+	        }
+	        
+	        
+	        
 	        
 	        // initialises all the containers
-	        this.totalResource = resList.size();
-	        write(name_ + ": obtained " + totalResource + " resource IDs in GridResourceList");
+	        this.totalResource = processingNodes.size();
+	        write(name_ + ": checked " + resList.size() + " resources IDs; " + totalResource + " processing nodes");        
 	        this.resourceID = new int[this.totalResource];
 	        this.resourceName = new String[this.totalResource];
 	        this.resourcePEs = new double[totalResource];
-	        ResourceCharacteristics resChar;
 	        
-	        //get characteristics of resources
-	        for (int i = 0; i < totalResource; i++)
-	        {
-	            // Resource list contains list of resource IDs not grid resource
-	            // objects.
-	            resourceID[i] = ( (Integer)resList.get(i) ).intValue();
-	            //write("sending res. char. request to " + resourceID[i]);
-	            // Requests to resource entity to send its characteristics
-	            super.send(resourceID[i], GridSimTags.SCHEDULE_NOW,
-	                       GridSimTags.RESOURCE_CHARACTERISTICS, this.myId_);
-
-	            // waiting to get a resource characteristics
-	            //write("after send");
-	            Object obj = super.receiveEventObject();
-	            //write(obj.toString());
-	            //Sim_event ev = (Sim_event); 
-	            resChar = (ResourceCharacteristics) obj; //super.receiveEventObject();
-	            resourceName[i] = resChar.getResourceName();
-	            resourcePEs[i] = resChar.getNumPE();
-
-	            write("Received ResourceCharacteristics from " +
-	                    resourceName[i] + ", with id = " + resourceID[i] + " with  " + resourcePEs[i] + " PEs");
-	            NodeStatRecorder.registerNode(resourceID[i], resourceName[i], (int) resourcePEs[i], resourcePEs[i] != 1);
-
-	            // record this event into "stat.txt" file
-	            //super.recordStatistics("\"Received ResourceCharacteristics " +
-	            //        "from " + resourceName[i] + "\"", "");
-	        }
-	        
+	        int j =0;
+	        for(ResourceCharacteristics node: processingNodes){
+	    	        resourceID[j] = node.getResourceID();
+		        resourceName[j] = node.getResourceName();
+		        resourcePEs[j] = node.getNumPE();	
+		        j++;
+	        }	        
 	        //total PE number
 	        double totalPEs = 0;
 	        for(int i = 0; i < totalResource; i++){
@@ -181,6 +181,9 @@ public class PushUser extends GridUser {
 	        
 	        String nodeStatFilename = "output/" + DataUnits.getPrefix() + "PUSHseq_CpuUsage.csv";
 		NodeStatRecorder.start(nodeStatFilename);
+		
+		// sort resources by network bandwidth
+		sortResourcesByPing();
     }
     
 
@@ -188,7 +191,7 @@ public class PushUser extends GridUser {
      * The core method that handles communications among GridSim entities.
      */
     public void body() {
-	initPlaner();
+	initPusher();
 	////////////////////////////////////////////////
 	// SUBMIT Gridlets
 	//init variables
@@ -242,7 +245,7 @@ public class PushUser extends GridUser {
 	    resourceFromID = gl.getResourceID(); //resource which has a free PE
 	    resourceFromName = GridSim.getEntityName(resourceFromID);
 	    //update network statistics
-	    gl.getUsedLink().addOutputTransfer(gl.getGridletOutputSize());
+	    //gl.getUsedLink().addOutputTransfer(gl.getGridletOutputSize());
 	    //if(j % (list_.size() / 100) == 0){
 	    //write(name_ + ": Receiving Gridlet #" +
 	    //gl.getGridletID() + "from: " + resourceFromName + " at time = " + GridSim.clock() );
@@ -273,113 +276,6 @@ public class PushUser extends GridUser {
 	}
 	finishTime = GridSim.clock();
 
-	////////////print statistics
-	//printGridletList(receiveList_, name_);
-	for (i = 0; i < gridlets.size(); i += gridlets.size() / 5){
-	    gl = (DPGridlet) gridlets.get(i);
-	    printGridletHist(gl);
-	}
-
-	////print transfer times 
-	write("-------------gridlet log--------------");
-	write("getGridletID getResourceID getGridletLength 	getGridletFileSize	 getGridletOutputSize	 	inTransfer	 		outTransfer		 getWallClockTime		totalTime 			slowdown");
-
-	double inTransfer, outTransfer, totalTime, slowdown; 
-	String indent = "		";
-	for (i = 0; i < gridlets.size(); i += chunkSize / 5){
-	    gl = (DPGridlet) gridlets.get(i);
-	    inTransfer = gl.getExecStartTime() - sendTime[i];
-	    outTransfer = receiveTime[i] - gl.getFinishTime();
-	    totalTime = receiveTime[i] - sendTime[i];
-	    slowdown = totalTime / gl.getWallClockTime();
-	    write(gl.getGridletID() + indent + gl.getResourceID() + indent + gl.getGridletLength() + indent + gl.getGridletFileSize() + indent + gl.getGridletOutputSize() + indent +
-		    inTransfer + indent + outTransfer + indent + gl.getWallClockTime() + indent + totalTime + indent + slowdown);
-	}
-
-
-	///calculate computational efficiency per resource
-	double[] firstJobSend = new double[totalResource];
-	double[] lastJobReceived = new double[totalResource];
-	double[] work = new double[totalResource];
-	int[] jobs = new int[totalResource];
-
-	double[] outminTransferTime = new double[totalResource];
-	double[] outmaxTransferTime = new double[totalResource];
-	double[] outtransferTime = new double[totalResource];
-
-	double[] minTransferTime = new double[totalResource];
-	double[] maxTransferTime = new double[totalResource];
-	double[] transferTime = new double[totalResource];
-	//initialize values
-	for(i = 0; i <  totalResource; i++){
-	    firstJobSend[i] = Double.MAX_VALUE;
-	    lastJobReceived[i] = 0.0;
-	    work[i] = 0.0;
-	    jobs[i] = 0;
-	    minTransferTime[i] = Double.MAX_VALUE;
-	    maxTransferTime[i] = 0.0;
-	    transferTime[i] = 0.0;
-
-	    outminTransferTime[i] = Double.MAX_VALUE;
-	    outmaxTransferTime[i] = 0.0;
-	    outtransferTime[i] = 0.0;
-	}
-
-	double gridletTransferTime;
-	double outgridletTransferTime;
-	for (j = 0; j < gridlets.size(); j++){ //loop over gridlets
-	    gl = (DPGridlet) gridlets.get(j);
-	    for(i = 0; i <  totalResource; i++){ //loop over resources
-		if(gl.getResourceID() == resourceID[i]){
-		    jobs[i]++;
-		    work[i] += gl.getActualCPUTime();
-		    gridletTransferTime = gl.getSubmissionTime() - sendTime[j];
-		    outgridletTransferTime = receiveTime[j] - gl.getFinishTime();
-		    transferTime[i] += gridletTransferTime;
-		    outtransferTime[i] += outgridletTransferTime;
-		    if(firstJobSend[i] > sendTime[j]) { firstJobSend[i] = sendTime[j]; } //serch for the first job submited to the resource 
-		    if( lastJobReceived[i] < receiveTime[j] ) { lastJobReceived[i] = receiveTime[j]; } //search for the last job arrived from the resource 
-		    if( minTransferTime[i] > gridletTransferTime ) { minTransferTime[i] = gridletTransferTime; }
-		    if( maxTransferTime[i]  < gridletTransferTime ) { maxTransferTime[i]  = gridletTransferTime; }
-		    if( outminTransferTime[i] > outgridletTransferTime ) { outminTransferTime[i] = outgridletTransferTime; }
-		    if( outmaxTransferTime[i]  < outgridletTransferTime ) { outmaxTransferTime[i]  = outgridletTransferTime; }
-
-		    break;
-
-		}
-	    }
-	}
-
-	///////////////////////////////////////
-	//print computational efficiency        
-	double cost = 1.0;
-	double efficiency = 0.0;
-	indent = "	";
-	write("#####################Computational efficiency######################");
-	write("Name  PEs	jobs	firstJobSend	lastJobReceived	cost		work	efficiency	minTransfer	maxTransfer	"
-		+ "averageTransfer	outminTrans	outmaxTrans	averageOutTrans");
-	for(i = 0; i <  totalResource; i++){ //loop over resources
-	    cost = (lastJobReceived[i] - firstJobSend[i]) * resourcePEs[i] ;
-	    efficiency = work[i] / cost;        	
-
-	    System.out.print(String.format("%6s	", resourceName[i]));
-	    System.out.print(String.format("%5.0f	",resourcePEs[i]  ));
-	    System.out.print(String.format("%d	",jobs[i] ));
-	    System.out.print(String.format("%10.3f	",firstJobSend[i]));
-	    System.out.print(String.format("%10.3f	",lastJobReceived[i]));
-	    System.out.print(String.format("%10.3f	",cost));
-	    System.out.print(String.format("%10.3f	",work[i]));        	
-	    System.out.print(String.format("%2.3f	",efficiency));
-
-	    System.out.print(String.format("%10.3f	",minTransferTime[i]));
-	    System.out.print(String.format("%10.3f	",maxTransferTime[i]));
-	    System.out.print(String.format("%10.3f	",(transferTime[i] / jobs[i]) ) );
-	    System.out.print(String.format("%10.3f	",outminTransferTime[i]));
-	    System.out.print(String.format("%10.3f	",outmaxTransferTime[i]));
-	    System.out.println(String.format("%10.3f	",(outtransferTime[i] / jobs[i]) ));
-	    System.out.println();
-
-	}
 
 	/////////////////////////////
 	//print overall statistics
@@ -403,22 +299,18 @@ public class PushUser extends GridUser {
     }
     
     private void finish(){	
-
-        //ping resources
-        pingAllRes(resourceID);
-
-	
-        ////////////////////////////////////////////////////////
-        // shut down I/O ports
-	
-        shutdownUserEntity();
-        FlowManager.initialized = false;
-        terminateIOEntities();
-        //close global CPU monitor
-        NodeStatRecorder.close();
+        //pingAllRes(resourceID);
+        if ( !jobsAreRunning() ){
+            super.gridSimHold(10000.0);
+            write("INSIDE!");
+            shutdownUserEntity();
+            terminateIOEntities();
+            FlowManager.initialized = false;
+            //close global CPU monitor
+            NodeStatRecorder.close();
+        }      
         System.out.println(this.name_ + ":%%%% Exiting body() at time " +
-            GridSim.clock());
-        //fileWriter.close();
+            GridSim.clock());        
     }   
  
 
@@ -432,7 +324,7 @@ private void pingAllRes(int[] resIDs){
 private void pingRes(int resourceID){
 	// ping functionality
        InfoPacket pkt = null;
-       int size = 1024 * 1024; // 1 MB
+       int size = 1024 * 1024; 
 
        // There are 2 ways to ping an entity:
        // a. non-blocking call, i.e.
@@ -446,9 +338,34 @@ private void pingRes(int resourceID){
        // print the result
        write("\n-------- " + name_ + " ----------------");
        write(pkt.toString());
-       write("-------- " + name_ + " ----------------\n");
-       
+       write("-------- " + name_ + " ----------------\n");       
    }
+
+private void sortResourcesByPing(){   
+    // get list of objects with ping information
+    int size = 1000; //packet size
+    InfoPacket pkt = null;
+    Map<Integer, Double> pingData = new LinkedHashMap<Integer, Double>();
+
+    for (int i = 0; i < this.totalResource; i++) {
+	pkt = super.pingBlockingCall(this.resourceID[i], size);
+	pingData.put(this.resourceID[i], pkt.getBaudRate());
+    }
+    
+    // sort the list by target value 
+    LinkedList<Map.Entry<Integer, Double>> list =
+            new LinkedList<Map.Entry<Integer, Double>>( pingData.entrySet() );
+    Collections.sort(list, new Comparator<Map.Entry<Integer, Double>>() {
+        public int compare(Map.Entry<Integer, Double> o1, Map.Entry<Integer, Double> o2) {
+            return -(o1.getValue()).compareTo( o2.getValue());
+        }
+    });    
+    
+    write("Sort destinations by natwork bandwidth: ");
+    for (Map.Entry<Integer, Double> entry : list){
+	write(entry.getKey() + " : " + entry.getValue() + " Gbps" );
+    }
+}
 
    
 
@@ -478,6 +395,51 @@ private void pingRes(int resourceID){
                 gridlet.getGridletFinishedSoFar() );
         System.out.println("======================================\n");	  	
     	
+    }
+    
+    private boolean jobsAreRunning(){
+        ResourceCharacteristics resChar;        
+        //gcheck resources one by one
+        for (int i = 0; i < this.totalResource; i++)
+        {
+            // Resource list contains list of resource IDs not grid resource
+            // objects.
+            super.send(this.resourceID[i], GridSimTags.SCHEDULE_NOW,
+                       GridSimTags.RESOURCE_CHARACTERISTICS, this.myId_);
+            Object obj = super.receiveEventObject();
+            resChar = (ResourceCharacteristics) obj; //super.receiveEventObject();
+            if ( resChar.getNumBusyPE() != 0 ){
+        	return true;
+            }
+        }
+        return false;	
+    }
+    
+    private int resourceWithFreePE(){
+        ResourceCharacteristics resChar;        
+        //gcheck resources one by one
+        for (int i = 0; i < this.totalResource; i++)
+        {
+            // Resource list contains list of resource IDs not grid resource
+            // objects.
+            super.send(this.resourceID[i], GridSimTags.SCHEDULE_NOW,
+                       GridSimTags.RESOURCE_CHARACTERISTICS, this.myId_);
+            Object obj = super.receiveEventObject();
+            resChar = (ResourceCharacteristics) obj; //super.receiveEventObject();
+            if ( resChar.getNumFreePE() > 0 ){
+        	return this.resourceID[i];
+            }
+        }
+        return -1;	
+    }
+    
+    private boolean resourceHasFreePE(int id){
+	ResourceCharacteristics resChar;   
+        super.send(id, GridSimTags.SCHEDULE_NOW,
+                GridSimTags.RESOURCE_CHARACTERISTICS, this.myId_);
+        Object obj = super.receiveEventObject();
+        resChar = (ResourceCharacteristics) obj; //super.receiveEventObject();
+ 	return (resChar.getNumFreePE() > 0 );
     }
 
 } // end class

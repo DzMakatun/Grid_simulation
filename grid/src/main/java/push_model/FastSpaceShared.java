@@ -91,6 +91,7 @@ class FastSpaceShared extends AllocPolicy
 	    StringBuffer buf = new StringBuffer();	    
 	    buf.append("time" + indent);
 	    buf.append("busyCPUs" + indent);
+	    buf.append("jobQueue" + indent);
 	    //buf.append( + indent);	    
 	    return buf.toString();
 	}
@@ -101,7 +102,8 @@ class FastSpaceShared extends AllocPolicy
 	    buf.append(GridSim.clock() + indent);
 	    buf.append(    ( (double) (this.resource_.getNumBusyPE() )
 		    / (double) this.resource_.getNumPE() )   + indent);	   
-
+	    buf.append(    ( (double) (this.gridletQueueList_.size() )
+		    / (double) this.resource_.getNumPE() )   + indent);	   
 
 	    //buf.append( + indent);	    
 	    return buf.toString();
@@ -176,7 +178,7 @@ class FastSpaceShared extends AllocPolicy
         //update network counter
         try{
             DPGridlet dpGl  = (DPGridlet) gl;
-            dpGl.getUsedLink().addInputTransfer(gl.getGridletFileSize());
+           // dpGl.getUsedLink().addInputTransfer(gl.getGridletFileSize()); //to calculate network usage
         }catch (Exception e){
             e.printStackTrace();
         }finally{
@@ -771,6 +773,7 @@ class FastSpaceShared extends AllocPolicy
         
         try {
             DPGridlet dpGl = (DPGridlet) rgl.getGridlet();
+            rgl.getUserID();
             dpGl.setUsedLink(FlowManager.getLinkFlows(this.resId_, storageId));
 	} catch (Exception e) {
 	    // TODO: handle exception
