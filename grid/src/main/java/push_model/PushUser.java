@@ -114,8 +114,7 @@ public class PushUser extends GridUser {
     	return br.toString();
     }
     
-    private void initPusher(){
-	
+    private void initPusher(){	
 		//initialize flow manager for statistics
 		LinkedList<LinkFlows> allLinkFlows = new LinkedList<LinkFlows>();
 		for(CompNode node : ResourceReader.planerNodes){

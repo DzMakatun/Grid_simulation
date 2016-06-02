@@ -6,6 +6,7 @@ import flow_model.DataUnits;
 import flow_model.FlowManager;
 import flow_model.Logger;
 import flow_model.NodeStatRecorder;
+import flow_model.RiftTags;
 import gridsim.GridSim;
 import gridsim.GridSimTags;
 import gridsim.GridUser;
@@ -59,36 +60,46 @@ public class PullUser extends GridUser {
     
     public void body() {
 	initPullUser();
-	super.gridSimHold(10000.0);
+	super.gridSimHold(1000.0);
+	
+	//send to all resources to start data production
+	for(int reId: this.resIds){
+	    super.send(reId, GridSimTags.SCHEDULE_NOW,
+                    RiftTags.START, null);
+	}
+	super.gridSimHold(500000.0);
 	finish();
     }
     
     private void finish(){
             write("Finishing!");
+            write("Shutdown entity: "+ GridSim.getGridSimShutdownEntityId());
+            write("GIS entity: "+ GridSim.getGridInfoServiceEntityId());
+            write("Statistics entity: "+ GridSim.getGridStatisticsEntityId());
+            
             shutdownUserEntity();
-            terminateIOEntities();
+            terminateIOEntities();            
             FlowManager.initialized = false;
             //close global CPU monitor
             NodeStatRecorder.close();  
             System.out.println(this.name_ + ":%%%% Exiting body() at time " +
-            GridSim.clock());        
+            GridSim.clock());      
+            write("Shutdown entity: "+ GridSim.getGridSimShutdownEntityId());
     }   
- 
-    
 
 	private void write(String message){
-	    String indent = " ";
-	    if (displayMessages ){
-		StringBuffer buf = new StringBuffer();
-		buf.append(GridSim.clock() + " ");
-		buf.append( super.get_name() + ":" );
-		buf.append(super.get_id() + " ");	    
-		buf.append(message);
+	    String indent = " ";	    
+            StringBuffer buf = new StringBuffer();
+            buf.append(GridSim.clock() + " ");
+            buf.append( super.get_name() + ":" );
+            buf.append(super.get_id() + " ");	    
+            buf.append(message);
+            if (displayMessages ){
 		//print to screen
 	        System.out.println(buf.toString());
-	        //write to file
-	        Logger.write(buf.toString());
-	    }
+            }
+	   //write to file
+	   Logger.write(buf.toString());	   
 	}
     
 }

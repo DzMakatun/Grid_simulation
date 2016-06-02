@@ -42,4 +42,13 @@ public class RiftTags {
   /** Remote node failed to accommodate output file*/
   public static final int OUTPUT_TRANSFER_FAIL = BASE + 9;
   
+  /** PULL mode: request storage for input files **/
+  public static final int JOB_REQUEST = BASE + 10;
+  
+  /** PULL mode: storage can't provide input files **/
+  public static final int JOB_REQUEST_DECLINE = BASE + 11;
+  
+  /** PULL mode: user signal resources to start simualation **/
+  public static final int START = BASE + 12;
+  
 }

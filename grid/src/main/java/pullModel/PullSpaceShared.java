@@ -1,7 +1,10 @@
 package pullModel;
+import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
+import networkflows.planner.CompNode;
 import eduni.simjava.Sim_event;
 import flow_model.*;
 import gridsim.GridSim;
@@ -169,12 +172,17 @@ public class PullSpaceShared extends FastSpaceShared {
 	      	
 	      	switch (tag)
 	        {            
+	        case RiftTags.START: //ask for a next input file
+	        	write("received START");
+	        	startProduction();
+	                break;    
+	      	
 	            case RiftTags.INPUT: //submit input file to resource
 	        	write("received input file");	        	
 	                processIncommingInputFile(ev);
 	                break;    
 
-	            case RiftTags.OUTPUT: //save output file to the storage
+	            case RiftTags.OUTPUT: //save output file to the storage, send ack
 	        	write("received output file");
 	                processIncommingOutputFile(ev);
 	                break;              
@@ -187,7 +195,12 @@ public class PullSpaceShared extends FastSpaceShared {
 	            case RiftTags.JOB_REQUEST_DECLINE: //switch to the next source
 	        	write("received JOB_REQUEST_DECLINE");
 	                processDecline(ev);
-	                break;              
+	                break;   
+	                
+	            case RiftTags.OUTPUT_TRANSFER_ACK: //ask for a next input file
+	        	write("received OUTPUT_TRANSFER_ACK");
+	        	processOutputTransferAck(ev);
+	                break;       
 	                
 	            default:
 	        	write("Unknown event received. tag: " + ev.get_tag());
@@ -195,21 +208,91 @@ public class PullSpaceShared extends FastSpaceShared {
 	        }        
 	    }
 	
-	    private void processDecline(Sim_event ev) {
+	
+	/**
+	 * Initialize and start sending request to sources
+	 */
+	 private void startProduction() {
+		write("Starting data production");		
+		if (this.isInputDestination){
+		    inputSourcesIds = new LinkedList<Integer>();
+		    outputDestinationsIds = new LinkedList<Integer>();
+		    pingMap = new HashMap<Integer,Double>();
+		    for(CompNode node : ResourceReader.planerNodes){
+			if (node.isInputSource()){
+			    inputSourcesIds.add(node.getId());
+			}
+			if (node.isOutputDestination()){
+			    outputDestinationsIds.add(node.getId());
+			}
+		  }
+		  write("inputSourcesIds size: " + inputSourcesIds.size() );
+		  write("outputDestinationsIds size: " + outputDestinationsIds.size() );
+		  requestInputFiles(this.resource_.getNumFreePE());
+		}
+	    }
+	    
+	private void requestInputFiles(int n){
+	    if (this.inputSourcesIds.isEmpty()){
+		write("No more sources available");
+		return;
+	    }
+	    JobRequest req = new JobRequest(this.resId_, n);
+	    int source = this.inputSourcesIds.get(0);
+	    super.sim_schedule(source, GridSimTags.SCHEDULE_NOW, RiftTags.JOB_REQUEST, req);
+	}
+	 
+
+	private void processOutputTransferAck(Sim_event ev) {
+	    this.requestInputFiles(1);//ask for next jo	    
+	}
+
+	private void processDecline(Sim_event ev) {
 		if (this.isInputDestination){
 		    JobRequestDecline dec = (JobRequestDecline) ev.get_data();
-		 // TODO Auto-generated method stub
+		    if (!this.inputSourcesIds.isEmpty() &&dec.sourceId == this.inputSourcesIds.get(0)){//if current source declined - move to the next
+			this.inputSourcesIds.remove(0);
+		    }
+		    if (this.inputSourcesIds.isEmpty() ){
+			write("all sources depleted");
+		    }else{
+			requestInputFiles(dec.numberOfJobs);
+		    }
 		    
 		    
 		}else{
 		    write("error: job_request_decline send to wrong destination");
-		}	    
+		}
+		//sendInternalEvent(0.0);
 	}
 
-	    private void processJobRequest(Sim_event ev) {
-		if (this.isInputSource){
-		    JobRequest req = (JobRequest) ev.get_data();
-		 // TODO Auto-generated method stub
+        private void processJobRequest(Sim_event ev) {
+	    if (this.isInputSource){
+                JobRequest req = (JobRequest) ev.get_data();
+		write("node " + req.requesterId + " requested " + req.numberOfJobs + " jobs");
+		int i = req.numberOfJobs;
+		DPGridlet gl;
+		while (!this.waitingInputFiles.isEmpty() && i > 0){		    
+		    gl = (DPGridlet) waitingInputFiles.poll();
+		    gl.setSenderID(this.resId_);
+		    IO_data data = new IO_data(gl, gl.getGridletFileSize(), req.requesterId);
+		    //DEBUG	   
+		    //write("sending IO_data: " + data.toString());
+		    //send with network delay
+		    super.sim_schedule(super.outputPort_, GridSimTags.SCHEDULE_NOW, RiftTags.INPUT, data);
+		    
+		    //update counters
+		    double size = gl.getGridletFileSize();
+		    waitingInputSize -= size;
+		    i--;
+		}
+		//if not enough input files send decline
+		if (i > 0){
+		    JobRequestDecline dec = new JobRequestDecline(this.resId_, i);
+		    //send without network delay
+		    super.sim_schedule(req.requesterId, GridSimTags.SCHEDULE_NOW, RiftTags.JOB_REQUEST_DECLINE, dec);
+		}
+
 		    
 		}else{
 		    write("error: job request send to wrong destination");
@@ -227,10 +310,11 @@ public class PullSpaceShared extends FastSpaceShared {
 	    @Override
 	    protected boolean sendFinishGridlet(Gridlet gl)
 	    {
-		//TODO !!!!!!!!!!!
-		int dest = 0; //define destination for output
+		write("gridlet finished");
+		int dest = this.outputDestinationsIds.get(0); //define destination for output
+		((DPGridlet) gl).setSenderID(this.resId_); //send the address where to send ack
 	        IO_data obj = new IO_data(gl,gl.getGridletOutputSize(),dest);
-	        super.sim_schedule(outputPort_, GridSimTags.SCHEDULE_NOW, GridSimTags.GRIDLET_RETURN, obj);
+	        super.sim_schedule(outputPort_, GridSimTags.SCHEDULE_NOW, RiftTags.OUTPUT, obj);	        
 	        return true;
 	    }
 	
@@ -251,17 +335,24 @@ public class PullSpaceShared extends FastSpaceShared {
 	    if (this.isOutputDestination){
 		Gridlet gl = (Gridlet) ev.get_data();
 		addOutputFile(gl);
-		//TODO
-		//send next input file
+		//send ack with no network delay
+		int dest  = ((DPGridlet) gl).getSenderID();
+		super.sim_schedule(dest, GridSimTags.SCHEDULE_NOW, RiftTags.OUTPUT_TRANSFER_ACK, null);
+		
 	    }else{
 		write("error: ouput file send to wrong destination");
 	    }	    
 	}
-
+	
 	private void write(String message){
-	    String indent = " ";
+	    String indent = " ";	    
+            StringBuffer buf = new StringBuffer();
+            buf.append(GridSim.clock() + " ");
+            buf.append( this.resName_ + ":" );
+            buf.append(this.resId_ + "(handler) ");	    
+            buf.append(message);
 	    if (displayMessages){
-		System.out.println(GridSim.clock() + indent + this.resName_ + indent + message);
+		System.out.println(buf.toString());
 	    }
 	}
 

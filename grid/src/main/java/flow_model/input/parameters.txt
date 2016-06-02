@@ -6,8 +6,12 @@
 #network=F:/git/Grid_simulation/grid/src/main/java/flow_model/input/network.txt
 #resources=F:/git/Grid_simulation/grid/src/main/java/flow_model/input/1remote.txt
 #network=F:/git/Grid_simulation/grid/src/main/java/flow_model/input/network1remote.txt
-resources=F:/git/Grid_simulation/grid/src/main/java/flow_model/input/2Tier-0.txt
-network=F:/git/Grid_simulation/grid/src/main/java/flow_model/input/2Tier-0network.txt
+#resources=F:/git/Grid_simulation/grid/src/main/java/flow_model/input/2Tier-0.txt
+#network=F:/git/Grid_simulation/grid/src/main/java/flow_model/input/2Tier-0network.txt
+#resources=F:/git/Grid_simulation/grid/src/main/java/flow_model/input/S3P6_nodes.txt
+#network=F:/git/Grid_simulation/grid/src/main/java/flow_model/input/S3P6_network.txt
+resources=F:/git/Grid_simulation/grid/src/main/java/flow_model/input/S2P2_nodes.txt
+network=F:/git/Grid_simulation/grid/src/main/java/flow_model/input/S2P2_network.txt
 #resources=F:/git/Grid_simulation/grid/src/main/java/flow_model/input/ATLAS_T1.txt
 #network=F:/git/Grid_simulation/grid/src/main/java/flow_model/input/ATLAS_T1_network.txt
 planerLogFilename=F:/git/Grid_simulation/grid/src/main/java/flow_model/output/planer_log.txt
@@ -18,6 +22,6 @@ dataUnitsSize=1048576
 #21600 s = 6 hours
 deltaT=43200
 # job input size / job duraton (consider units)
-alpha=27
+alpha=41
 #job output size / input size
 beta=0.7

@@ -64,7 +64,7 @@ public class Simulation {
             
             ///////////
             //CREATEs RESOURCES
-            LinkedList<GridResource> resList = ResourceReader.read(ParameterReader.resourceFilename);  
+            LinkedList<GridResource> resList = ResourceReader.read(ParameterReader.resourceFilename, ResourceReader.PLANNER);  
             //adding routers
             LinkedList<RIPRouter> routerList = new LinkedList<RIPRouter>();
             RIPRouter router, plannerRouter = null;
@@ -80,12 +80,10 @@ public class Simulation {
             	routerList.add(router);
             	//setup TIER-0s
             	policy = (DPSpaceShared) res.getAllocationPolicy();
-            	if ( policy.isInputSource() ){
+            	if ( policy.isOutputDestination() ){
             	  plannerRouter = router; //select the router where to attach a planer
-            	  //collect all available gridlets here
-            	    
-            	}
-            	
+            	  //collect all available gridlets here            	    
+            	}            	
             	write( policy.paramentersToString());            	
             }
 

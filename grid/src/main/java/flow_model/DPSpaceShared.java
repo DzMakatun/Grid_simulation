@@ -73,13 +73,13 @@ public class DPSpaceShared extends AllocPolicy
     private int planerId;
     private boolean planIsSet;
     
-    //properties to definy the type of the resource
+    //properties to define the type of the resource
     private boolean isInputSource;
     private boolean isOutputDestination;
     private boolean isInputDestination;
     private boolean isOutputSource;
     
-    //properties to maitain the storage functionality
+    //properties to maintain the storage functionality
     // and manage input/output files
     private double storageSize; // (UNITS) total size of storage
     private double freeStorageSpace; //(UNITS) available free space
@@ -118,6 +118,7 @@ public class DPSpaceShared extends AllocPolicy
     private double lastOutputSend = 0;
     private int initialNomberOfFiles = 0;
     private double initialSizeOfFiles = 0;
+
     private int jobsFinished = 0;
     private double inputReceived = 0;//(UNITS) 
     private double inputSent = 0; //(UNITS) input files transferred from the node
@@ -206,7 +207,7 @@ public class DPSpaceShared extends AllocPolicy
     /**
      *  
      * @param list
-     * @return sum of input files in gridletlist
+     * @return sum of output files in gridletlist
      */
     private double getOutputSize(GridletList list){
 	double sum = 0;
@@ -266,6 +267,13 @@ public class DPSpaceShared extends AllocPolicy
 	this.initialNomberOfFiles = this.waitingInputFiles.size();
 	this.initialSizeOfFiles = this.waitingInputSize;
 	return true;
+    }
+    
+    /**
+     * @return the initialSizeOfFiles
+     */
+    public double getInitialSizeOfFiles() {
+        return initialSizeOfFiles;
     }
     
     /**

@@ -35,9 +35,9 @@ import gridsim.*;
  * @see gridsim.ResourceCharacteristics
  * @invariant $none
  */
-class FastSpaceShared extends AllocPolicy
+public class FastSpaceShared extends AllocPolicy
 {
-    private ResGridletList gridletQueueList_;     // Queue list
+    protected ResGridletList gridletQueueList_;     // Queue list
     private ResGridletList gridletInExecList_;    // Execution list
     private ResGridletList gridletPausedList_;    // Pause list
     private double lastUpdateTime_;    // the last time Gridlets updated
@@ -67,7 +67,7 @@ class FastSpaceShared extends AllocPolicy
      * @pre entityName != null
      * @post $none
      */
-    FastSpaceShared(String resourceName, String entityName) throws Exception
+    public FastSpaceShared(String resourceName, String entityName) throws Exception
     {
         super(resourceName, entityName);
 
@@ -77,9 +77,13 @@ class FastSpaceShared extends AllocPolicy
         this.gridletQueueList_  = new ResGridletList();
         this.lastUpdateTime_ = 0.0;
         this.machineRating_ = null;
-        String filename = "output/" + DataUnits.getPrefix() + "_" + this.resName_ + "_PUSHseq_stat.csv";
+        String filename = getStatFilename();
 	fileWriter = new PrintWriter(filename, "UTF-8");
 	fileWriter.println(getStatusHeader() );
+    }
+    
+    public String getStatFilename(){
+	return "output/" + DataUnits.getPrefix() + "_" + this.resName_ + "_PUSHseq_stat.csv";
     }
     
     public void setStorageId(int id){
@@ -119,7 +123,7 @@ class FastSpaceShared extends AllocPolicy
 	//for global cpu usage monitoring
 	//NodeStatRecorder.registerNode(resId_, resName_, resource_.getNumPE(), resource_.getNumPE() != 1);
         // Gets the PE's rating for each Machine in the list.
-        // Assumed one Machine has same PE rating.
+        // Assumed one Machine has same PE rating.	
         MachineList list = super.resource_.getMachineList();
         int size = list.size();
         machineRating_ = new int[size];
@@ -177,7 +181,7 @@ class FastSpaceShared extends AllocPolicy
         updateGridletProcessing();
         //update network counter
         try{
-            DPGridlet dpGl  = (DPGridlet) gl;
+            //DPGridlet dpGl  = (DPGridlet) gl;
            // dpGl.getUsedLink().addInputTransfer(gl.getGridletFileSize()); //to calculate network usage
         }catch (Exception e){
             e.printStackTrace();
@@ -778,7 +782,7 @@ class FastSpaceShared extends AllocPolicy
 	} catch (Exception e) {
 	    // TODO: handle exception
 	}
-	super.sendFinishGridlet( rgl.getGridlet() );
+	sendFinishGridlet( rgl.getGridlet() );
 
         allocateQueueGridlet();   // move Queued Gridlet into exec list
         fileWriter.println(getStatusString() );

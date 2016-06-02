@@ -114,8 +114,8 @@ public class PullSimulation {
             //GridSim.enableDebugMode();
             
             //create network monitor
-            NetworkMonitor netMon= new NetworkMonitor("NetworkMonitor");
-            mainRouter.attachHost(netMon, new FIFOScheduler("NetworkMonitor"+"_router_scheduler"));  
+            //NetworkMonitor netMon= new NetworkMonitor("NetworkMonitor");
+            //mainRouter.attachHost(netMon, new FIFOScheduler("NetworkMonitor"+"_router_scheduler"));  
             
             
             //setup background traffic
