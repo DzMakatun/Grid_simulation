@@ -48,7 +48,13 @@ public class RiftTags {
   /** PULL mode: storage can't provide input files **/
   public static final int JOB_REQUEST_DECLINE = BASE + 11;
   
-  /** PULL mode: user signal resources to start simualation **/
+  /** PULL mode: user signal resources to start simulation **/
   public static final int START = BASE + 12;
+  
+  /** PULL mode: user signal resources to initialize simulation **/
+  public static final int INIT = BASE + 13;
+  
+  /** PULL mode: resource signal user that it has no more work to do **/
+  public static final int NO_WORK_LEFT = BASE + 14;
   
 }

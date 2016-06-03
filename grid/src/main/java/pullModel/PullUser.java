@@ -62,12 +62,27 @@ public class PullUser extends GridUser {
 	initPullUser();
 	super.gridSimHold(1000.0);
 	
+	//send to all resources to init data production
+	for(int reId: this.resIds){
+	    super.send(reId, GridSimTags.SCHEDULE_NOW,
+                    RiftTags.INIT, this.myId_);
+	}
+	
+	super.gridSimHold(1000.0);
+	
 	//send to all resources to start data production
 	for(int reId: this.resIds){
 	    super.send(reId, GridSimTags.SCHEDULE_NOW,
                     RiftTags.START, null);
 	}
-	super.gridSimHold(500000.0);
+	
+	int reportedResources = 0;
+	while(reportedResources < this.resIds.size()){
+	    Integer res =  (Integer) super.receiveEventObject();
+	    reportedResources++;
+	    write("resource: " + res + " has no more tasks ( " + reportedResources + " / " + this.resIds.size() + " )");	    
+	}
+	
 	finish();
     }
     

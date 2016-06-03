@@ -76,10 +76,6 @@ public class PullSimulation {
             ///////////
             //CREATEs RESOURCES
             LinkedList<GridResource> resList = ResourceReader.read(ParameterReader.resourceFilename, ResourceReader.PULL);  
-
-
-            
-
             write("RESOURCES: ");
             PullSpaceShared policy;
             LinkedList<RIPRouter> routerList = new LinkedList<RIPRouter>();

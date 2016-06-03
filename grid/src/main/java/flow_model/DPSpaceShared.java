@@ -1066,15 +1066,12 @@ public class DPSpaceShared extends AllocPolicy
 	public String getStatusString(){
 	    String indent = " ";
 	    StringBuffer buf = new StringBuffer();	    
-	    buf.append(GridSim.clock() + indent);
-	    
+	    buf.append(GridSim.clock() + indent);	    
 	    if (this.resource_.getNumPE() <= 1 ){
 		buf.append(  "0"   + indent);
 	    }else{
 		buf.append( ( (double) this.waitingInputFiles.size() ) / (double) this.resource_.getNumPE()   + indent);
-	    }
-	    
-	    
+	    }    
 	    buf.append(    ( (double) (this.resource_.getNumBusyPE())
 		    / (double) this.resource_.getNumPE() )   + indent);	
 	    buf.append( this.jobSubmissionFailureFlag + indent);

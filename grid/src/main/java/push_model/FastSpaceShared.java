@@ -43,7 +43,7 @@ public class FastSpaceShared extends AllocPolicy
     private double lastUpdateTime_;    // the last time Gridlets updated
     private int[] machineRating_;      // list of machine ratings available
     private int storageId;
-    private PrintWriter fileWriter; 
+    protected PrintWriter fileWriter; 
 
 
     /**
@@ -70,7 +70,6 @@ public class FastSpaceShared extends AllocPolicy
     public FastSpaceShared(String resourceName, String entityName) throws Exception
     {
         super(resourceName, entityName);
-
         // initialises local data structure
         this.gridletInExecList_ = new ResGridletList();
         this.gridletPausedList_ = new ResGridletList();
