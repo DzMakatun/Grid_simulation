@@ -16,7 +16,7 @@ public class DataUnits {
     private static long size = 1024 * 1024;
     
     /**
-     * prefix for all ouput files
+     * prefix for all output files
      */
     private static String prefix = "TEST";
     

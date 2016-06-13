@@ -38,7 +38,7 @@ import gridsim.*;
 public class FastSpaceShared extends AllocPolicy
 {
     protected ResGridletList gridletQueueList_;     // Queue list
-    private ResGridletList gridletInExecList_;    // Execution list
+    protected ResGridletList gridletInExecList_;    // Execution list
     private ResGridletList gridletPausedList_;    // Pause list
     private double lastUpdateTime_;    // the last time Gridlets updated
     private int[] machineRating_;      // list of machine ratings available

@@ -68,7 +68,7 @@ public class PullUser extends GridUser {
                     RiftTags.INIT, this.myId_);
 	}
 	
-	super.gridSimHold(1000.0);
+	super.gridSimHold(5000.0);
 	
 	//send to all resources to start data production
 	for(int reId: this.resIds){

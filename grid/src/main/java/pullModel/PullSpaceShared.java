@@ -15,6 +15,8 @@ import gridsim.GridSimTags;
 import gridsim.Gridlet;
 import gridsim.GridletList;
 import gridsim.IO_data;
+import gridsim.ResGridlet;
+import gridsim.ResGridletList;
 import gridsim.net.InfoPacket;
 import push_model.*;
 
@@ -98,6 +100,76 @@ public class PullSpaceShared extends FastSpaceShared {
 	    buf.append("pendingOutputSize" + indent);	    
 	    //buf.append( + indent);	    
 	    return buf.toString();
+    }
+    
+    /**
+     * Checks the size of gridlet lists
+     * @throws Exception 
+     */
+    private void verifyGridletLists(){
+	if( this.waitingInputSize == getInputSize(this.waitingInputFiles)
+		&& this.readyOutputSize == getOutputSize(this.readyOutputFiles)
+	        && this.submittedInputSize == getInputSize(super.gridletInExecList_)
+	        && this.reservedOutputSize == getOuputSize(super.gridletInExecList_)
+		&& ( waitingInputSize + submittedInputSize + pendingInputSize + readyOutputSize + reservedOutputSize
+		       + pendingOutputSize + freeStorageSpace == storageSize )
+		){
+	    		write("Gridlet lists verification passed ..............OK");
+	}else{
+	    while(true){
+	      System.out.println(this.get_name() + "\n \n \n  \n \n \n  GRIDLET LIST VERIFICATION FAILED \n \n \n \n \n \n ");
+	    }
+	}	
+    }
+    
+    private double getInputSize(ResGridletList resGridletList) {
+	double sum = 0;
+	ResGridlet gl;
+	for (Object obj : resGridletList){
+	    gl = (ResGridlet) obj;
+	    sum += gl.getGridlet().getGridletFileSize();
+	}
+	return sum;
+    }
+
+    /**
+     *  
+     * @param list
+     * @return sum of input files in gridletlist
+     */
+    private double getInputSize(GridletList list){
+	double sum = 0;
+	Gridlet gl;
+	for (Object obj : list){
+	    gl = (Gridlet) obj;
+	    sum += gl.getGridletFileSize();
+	}
+	return sum;
+    }
+    
+    private double getOuputSize(ResGridletList resGridletList) {
+	double sum = 0;
+	ResGridlet gl;
+	for (Object obj : resGridletList){
+	    gl = (ResGridlet) obj;
+	    sum += gl.getGridlet().getGridletOutputSize();
+	}
+	return sum;
+    }
+    
+    /**
+     *  
+     * @param list
+     * @return sum of output files in gridletlist
+     */
+    private double getOutputSize(GridletList list){
+	double sum = 0;
+	Gridlet gl;
+	for (Object obj : list){
+	    gl = (Gridlet) obj;
+	    sum += gl.getGridletOutputSize();
+	}
+	return sum;
     }
 	
     @Override
@@ -223,7 +295,7 @@ public class PullSpaceShared extends FastSpaceShared {
 	                break; 
 	                
 	        case GridSimTags.INFOPKT_RETURN: //ask for a next input file
-	        	write("received ping response");
+	        	//write("received ping response");
 	        	processPingResponce(ev);
 	                break; 
 	                
@@ -263,9 +335,7 @@ public class PullSpaceShared extends FastSpaceShared {
 	        	write("Unknown event received. tag: " + ev.get_tag());
 	                break;
 	        }        
-	    }
-	
-	
+	    }	
 
 
 
@@ -307,10 +377,10 @@ public class PullSpaceShared extends FastSpaceShared {
 	private void processPingResponce(Sim_event ev) {	    
 	      if (ev.get_tag() == GridSimTags.INFOPKT_RETURN){
 		  InfoPacket pkt = (InfoPacket) ev.get_data();		  
-		  int destIndex = pkt.getNumHop();
+		  int destIndex = pkt.getDetailHops().length / 2;//pkt.getNumHop();
 		  int destId = (Integer) pkt.getDetailHops()[destIndex];
 		  pingMap.put(destId, pkt.getBaudRate());
-		  //write("Ping respond from " + destId + " bandwidth :" + pkt.getBaudRate());
+		  write("Ping response from " + destId + " bandwidth :" + pkt.getBaudRate());
 	      }	    
 	}
 
@@ -426,6 +496,7 @@ public class PullSpaceShared extends FastSpaceShared {
 		}else{
 		    write("error: job_request_decline send to wrong destination");
 		}
+		verifyGridletLists();
 	}
 
         private void processJobRequest(Sim_event ev) {
@@ -439,7 +510,7 @@ public class PullSpaceShared extends FastSpaceShared {
 		    gl = (DPGridlet) waitingInputFiles.poll();
 		    size = gl.getGridletFileSize();
 			  if ( !LFNmanager.checkAndChange( gl.getGridletID() )  ){//if file is send by some other source
-			      write("file " +gl.getGridletID() + " already send by other source");
+			      //write("file " +gl.getGridletID() + " already send by other source");
 			      //delete file
 			      this.freeStorageSpace += size;
 			      waitingInputSize -= size;
@@ -459,6 +530,7 @@ public class PullSpaceShared extends FastSpaceShared {
 		    i--;
 		    if (this.waitingInputFiles.size() % (this.initialNomberOfFiles / 20) == 0){
 			write( (initialNomberOfFiles - waitingInputFiles.size()) + " / " + initialNomberOfFiles);
+			verifyGridletLists() ;
 		    }
 		}
 		//if not enough input files send decline
