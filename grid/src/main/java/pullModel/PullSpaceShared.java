@@ -496,7 +496,7 @@ public class PullSpaceShared extends FastSpaceShared {
 		}else{
 		    write("error: job_request_decline send to wrong destination");
 		}
-		verifyGridletLists();
+		//verifyGridletLists();
 	}
 
         private void processJobRequest(Sim_event ev) {
@@ -530,7 +530,7 @@ public class PullSpaceShared extends FastSpaceShared {
 		    i--;
 		    if (this.waitingInputFiles.size() % (this.initialNomberOfFiles / 20) == 0){
 			write( (initialNomberOfFiles - waitingInputFiles.size()) + " / " + initialNomberOfFiles);
-			verifyGridletLists() ;
+			//verifyGridletLists() ;
 		    }
 		}
 		//if not enough input files send decline

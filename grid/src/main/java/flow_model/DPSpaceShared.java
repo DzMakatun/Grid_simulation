@@ -513,7 +513,7 @@ public class DPSpaceShared extends AllocPolicy
 		this.incommingTransferFailureFlag = 0.0;
 		//if source and destination check, if all files are process
 		//print the progress
-		if (this.isInputSource && ( this.readyOutputFiles.size() % (this.initialNomberOfFiles / 20) == 0 ) ){
+		if (this.isInputSource && this.initialNomberOfFiles != 0 && ( this.readyOutputFiles.size() % (this.initialNomberOfFiles / 20) == 0 ) ){
 		    DateTime now = DateTime.now();
 		    System.out.println(now.toString() + " " + super.get_name() + " " + this.readyOutputFiles.size() + " / " 
 			    + this.initialNomberOfFiles);

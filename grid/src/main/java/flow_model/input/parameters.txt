@@ -10,8 +10,8 @@
 #network=F:/git/Grid_simulation/grid/src/main/java/flow_model/input/2Tier-0network.txt
 #resources=F:/git/Grid_simulation/grid/src/main/java/flow_model/input/S3P6_nodes.txt
 #network=F:/git/Grid_simulation/grid/src/main/java/flow_model/input/S3P6_network.txt
-resources=F:/git/Grid_simulation/grid/src/main/java/flow_model/input/test50_nodes.txt
-network=F:/git/Grid_simulation/grid/src/main/java/flow_model/input/test50_network.txt
+resources=F:/git/Grid_simulation/grid/src/main/java/flow_model/input/T2F_nodes.txt
+network=F:/git/Grid_simulation/grid/src/main/java/flow_model/input/T2F_network.txt
 #resources=F:/git/Grid_simulation/grid/src/main/java/flow_model/input/S2P2_nodes.txt
 #network=F:/git/Grid_simulation/grid/src/main/java/flow_model/input/S2P2_network.txt
 #resources=F:/git/Grid_simulation/grid/src/main/java/flow_model/input/ATLAS_T1.txt
