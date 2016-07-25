@@ -31,9 +31,9 @@ import gridsim.Gridlet;
 public class GridGenerator {
     
     public static void main(String[] args) throws IOException {
-	String prefix = "F:/git/Grid_simulation/grid/src/main/java/flow_model/input/T2F";
+	String prefix = "F:/git/Grid_simulation/grid/src/main/java/flow_model/input/T2K";
 	String odtFilename = prefix + "_grid.dot";
-	SimpleDirectedWeightedGraph<CompNode, NetworkLink> newGrid = CreateRandomGird(30,5);
+	SimpleDirectedWeightedGraph<CompNode, NetworkLink> newGrid = CreateRandomGird(50,5);
 	writeGrid(newGrid, prefix);
 	DataProductionPlanner planner = new DataProductionPlanner("deleteMe.txt", 1, 0.8f);
 	planner.WriteODT(LinkAttributeProvider.BANDWIDTH, newGrid, odtFilename);
@@ -80,7 +80,8 @@ public class GridGenerator {
 	
 	//create nodes
         int id = 0;
-	int Ncpu = 1000;	
+	int Ncpu = 100;	
+	int NcpuMin = 10;
 	float alpha = 1;
 	int s = 0;
 	int p = 0;
@@ -96,7 +97,7 @@ public class GridGenerator {
 	    if (s < aNumOfSources){//create input source
 		node = new CompNode(id, "S"+s++, false, true, false, false, false, 500000000, 1, alpha, 0, 0, 0, 0, 0);
 	    }else{//create processing node
-		    cpu = 50 + (int) (degree * Math.random() * ( Ncpu -10 ) );
+		    cpu = NcpuMin + (int) (degree * Math.random() * ( Ncpu) );
 		    disk = cpu * 30000;
 		    node = new CompNode(id, "P"+p++, false, false, false, true, true, disk, cpu, alpha, 0, 0, 0, 0, 0);
 	    }
@@ -108,7 +109,7 @@ public class GridGenerator {
 	CompNode source, target;
 	Object i1,i2;
 	String name;
-	double baseBandwidth = 0.5;
+	double baseBandwidth = 0.4;
 	double bandwidth;
 	for (DefaultEdge edge: tmpGraph.edgeSet()){
 	    i1 = tmpGraph.getEdgeSource(edge);

@@ -48,6 +48,7 @@ public class PullSpaceShared extends FastSpaceShared {
     private double reservedOutputSize;
     private double pendingInputSize;
     private double pendingOutputSize;
+    private int pendingRequests; //requests that were neither refused nor replied 
     private int inputFilesSkipped;
     private int jobsFinished;
 
@@ -63,6 +64,7 @@ public class PullSpaceShared extends FastSpaceShared {
         reservedOutputSize = 0;
         pendingInputSize = 0;
         pendingOutputSize = 0;
+        pendingRequests = 0;
 	this.nomberOfPendingOutputFiles = 0;
 	this.isInputSource = isInputSource;
 	this.isOutputDestination = isOutputDestination;
@@ -431,6 +433,7 @@ public class PullSpaceShared extends FastSpaceShared {
 		return;
 	    }
 	    if( this.waitingInputSize == 0 //no input files left (important for sources)
+		    && this.pendingRequests == 0 //not waiting for further data
 		    &&( !this.isInputDestination //this is not a processing node
 			    ||( //OR
 				    this.inputSourcesIds.isEmpty() //no input sources left
@@ -457,6 +460,7 @@ public class PullSpaceShared extends FastSpaceShared {
 	    int source = this.inputSourcesIds.get(0);
 	    //send with no network delay
 	    super.sim_schedule(source, GridSimTags.SCHEDULE_NOW, RiftTags.JOB_REQUEST, req);
+	    pendingRequests += n; //keep track how many files were requested
 	    if (n >1){
 		write("requesting " + n + " jobs from "+ source);
 	    }
@@ -483,6 +487,7 @@ public class PullSpaceShared extends FastSpaceShared {
 	private void processDecline(Sim_event ev) {
 		if (this.isInputDestination){
 		    JobRequestDecline dec = (JobRequestDecline) ev.get_data();
+		    this.pendingRequests -= dec.numberOfJobs;
 		    if (!this.inputSourcesIds.isEmpty() &&dec.sourceId == this.inputSourcesIds.get(0)){//if current source declined - move to the next
 			this.inputSourcesIds.remove(0);
 		    }
@@ -595,6 +600,7 @@ public class PullSpaceShared extends FastSpaceShared {
 	    this.reservedOutputSize += sizeOut;
 	    this.submittedInputSize +=sizeIn;
 	    this.freeStorageSpace -= (sizeIn + sizeOut);
+	    this.pendingRequests -= 1;
 	    super.gridletSubmit(gl, ack);	    
 	}
 	    

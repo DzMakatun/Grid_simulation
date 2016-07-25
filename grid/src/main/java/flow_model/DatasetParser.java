@@ -13,9 +13,9 @@ public class DatasetParser {
 
     public static void main(String[] args) throws Throwable {
 	String inputFilename = "F:/git/Grid_simulation/grid/src/main/java/flow_model/input/KISTI_60k_filtered.csv";
-	String outputPrefix = "input/T2Fpart";
+	String outputPrefix = "input/T2Kpart";
 	int maxFiles = 60000;
-	int[] portionSizes = {44, 41, 15};
+	int[] portionSizes = {66, 15, 7, 3, 9};
 	String cvsSplitBy = ",";
 	
 	int totalLines = 0;
