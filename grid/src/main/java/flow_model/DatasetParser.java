@@ -12,10 +12,11 @@ import java.io.Writer;
 public class DatasetParser {
 
     public static void main(String[] args) throws Throwable {
-	String inputFilename = "F:/git/Grid_simulation/grid/src/main/java/flow_model/input/KISTI_60k_filtered.csv";
-	String outputPrefix = "input/T2Kpart";
-	int maxFiles = 60000;
-	int[] portionSizes = {66, 15, 7, 3, 9};
+	String inputFilename = "F:/git/Grid_simulation/grid/src/main/java/flow_model/input/200kJobsUniqueIds.csv";
+	String outputPrefix = "input/200kPart";
+	int maxFiles = 200000;
+	int maxFilesPerPortion = 20000;
+	int[] portionSizes = {10,10,10,10,10,10,10,10,10,10};
 	String cvsSplitBy = ",";
 	
 	int totalLines = 0;
@@ -59,7 +60,13 @@ public class DatasetParser {
 	    currentLine = 0;
 	    curentSize = 0;	
 	    System.out.println(percentage + " % portion: " + portion);
-	    while ((line = br.readLine()) != null && lineIter < maxFiles && curentSize < portion ){
+	    while (lineIter < maxFiles && currentLine < maxFilesPerPortion
+		    //curentSize < portion 
+		    ){
+		    line = br.readLine();
+		    if (line == null) {
+			break;
+		    }
 		    jobData = line.split(cvsSplitBy);
 		    inputFileSize = Long.parseLong(jobData[10]); //read filesize
 		    curentSize += inputFileSize;

@@ -94,8 +94,10 @@ public class DPSpaceShared extends AllocPolicy
     private double incommingTransferFailureFlag = 0;
     private double outgoingTransferFailureFlag = 0;
     private double jobSubmissionFailureFlag = 0;
+    private double untouchedInputFilesSize= 0; //files at persistent storage //not recovered yet;
     
 	
+    private GridletList initialInputFiles = null; //if this is an input source initial files are stored here
     private GridletList waitingInputFiles = new GridletList(); //Gridlets That has just arrived
     private GridletList submittedInputFiles = new GridletList(); //Gridlets submited for local processing
     private GridletList readyOutputFiles = new GridletList(); //output files ready for transfer
@@ -252,21 +254,46 @@ public class DPSpaceShared extends AllocPolicy
     }
     
     public boolean addInitialInputFiles(GridletList list){
+	initialInputFiles = new GridletList();
 	DPGridlet gridlet;
 	for (int i = 0; i < list.size(); i++){
 	    gridlet = (DPGridlet) list.get(i);
 	    gridlet.setUserID(this.resId_);
-	    if ( ! addInputFile( gridlet ) ){
-		//if failed to add input file
-		//return false;
-		System.exit(13);
-	    }else{
-		LFNmanager.registerInputFile(gridlet.getGridletID(), this.resName_);
-	    }
+	    addInitialInputFile(gridlet);	    
 	}
-	this.initialNomberOfFiles = this.waitingInputFiles.size();
-	this.initialSizeOfFiles = this.waitingInputSize;
+	this.initialNomberOfFiles = this.initialInputFiles.size();
+	this.initialSizeOfFiles = this.untouchedInputFilesSize;
 	return true;
+    }
+    
+    	/**
+    	 * Input files are located in a separate storage (like HPSS) and are
+    	 * recovered to the local disk when nessesary
+    	 * @param gl
+    	 * @return
+    	 */
+    private boolean addInitialInputFile(DPGridlet gl){
+	double size = gl.getGridletFileSize();
+	this.untouchedInputFilesSize += size;
+	this.initialInputFiles.add(gl);
+	LFNmanager.registerInputFile(gl.getGridletID(), this.resName_);		
+	return true;
+    }
+    
+    
+    private boolean recoverNextInputFile(){
+	DPGridlet gl;
+	while (!initialInputFiles.isEmpty()){
+	    gl = (DPGridlet) initialInputFiles.poll();
+	    this.untouchedInputFilesSize -= gl.getGridletFileSize();
+	    if (LFNmanager.checkAndChange( gl.getGridletID() ) ){ //if the file was not used before in the system
+		addInputFile(gl);//add one input file per call
+		return true;
+	    }else{ // forget this file and check the next one
+		this.inputFilesSkipped +=1;
+	    }
+	}	
+	return false; 	
     }
     
     /**
@@ -281,7 +308,7 @@ public class DPSpaceShared extends AllocPolicy
      * files with less replicas go first
      */
     private void sortInputQueue(){
-	Collections.sort(this.waitingInputFiles, 
+	Collections.sort(this.initialInputFiles, 
 		new Comparator<Gridlet>() {
 	            public int compare(Gridlet gl1, Gridlet gl2) {
 	                return ( LFNmanager.getNumberOfReplicas( gl1.getGridletID() )
@@ -571,11 +598,9 @@ public class DPSpaceShared extends AllocPolicy
 	    //add new input file to
 	    if (addInputFile(gl) ){
 		//send confirmation to sender
-		//send without network delay
-		
+		//send without network delay		
 		super.sim_schedule(gl.getSenderID(), GridSimTags.SCHEDULE_NOW,
-			RiftTags.INPUT_TRANSFER_ACK, gl); 
-		
+			RiftTags.INPUT_TRANSFER_ACK, gl); 		
 		//statistics
 		this.inputReceived += gl.getGridletFileSize();
 		this.incommingTransferFailureFlag = 0.0;
@@ -600,16 +625,15 @@ public class DPSpaceShared extends AllocPolicy
 	 * @return true if success, false if not
 	 */
 	private boolean addInputFile(DPGridlet gl){
-	    double size = gl.getInputSizeInUnits();
+	    double size = gl.getGridletFileSize();
 	    if (this.freeStorageSpace >= size ) {
 		this.freeStorageSpace -= size;
 		this.waitingInputSize += size;
 		this.waitingInputFiles.add(gl);
 		//write("remaining disk space: " + freeStorageSpace);
-		if (this.isInputSource){
-		    LFNmanager.unCheckFile(gl.getGridletID());
-		}
-		
+		//if (this.isInputSource){
+		//    LFNmanager.unCheckFile(gl.getGridletID());
+		//}		
 		return true;
 		
 	    }else{
@@ -670,24 +694,33 @@ public class DPSpaceShared extends AllocPolicy
 	      }
 	  }	  
 	  //PROCESS WAITING INPUT FILES
+	  
+	  //if this is a storage check if we need to recover an input file
+	  if(this.isInputSource && this.waitingInputFiles.isEmpty()){
+	      recoverNextInputFile();
+	  }
+	  
 	  	
 	  //first send jobs to free CPUs // && localProcessingFlow > 0  && freeStorageSpace > 0
-	  while (isInputDestination == true && waitingInputFiles.size() > 0  
+	  while (isInputDestination == true && !this.waitingInputFiles.isEmpty()  
 	    && resource_.getNumFreePE() > 0) {
 	      //write(" DEBUG: Inside processFiles(): first send jobs to free CPUs");   
 	    gl = (DPGridlet) waitingInputFiles.poll(); //this removes gl from the list	    
 	    if (! submitInputFile(gl) ){ 
 	      //failed to submit job (probably not enough space for output)
 	      waitingInputFiles.add(gl); //return not submitted gridlet back to list
-	      break;			
+	      break;      
+	    }	    
+	    if(this.isInputSource && this.waitingInputFiles.isEmpty()){
+		recoverNextInputFile();
 	    }	    
 	  }
 	  
 	  //then forward the rest for remote processing
-	  while (waitingInputFiles.size() > 0 && remoteInputFlow > 0){
+	  while (!this.waitingInputFiles.isEmpty() && remoteInputFlow > 0){
 	      //write(" DEBUG: Inside processFiles(): then forward the rest for remote processing");
-
 	      gl = (DPGridlet) waitingInputFiles.poll();
+	      /*
 	      if (this.isInputSource){ //if this is the source check not to send same file twice from different sources
 		  if ( !LFNmanager.checkAndChange( gl.getGridletID() )  ){//if file is send by some other source
 		      //write("file " +gl.getGridletID() + " already send by other source");
@@ -699,14 +732,16 @@ public class DPSpaceShared extends AllocPolicy
 		      continue; //poll next file
 		  }
                   //write("will send file" + gl.getGridletID());
-	      }
+	      } */
 	      //this removes gl from the list
 	      if ( ! transferInputFile(gl) ){
 		      //failed to transfer input file (probably no links with flow > 0)
 		      waitingInputFiles.add(gl); //return not submitted gridlet back to list
-		      LFNmanager.unCheckFile(gl.getGridletID());
 		      break;	
 	      }
+	      if(this.isInputSource && this.waitingInputFiles.isEmpty()){
+	          recoverNextInputFile();
+	      }	
 	  }	    
 	  
 	  //check if we have waiting files and free cpus.
@@ -772,7 +807,7 @@ public class DPSpaceShared extends AllocPolicy
 	 * @return
 	 */
 	private boolean createOutputFile(DPGridlet gl){
-	    double outSize = gl.getOutputSizeInUnits();	    
+	    double outSize = gl.getGridletOutputSize();	    
 	    if (this.freeStorageSpace >= outSize ) { //if there is a place for output
 		this.freeStorageSpace -= outSize; //reserve space for output
 		this.reservedOutputFiles.add(gl); //add the file to the future output list
@@ -819,7 +854,7 @@ public class DPSpaceShared extends AllocPolicy
 	    super.sim_schedule(super.outputPort_, GridSimTags.SCHEDULE_NOW, RiftTags.INPUT, data);
 	    
 	    //update counters
-	    double size = gl.getInputSizeInUnits();
+	    double size = gl.getGridletFileSize();
 	    remoteInputFlow -=  size;
 	    neighborNodesInputFlows.set(j, neighborNodesInputFlows.get(j) - size);
 	    waitingInputSize -= size;
@@ -865,7 +900,7 @@ public class DPSpaceShared extends AllocPolicy
 	    //GridSim.send(super.outputPort_, GridSimTags.SCHEDULE_NOW,  RiftTags.OUTPUT, data);
 	    
 	    //update counters
-	    double size = gl.getOutputSizeInUnits();
+	    double size = gl.getGridletOutputSize();
 	    remoteOutputFlow -=  size;
 	    neighborNodesOutputFlows.set(j, neighborNodesOutputFlows.get(j) - size);
 	    readyOutputSize -= size;
@@ -895,7 +930,9 @@ public class DPSpaceShared extends AllocPolicy
 	    
 	    //if this is the first plan
 	    if (neighborNodesIds.isEmpty()){
-		sortInputQueue(); //sort waiting input files by the number of copies
+		if (this.isInputSource){
+		    //sortInputQueue(); //sort initial input files by the number of copies
+		}		
 		this.firstPlanReceived = GridSim.clock(); //remember the start time of data production
 	    }
 	    
@@ -977,7 +1014,7 @@ public class DPSpaceShared extends AllocPolicy
 	    status.put("isInputDestination", isInputDestination);
 	    status.put("isOutputSource", isOutputSource);
 	    
-	    status.put("waitingInputSize", waitingInputSize);
+	    status.put("waitingInputSize", waitingInputSize + this.untouchedInputFilesSize); //for sources add untouched files, for processing second part =0
 	    status.put("freeStorageSpace", freeStorageSpace);
 	    status.put("readyOutputSize", readyOutputSize);
 	    status.put("submittedInputSize", submittedInputSize);
@@ -1058,7 +1095,8 @@ public class DPSpaceShared extends AllocPolicy
 	    buf.append("waitingInputSize" + indent);	    
 	    buf.append("readyOutputSize" + indent);
 	    buf.append("pendingInputSize" + indent);
-	    buf.append("pendingOutputSize" + indent);	    
+	    buf.append("pendingOutputSize" + indent);	
+	    buf.append("untouchedInputSize" + indent);
 	    //buf.append( + indent);	    
 	    return buf.toString();
 	}
@@ -1084,6 +1122,11 @@ public class DPSpaceShared extends AllocPolicy
 	    buf.append( (this.readyOutputSize  / this.storageSize) + indent);
 	    buf.append( (this.pendingInputSize  / this.storageSize) + indent);	    
 	    buf.append( (this.pendingOutputSize  / this.storageSize) + indent);	 
+	    if (this.initialSizeOfFiles != 0){
+	        buf.append( (this.untouchedInputFilesSize  / this.initialSizeOfFiles) + indent);	 
+	    }else{
+		buf.append( 0 + indent);
+	    }
 	    //buf.append( + indent);	    
 	    return buf.toString();
 	}

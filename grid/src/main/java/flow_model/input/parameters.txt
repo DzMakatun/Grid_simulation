@@ -1,5 +1,11 @@
 #WARNING for PLANNER file with gridlets is specified in resources
 #maxGridlets=2000
+#resources=F:/git/Grid_simulation/grid/src/main/java/flow_model/input/CHEP_nodes.txt
+#network=F:/git/Grid_simulation/grid/src/main/java/flow_model/input/CHEP_network.txt
+resources=F:/git/Grid_simulation/grid/src/main/java/flow_model/input/L3_nodes.txt
+network=F:/git/Grid_simulation/grid/src/main/java/flow_model/input/L3_network.txt
+#resources=F:/git/Grid_simulation/grid/src/main/java/flow_model/input/testResources.txt
+#network=F:/git/Grid_simulation/grid/src/main/java/flow_model/input/testNetwork.txt
 #gridletsFilename=F:/git/Grid_simulation/grid/src/main/java/flow_model/input/10kP1.csv
 #gridletsFilename=F:/git/Grid_simulation/grid/src/main/java/flow_model/input/all_filtered.csv
 #resources=F:/git/Grid_simulation/grid/src/main/java/flow_model/input/resources.txt
@@ -10,8 +16,6 @@
 #network=F:/git/Grid_simulation/grid/src/main/java/flow_model/input/2Tier-0network.txt
 #resources=F:/git/Grid_simulation/grid/src/main/java/flow_model/input/S3P6_nodes.txt
 #network=F:/git/Grid_simulation/grid/src/main/java/flow_model/input/S3P6_network.txt
-resources=F:/git/Grid_simulation/grid/src/main/java/flow_model/input/T2G_nodes.txt
-network=F:/git/Grid_simulation/grid/src/main/java/flow_model/input/T2G_network.txt
 #resources=F:/git/Grid_simulation/grid/src/main/java/flow_model/input/S2P2_nodes.txt
 #network=F:/git/Grid_simulation/grid/src/main/java/flow_model/input/S2P2_network.txt
 #resources=F:/git/Grid_simulation/grid/src/main/java/flow_model/input/ATLAS_T1.txt

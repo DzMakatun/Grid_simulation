@@ -13,6 +13,7 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Random;
 
 import networkflows.planner.CompNode;
 import networkflows.planner.DataProductionPlanner;
@@ -31,9 +32,9 @@ import gridsim.Gridlet;
 public class GridGenerator {
     
     public static void main(String[] args) throws IOException {
-	String prefix = "F:/git/Grid_simulation/grid/src/main/java/flow_model/input/T2K";
+	String prefix = "F:/git/Grid_simulation/grid/src/main/java/flow_model/input/L3";
 	String odtFilename = prefix + "_grid.dot";
-	SimpleDirectedWeightedGraph<CompNode, NetworkLink> newGrid = CreateRandomGird(50,5);
+	SimpleDirectedWeightedGraph<CompNode, NetworkLink> newGrid = CreateRandomAtlasGird(50);
 	writeGrid(newGrid, prefix);
 	DataProductionPlanner planner = new DataProductionPlanner("deleteMe.txt", 1, 0.8f);
 	planner.WriteODT(LinkAttributeProvider.BANDWIDTH, newGrid, odtFilename);
@@ -80,8 +81,13 @@ public class GridGenerator {
 	
 	//create nodes
         int id = 0;
-	int Ncpu = 100;	
-	int NcpuMin = 10;
+        //Tier-1 CPUs
+        int t1MinCPU = 200;
+        int t1MaxCPU = 5000;
+        //Tier-2 Cpus
+        int t2MinCPU = 20;
+        int t2MaxCPU = 200;
+        
 	float alpha = 1;
 	int s = 0;
 	int p = 0;
@@ -94,12 +100,14 @@ public class GridGenerator {
 	    id = (Integer) obj;
 	    degree = tmpGraph.degreeOf(obj);
 	    CompNode node;
-	    if (s < aNumOfSources){//create input source
-		node = new CompNode(id, "S"+s++, false, true, false, false, false, 500000000, 1, alpha, 0, 0, 0, 0, 0);
-	    }else{//create processing node
-		    cpu = NcpuMin + (int) (degree * Math.random() * ( Ncpu) );
-		    disk = cpu * 30000;
-		    node = new CompNode(id, "P"+p++, false, false, false, true, true, disk, cpu, alpha, 0, 0, 0, 0, 0);
+
+	    if (s < aNumOfSources){//create T1 node
+		cpu = (int) ( Math.random() * (t1MaxCPU - t1MinCPU) + t1MinCPU );
+		node = new CompNode(id, "SP"+s++, false, true, false, true, true, 100000000, cpu, alpha, 0, 0, 0, 0, 0);
+	    }else{//create T2 node
+		cpu =  (int) ( Math.random() * (t2MaxCPU - t2MinCPU) + t2MinCPU );
+		disk = cpu * 30000;
+		node = new CompNode(id, "P"+p++, false, false, false, true, true, disk, cpu, alpha, 0, 0, 0, 0, 0);
 	    }
 	    grid.addVertex(node);
 	    idMap.put(id, node);
@@ -109,7 +117,12 @@ public class GridGenerator {
 	CompNode source, target;
 	Object i1,i2;
 	String name;
-	double baseBandwidth = 0.4;
+	double baseBandwidth = 0.2;
+	double minBandwidth = 0.05;
+	double maxBandwidth = 1;
+	
+	double t1Bandwidth = 10;
+	int edgeDegree;
 	double bandwidth;
 	for (DefaultEdge edge: tmpGraph.edgeSet()){
 	    i1 = tmpGraph.getEdgeSource(edge);
@@ -117,6 +130,7 @@ public class GridGenerator {
 	    source = idMap.get( (Integer) i1);
 	    target = idMap.get( (Integer) i2);
 	    name = source.getName() + "->" + target.getName();
+	    /**
 	    if (source.isInputSource() || target.isInputSource()){ //if one of the nodes is a source
 		cpu = Math.max(source.getCpuN(), target.getCpuN());
 	    }else{//none of nodes is source
@@ -125,12 +139,155 @@ public class GridGenerator {
 	    bandwidth =  cpu * Math.min(tmpGraph.degreeOf(i1), tmpGraph.degreeOf(i2)) * baseBandwidth / 1000;
 	    if (source.isInputSource() && target.isInputSource()){
 		bandwidth = Ncpu * baseBandwidth / 1000;
+	    } **/
+	    
+	    if (source.isInputSource() && target.isInputSource()){
+	 		bandwidth = t1Bandwidth;
+	    }else{
+		cpu = Math.min(source.getCpuN(), target.getCpuN());
+		edgeDegree = Math.min(tmpGraph.degreeOf(i1), tmpGraph.degreeOf(i2));
+		bandwidth =  Math.random() * (maxBandwidth - minBandwidth) + minBandwidth;
+		bandwidth = (double) Math.round(bandwidth * 100) / 100;
 	    }
+	    
+	    
+	    
 	    NetworkLink link = new NetworkLink(id++,name, source.getId() , target.getId(), bandwidth , false);		    
             grid.addEdge(source, target, link);	    
 	}	
 	return grid;
     }
+    
+    private static  SimpleDirectedWeightedGraph<CompNode, NetworkLink> CreateRandomAtlasGird(int aNumOfVertexes){
+	int aNumOfSources = 11;
+	int[] cpus0 = {5406, 4052, 558, 4265, 1254, 4739, 576, 3416, 2362, 12447, 12000};
+	int[] bandwidth0 = {10, 20, 20, 20, 10, 10, 10, 10, 20, 60, 2};
+	int[] disk0 = {76, 56, 7, 60, 18, 67, 8, 48, 33, 174, 168};
+   	//int aNumOfEdges = aNumOfVertexes * (aNumOfVertexes - 1) / 6;
+   	//RandomGraphGenerator<CompNode, DefaultEdge> gen = new RandomGraphGenerator<CompNode, DefaultEdge>( aNumOfVertexes, aNumOfEdges);
+   	SimpleDirectedWeightedGraph<CompNode, NetworkLink> grid = new SimpleDirectedWeightedGraph<CompNode, NetworkLink>(NetworkLink.class);
+   	
+   	
+   	//Generate graph
+   	final SimpleGraph<Object,DefaultEdge> tmpGraph = new SimpleGraph<Object,DefaultEdge>(DefaultEdge.class);	
+   	ScaleFreeGraphGenerator<Object, DefaultEdge> gen = new ScaleFreeGraphGenerator<Object, DefaultEdge>(aNumOfVertexes);
+   	Map<String,Object> resultMap = new HashMap<String,Object>();
+   	//VertexFactory<CompNode> vertexFactory = new NodeFactory(aNumOfSources, 100);
+   	DummyFactory vertexFactory = new DummyFactory();
+   	gen.generateGraph(tmpGraph, vertexFactory, resultMap);	
+   	
+   	
+   	//sort vertexes by degree
+   	List<Object>  vertexes= new LinkedList<Object>();
+   	vertexes.addAll(tmpGraph.vertexSet());
+   		Collections.sort(vertexes, 
+   			new Comparator<Object>() {
+   		            public int compare(Object obj1, Object obj2) {
+   		                return -( (Integer) tmpGraph.degreeOf(obj1) )
+   		        	    .compareTo(tmpGraph.degreeOf(obj2) );
+   		                }
+   	        });
+   	
+   	//create nodes   	
+   	Map<Integer,CompNode> idMap = new HashMap<Integer,CompNode>(); 
+   	   	
+   	//add Tier-0
+   	CompNode tier0 = new CompNode(100500, "A", false, true, true, false, false, 2100000000, 1, 1, 0, 0, 0, 0, 0);
+   	grid.addVertex(tier0);
+        idMap.put(100500, tier0);	
+   		
+        int id = 0;
+        //Tier-1 CPUs
+        int t1MinCPU = 200;
+        int t1MaxCPU = 5000;
+        //Tier-2 Cpus
+        int t2MinCPU = 100;
+        int t2MaxCPU = 500;
+           
+   	float alpha = 1;
+   	int s = 0;
+   	int p = 0;
+   	
+   	int degree;
+   	long disk;
+   	int cpu;
+   	String name;
+   	int cpusA = 0;
+   	int cpusB = 0;
+   	int cpusC = 0;
+   	
+   	for (Object obj : vertexes){
+   	    id = (Integer) obj;
+   	    degree = tmpGraph.degreeOf(obj);
+   	    CompNode node;
+
+   	    if (s < aNumOfSources){//create T1 node
+   		name = "B"+s;
+   		//cpu = (int) ( Math.random() * (t1MaxCPU - t1MinCPU) + t1MinCPU );
+   		cpu = cpus0[s] / 2;
+   		cpusB += cpu;
+   		node = new CompNode(id, name , false, true, false, true, true, 100000000, cpu, alpha, 0, 0, 0, 0, 0);
+   		//connect each Tier-1 node to Tier-0
+   	   	NetworkLink link = new NetworkLink(100500 + id,"A->" + name, tier0.getId() , node.getId(), bandwidth0[s] / 2 , false);
+   	   	grid.addVertex(node);
+   	        grid.addEdge(tier0, node, link);	
+   	        s++;   		
+   	    }else{//create T2 node
+   		name = "C"+p;
+   		cpu =  (int) ( Math.random() * (t2MaxCPU - t2MinCPU) + t2MinCPU );
+   		cpusC += cpu;
+   		disk = cpu * 30000;
+   		node = new CompNode(id, name, false, false, false, true, true, disk, cpu, alpha, 0, 0, 0, 0, 0);
+   		grid.addVertex(node);
+   		p++;
+   	    }   	    
+   	    idMap.put(id, node);
+   	}
+   	
+   	//create edges
+   	CompNode source, target;
+   	Object i1,i2;
+   	//String name;
+   	//double baseBandwidth = 0.2;
+   	double minBandwidth = 0.05;
+   	double maxBandwidth = 0.5;
+   	
+   	double t1Bandwidth = 0.5;
+   	int edgeDegree;
+   	double bandwidth;
+   	for (DefaultEdge edge: tmpGraph.edgeSet()){
+   	    i1 = tmpGraph.getEdgeSource(edge);
+   	    i2 = tmpGraph.getEdgeTarget(edge);
+   	    source = idMap.get( (Integer) i1);
+   	    target = idMap.get( (Integer) i2);
+   	    name = source.getName() + "->" + target.getName();
+   	    /**
+   	    if (source.isInputSource() || target.isInputSource()){ //if one of the nodes is a source
+   		cpu = Math.max(source.getCpuN(), target.getCpuN());
+   	    }else{//none of nodes is source
+   		cpu = Math.min(source.getCpuN(), target.getCpuN());
+   	    }	    
+   	    bandwidth =  cpu * Math.min(tmpGraph.degreeOf(i1), tmpGraph.degreeOf(i2)) * baseBandwidth / 1000;
+   	    if (source.isInputSource() && target.isInputSource()){
+   		bandwidth = Ncpu * baseBandwidth / 1000;
+   	    } **/
+   	    
+   	    if (source.isInputSource() && target.isInputSource()){
+   	 		bandwidth = t1Bandwidth;
+   	    }else{
+   		cpu = Math.min(source.getCpuN(), target.getCpuN());
+   		edgeDegree = Math.min(tmpGraph.degreeOf(i1), tmpGraph.degreeOf(i2));
+   		bandwidth =  Math.random() * (maxBandwidth - minBandwidth) + minBandwidth;
+   		bandwidth = (double) Math.round(bandwidth * 100) / 100;
+   	    }   	    
+   	    
+   	    NetworkLink link = new NetworkLink(id++,name, source.getId() , target.getId(), bandwidth , false);		    
+               grid.addEdge(source, target, link);	    
+   	}	
+   	
+   	System.out.println("Tier-1 cpus: " + cpusB + "  Tier-2 cpus: " + cpusC);
+   	return grid;
+       }
     
     private static  SimpleDirectedWeightedGraph<CompNode, NetworkLink> CreateCusromGird(int a, int b, int c){
 	int Ncpu = 100;
@@ -314,10 +471,6 @@ public class GridGenerator {
 	//resource_name Number_of_PE ProcessingRate(job length / per second) storage_size(in MB)
 	//isInputSource isOutputDestination isInputDestination isOutputSource 
 	//maxGridlets gridletFile
-	if (node.isInputSource()){
-	    return node.getName() + " 1 1 500000000 true false false false 0 "
-	    	+ "F:/git/Grid_simulation/grid/src/main/java/flow_model/input/KISTI_60k_filtered.csv";
-	}
 	String indent = " ";
 	StringBuffer buf = new StringBuffer();
 	buf.append(node.getName() + indent);
@@ -327,9 +480,18 @@ public class GridGenerator {
 	buf.append(node.isInputSource() + indent);
 	buf.append(node.isOutputDestination() + indent);
 	buf.append(node.isInputDestination() + indent); 
-	buf.append(node.isOutputSource() + indent); 
-	buf.append("0" + indent);
-	buf.append("null");	
+	buf.append(node.isOutputSource() + indent); 	
+	if (node.isOutputDestination()){
+	    buf.append("200000 F:/git/Grid_simulation/grid/src/main/java/flow_model/input/200kJobsUniqueIds.csv");
+	    return buf.toString();
+	}
+	
+	if (node.isInputSource()){
+	    buf.append("20000 F:/git/Grid_simulation/grid/src/main/java/flow_model/input/200kPart1_10.csv");
+	}else{
+		buf.append("0" + indent);
+		buf.append("null");
+	}
 	return buf.toString();
     }
     
