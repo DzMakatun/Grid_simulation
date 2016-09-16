@@ -2,10 +2,10 @@
 #maxGridlets=2000
 #resources=F:/git/Grid_simulation/grid/src/main/java/flow_model/input/CHEP_nodes.txt
 #network=F:/git/Grid_simulation/grid/src/main/java/flow_model/input/CHEP_network.txt
-resources=F:/git/Grid_simulation/grid/src/main/java/flow_model/input/L3_nodes.txt
-network=F:/git/Grid_simulation/grid/src/main/java/flow_model/input/L3_network.txt
-#resources=F:/git/Grid_simulation/grid/src/main/java/flow_model/input/testResources.txt
-#network=F:/git/Grid_simulation/grid/src/main/java/flow_model/input/testNetwork.txt
+#resources=F:/git/Grid_simulation/grid/src/main/java/flow_model/input/L3_nodes.txt
+#network=F:/git/Grid_simulation/grid/src/main/java/flow_model/input/L3_network.txt
+resources=F:/git/Grid_simulation/grid/src/main/java/flow_model/input/testResources.txt
+network=F:/git/Grid_simulation/grid/src/main/java/flow_model/input/testNetwork.txt
 #gridletsFilename=F:/git/Grid_simulation/grid/src/main/java/flow_model/input/10kP1.csv
 #gridletsFilename=F:/git/Grid_simulation/grid/src/main/java/flow_model/input/all_filtered.csv
 #resources=F:/git/Grid_simulation/grid/src/main/java/flow_model/input/resources.txt

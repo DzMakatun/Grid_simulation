@@ -35,7 +35,9 @@ public class PullSpaceShared extends FastSpaceShared {
     private double nomberOfPendingOutputFiles;
     private int initialNomberOfFiles = 0;
     private double initialSizeOfFiles = 0;
+    private double untouchedInputFilesSize = 0;
     
+    private GridletList initialInputFiles = new GridletList(); //this represents HPSS
     private GridletList waitingInputFiles = new GridletList(); //Gridlets That has just arrived
     private GridletList readyOutputFiles = new GridletList(); //output files ready for transfer
     
@@ -100,6 +102,7 @@ public class PullSpaceShared extends FastSpaceShared {
 	    buf.append("readyOutputSize" + indent);
 	    buf.append("pendingInputSize" + indent);
 	    buf.append("pendingOutputSize" + indent);	    
+	    buf.append("untouchedInputSize" + indent);
 	    //buf.append( + indent);	    
 	    return buf.toString();
     }
@@ -192,6 +195,11 @@ public class PullSpaceShared extends FastSpaceShared {
 	    buf.append( (this.readyOutputSize  / this.storageSize) + indent);
 	    buf.append( (this.pendingInputSize  / this.storageSize) + indent);	    
 	    buf.append( (this.pendingOutputSize  / this.storageSize) + indent);	 
+	    if (this.initialSizeOfFiles != 0){
+	        buf.append( (this.untouchedInputFilesSize  / this.initialSizeOfFiles) + indent);	 
+	    }else{
+		buf.append( 0 + indent);
+	    }
 	    //buf.append( + indent);	    
 	    return buf.toString();
     }
@@ -203,16 +211,13 @@ public class PullSpaceShared extends FastSpaceShared {
 	    //write(gridlet.getGridletID() + " job duration " + gridlet.getGridletLength() + " job finishedSoFAr " + gridlet.getGridletFinishedSoFar());
 	    gridlet.setUserID(this.resId_);
 	    //write(gridlet.getGridletID() + " job duration " + gridlet.getGridletLength() + " job finishedSoFAr " + gridlet.getGridletFinishedSoFar());
-	    if ( ! addInputFile( gridlet ) ){
+	    if ( ! addInitialInputFile( gridlet ) ){
 		//if failed to add input file
-		//return false;
 		System.exit(13);
-	    }else{
-		LFNmanager.registerInputFile(gridlet.getGridletID(), this.resName_);
 	    }
 	}
-	this.initialNomberOfFiles = this.waitingInputFiles.size();
-	this.initialSizeOfFiles = this.waitingInputSize;
+	this.initialNomberOfFiles = this.initialInputFiles.size();
+	this.initialSizeOfFiles = this.untouchedInputFilesSize;
 	return true;
     }
     
@@ -221,7 +226,7 @@ public class PullSpaceShared extends FastSpaceShared {
 	 * @param gl gridlet object, containing info on this file
 	 * @return true if success, false if not
 	 */
-	private boolean addInputFile(Gridlet gl){
+	/*private boolean addInputFile(Gridlet gl){
 	    double size = gl.getGridletFileSize();
 	    if (this.freeStorageSpace >= size ) {
 		this.freeStorageSpace -= size;
@@ -236,10 +241,24 @@ public class PullSpaceShared extends FastSpaceShared {
 			+ size);
 		return false;
 	    }
-	}
+	} */
+	
+    	/**
+    	 * Input files are located in a separate storage (like HPSS) and are
+    	 * recovered to the local disk when nessesary
+    	 * @param gl
+    	 * @return
+    	 */
+    private boolean addInitialInputFile(DPGridlet gl){
+	double size = gl.getGridletFileSize();
+	this.untouchedInputFilesSize += size;
+	this.initialInputFiles.add(gl);
+	LFNmanager.registerInputFile(gl.getGridletID(), this.resName_);		
+	return true;
+    }
 	
         private void sortInputQueue(){
-		Collections.sort(this.waitingInputFiles, 
+		Collections.sort(this.initialInputFiles, 
 			new Comparator<Gridlet>() {
 		            public int compare(Gridlet gl1, Gridlet gl2) {
 		                return ( LFNmanager.getNumberOfReplicas( gl1.getGridletID() )
@@ -343,7 +362,7 @@ public class PullSpaceShared extends FastSpaceShared {
 
 	private void initProduction(Sim_event ev) {
 	        userId = (Integer) ev.get_data();
-	        sortInputQueue();
+	        //sortInputQueue();
 		if (this.isInputDestination){
 		    inputSourcesIds = new LinkedList<Integer>();
 		    outputDestinationsIds = new LinkedList<Integer>();
@@ -433,6 +452,7 @@ public class PullSpaceShared extends FastSpaceShared {
 		return;
 	    }
 	    if( this.waitingInputSize == 0 //no input files left (important for sources)
+		    && initialInputFiles.isEmpty()
 		    && this.pendingRequests == 0 //not waiting for further data
 		    &&( !this.isInputDestination //this is not a processing node
 			    ||( //OR
@@ -511,17 +531,9 @@ public class PullSpaceShared extends FastSpaceShared {
 		int i = req.numberOfJobs;
 		DPGridlet gl;
 		long size;
-		while (!this.waitingInputFiles.isEmpty() && i > 0){		    
+		while (i > 0 && (!waitingInputFiles.isEmpty() || recoverNextInputFile()) ){	
 		    gl = (DPGridlet) waitingInputFiles.poll();
-		    size = gl.getGridletFileSize();
-			  if ( !LFNmanager.checkAndChange( gl.getGridletID() )  ){//if file is send by some other source
-			      //write("file " +gl.getGridletID() + " already send by other source");
-			      //delete file
-			      this.freeStorageSpace += size;
-			      waitingInputSize -= size;
-			      this.inputFilesSkipped +=1;
-			      continue; //poll next file
-			  }		    
+		    size = gl.getGridletFileSize();		    
 		    gl.setSenderID(this.resId_);
 		    IO_data data = new IO_data(gl, size, req.requesterId);
 		    //DEBUG	   
@@ -533,8 +545,8 @@ public class PullSpaceShared extends FastSpaceShared {
 		    this.waitingInputSize -= size;
 		    this.pendingInputSize +=size;
 		    i--;
-		    if (this.waitingInputFiles.size() % (this.initialNomberOfFiles / 20) == 0){
-			write( (initialNomberOfFiles - waitingInputFiles.size()) + " / " + initialNomberOfFiles);
+		    if (this.initialInputFiles.size() % (this.initialNomberOfFiles / 20) == 0){
+			write( (initialNomberOfFiles - this.initialInputFiles.size()) + " / " + initialNomberOfFiles);
 			//verifyGridletLists() ;
 		    }
 		}
@@ -549,6 +561,52 @@ public class PullSpaceShared extends FastSpaceShared {
 	     }else{
 		    write("error: job request send to wrong destination");
 		}	    
+	}
+        
+        /**recover an input file from hpss to local disk
+         * 
+         * @return
+         */
+        private boolean recoverNextInputFile(){
+    	DPGridlet gl;
+    	while (!initialInputFiles.isEmpty()){
+    	    gl = (DPGridlet) initialInputFiles.poll();
+    	    this.untouchedInputFilesSize -= gl.getGridletFileSize();
+    	    if (LFNmanager.checkAndChange( gl.getGridletID() ) ){ //if the file was not used before in the system
+    		addInputFile(gl);//add one input file per call
+    		return true;
+    	    }else{ // forget this file and check the next one
+    		this.inputFilesSkipped +=1;
+    	    }
+    	}	
+    	return false; 	
+        }
+
+	/**
+	 * Store a new incoming input file to storage
+	 * @param gl gridlet object, containing info on this file
+	 * @return true if success, false if not
+	 */
+	private boolean addInputFile(DPGridlet gl){
+	    double size = gl.getGridletFileSize();
+	    if (this.freeStorageSpace >= size ) {
+		this.freeStorageSpace -= size;
+		this.waitingInputSize += size;
+		this.waitingInputFiles.add(gl);
+		//write("remaining disk space: " + freeStorageSpace);
+		//if (this.isInputSource){
+		//    LFNmanager.unCheckFile(gl.getGridletID());
+		//}		
+		return true;
+		
+	    }else{
+		//failed to accommodate a new file
+		write("WARNING RUNNING OUT OF STORAGE SPACE,"
+			+ " can't accomodate new input file, freeSpace: " 
+			+ this.freeStorageSpace + " fileSize: "
+			+ size);
+		return false;
+	    }
 	}
 
 	    /**

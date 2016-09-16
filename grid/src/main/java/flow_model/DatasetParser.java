@@ -12,10 +12,10 @@ import java.io.Writer;
 public class DatasetParser {
 
     public static void main(String[] args) throws Throwable {
-	String inputFilename = "F:/git/Grid_simulation/grid/src/main/java/flow_model/input/200kJobsUniqueIds.csv";
-	String outputPrefix = "input/200kPart";
-	int maxFiles = 200000;
-	int maxFilesPerPortion = 20000;
+	String inputFilename = "F:/git/Grid_simulation/grid/src/main/java/flow_model/input/600kJobsUniqueIds.csv";
+	String outputPrefix = "input/600kPart";
+	int maxFiles = 600000;
+	int maxFilesPerPortion = 60000;
 	int[] portionSizes = {10,10,10,10,10,10,10,10,10,10};
 	String cvsSplitBy = ",";
 	
