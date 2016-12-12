@@ -64,6 +64,7 @@ import org.joda.time.DateTime;
  */
 public class DPSpaceShared extends AllocPolicy
 {
+    private boolean enableFileoutput = false;
     private ResGridletList gridletQueueList_;     // Queue list
     private ResGridletList gridletInExecList_;    // Execution list
     private ResGridletList gridletPausedList_;    // Pause list
@@ -185,9 +186,11 @@ public class DPSpaceShared extends AllocPolicy
 	this.isInputDestination = isInputDestination;
 	this.isOutputSource = isOutputSource;
 	
-	String filename = "output/" + DataUnits.getPrefix() + "_" + this.resName_ + "_PLANNER_stat.csv";
-	fileWriter = new PrintWriter(filename, "UTF-8");
-	fileWriter.println(getStatusHeader() );
+	if (this.enableFileoutput){
+	    String filename = "output/" + DataUnits.getPrefix() + "_" + this.resName_ + "_PLANNER_stat.csv";
+	        fileWriter = new PrintWriter(filename, "UTF-8");
+	        fileWriter.println(getStatusHeader() );
+	}
 	//fileWriter.println(getStatusString() );
     }
     
@@ -750,7 +753,10 @@ public class DPSpaceShared extends AllocPolicy
 	  }
 	  
 	  //write statistics to file
-	  fileWriter.println(getStatusString() );
+	  if (this.enableFileoutput){
+	      fileWriter.println(getStatusString() );
+	  }
+	  
 	  //write(" DEBUG: processFiles() exited");
 	  
 	  //DEBUG
@@ -1040,8 +1046,9 @@ public class DPSpaceShared extends AllocPolicy
 		//    + getStatusString() + "\n"
 		//    + "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n"
 		//    );    	    
-	    
-	    fileWriter.println(getStatusString() );
+	    if (this.enableFileoutput){
+	        fileWriter.println(getStatusString() );
+	    }	    
 	    return;
 	}
 	
@@ -1159,10 +1166,16 @@ public class DPSpaceShared extends AllocPolicy
 
 
 		    + "\n##########################################################################################\n"
-		    );    	    
+		    );    
+	    if (this.isInputSource && this.isOutputDestination){
+	        write("RESULTS_OF_SIMULATION (PLANNER) " + ParameterReader.description + " Makespan: " + makespanSeconds);
+	    }
+	    
 	    write("exitting");
-	    fileWriter.println(getStatusString());
-	    fileWriter.close();
+	    if (this.enableFileoutput){
+	           fileWriter.println(getStatusString());
+	            fileWriter.close();
+	    }
 	    return;
 	}
     

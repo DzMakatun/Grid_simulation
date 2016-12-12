@@ -57,6 +57,7 @@ public class User extends GridUser {
     boolean continueDataProduction;
     private int updateCounter = 0;
     //writing statistics to a file
+    private boolean trackPalledNetUsage = false;
     private PrintWriter fileWriter; 
     
 
@@ -75,8 +76,11 @@ public class User extends GridUser {
         //      name + ", and id = " + this.myId_);
         
         //write statistics for planned link bandwith consumprion
-        String filename = "output/" + DataUnits.getPrefix() + "_" + this.name_ + "_planned_net_usage.csv";
-	fileWriter = new PrintWriter(filename, "UTF-8");
+        if (this.trackPalledNetUsage){
+            String filename = "output/" + DataUnits.getPrefix() + "_" + this.name_ + "_planned_net_usage.csv";
+            fileWriter = new PrintWriter(filename, "UTF-8");
+        }
+
 
     }
     
@@ -148,7 +152,10 @@ public class User extends GridUser {
 	        
 	        this.continueDataProduction = true;        
 	        //write header to the statistics file
-		fileWriter.println(getStatusHeader() );
+	        if (this.trackPalledNetUsage){
+	            fileWriter.println(getStatusHeader() );
+	        }
+
 		//for CPU usage monitoring	       
 	        String nodeStatFilename = "output/" + DataUnits.getPrefix() + "PLANNER_CpuUsage.csv";
 		NodeStatRecorder.start(nodeStatFilename);
@@ -224,7 +231,10 @@ public class User extends GridUser {
         FlowManager.initialized = false;
         terminateIOEntities();
         write("Exited body() at time " + GridSim.clock());
-        fileWriter.close();
+        if (this.trackPalledNetUsage){
+            fileWriter.close();
+        }
+        
         NodeStatRecorder.close();
     }
     
@@ -321,7 +331,9 @@ public class User extends GridUser {
 
         //printPlan(plan);
         //record statistics
-        fileWriter.println(getLinkPlannedUsage());
+        if ( this.trackPalledNetUsage){
+            fileWriter.println(getLinkPlannedUsage());
+        }        
  	return FlowManager.getLinks();
      }
     

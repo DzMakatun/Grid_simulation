@@ -8,6 +8,7 @@ import gridsim.GridSimTags;
 import gridsim.net.SimpleLink;
 
 public class NetworkMonitor extends GridSim{
+    private boolean trace = false;
     private int myId_;
     private String myName;
     private PrintWriter fileWriter; 
@@ -20,7 +21,9 @@ public class NetworkMonitor extends GridSim{
 	this.myName = name;
 	this.myId_ = super.getEntityId(name);
         String filename = "output/" + DataUnits.getPrefix() +"_network_usage.csv";
-	fileWriter = new PrintWriter(filename, "UTF-8");
+        if (trace) {
+            fileWriter = new PrintWriter(filename, "UTF-8");
+        }	
 	this.updateInterval = ParameterReader.deltaT;// / 4;
     }
     
@@ -33,7 +36,10 @@ public class NetworkMonitor extends GridSim{
 	while (! FlowManager.initialized){
 	    super.gridSimHold(100.0);
 	}
-	fileWriter.println("time" + indent + FlowManager.getNamesLine());
+	if (trace) {
+	    fileWriter.println("time" + indent + FlowManager.getNamesLine());
+	}
+	
 	FlowManager.resetCounters();
 	super.sim_schedule(myId_, updateInterval, GridSimTags.INSIGNIFICANT);
 	Sim_event ev = new Sim_event();
@@ -49,7 +55,9 @@ public class NetworkMonitor extends GridSim{
             }
             
             if (ev.get_src() == myId_){
-        	fileWriter.println(GridSim.clock() + indent + FlowManager.getConsumptionLine(updateInterval));
+                if (trace){
+                    fileWriter.println(GridSim.clock() + indent + FlowManager.getConsumptionLine(updateInterval));
+                }        	
     	        FlowManager.resetCounters();
     	        //send event to itself
     	        super.sim_schedule(myId_, updateInterval, GridSimTags.INSIGNIFICANT);
@@ -67,7 +75,10 @@ public class NetworkMonitor extends GridSim{
         }
 	
 	terminateIOEntities(); 
-	fileWriter.close();
+	if (trace){
+	    fileWriter.close();
+	}
+	
 	
     }
 

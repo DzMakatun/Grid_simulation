@@ -12,8 +12,8 @@ import java.io.Writer;
 public class DatasetParser {
 
     public static void main(String[] args) throws Throwable {
-	String inputFilename = "F:/git/Grid_simulation/grid/src/main/java/flow_model/input/600kJobsUniqueIds.csv";
-	String outputPrefix = "input/600kPart";
+	String inputFilename = "F:/KistProdDataDump/2_600kJobsUniqueIds.csv";
+	String outputPrefix = "F:/KistProdDataDump/2_600kPart";
 	int maxFiles = 600000;
 	int maxFilesPerPortion = 60000;
 	int[] portionSizes = {10,10,10,10,10,10,10,10,10,10};

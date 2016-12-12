@@ -6,7 +6,7 @@ import java.util.Map;
 public class LFNmanager {
     private static Map<Integer, LFNrecord> LFNlist = new LinkedHashMap<Integer, LFNrecord>();
     
-    public static void registerInputFile(int id, String site){
+    public static synchronized void registerInputFile(int id, String site){
 	LFNrecord record = LFNlist.get(id);
 	if (record != null){
 	    //file already registered - add replica
@@ -28,7 +28,7 @@ public class LFNmanager {
 	}
     }
     
-    public static Integer getNumberOfReplicas(int id){
+    public static synchronized Integer getNumberOfReplicas(int id){
 	LFNrecord record = LFNlist.get(id);
 	if (record != null){
 	    return record.getReplicasNumber();
@@ -46,7 +46,7 @@ public class LFNmanager {
 	}
     }
     
-    public static boolean checkAndChange(int id){
+    public static synchronized boolean checkAndChange(int id){
 	LFNrecord record = LFNlist.get(id);
 	if (record != null){
 	    if (record.getStatus() == LFNrecord.QUEUED){
@@ -62,7 +62,7 @@ public class LFNmanager {
         return false;
     }
     
-    public static boolean unCheckFile(int id){
+    public static synchronized boolean unCheckFile(int id){
 	LFNrecord record = LFNlist.get(id);
 	if (record != null){
 	    record.setStatus(LFNrecord.QUEUED);

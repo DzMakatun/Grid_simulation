@@ -79,8 +79,8 @@ class PushParSpaceShared extends AllocPolicy
         this.lastUpdateTime_ = 0.0;
         this.machineRating_ = null;
         String filename = "output/" + DataUnits.getPrefix() + "_" + this.resName_ + "_PUSHpar_stat.csv";
-	fileWriter = new PrintWriter(filename, "UTF-8");
-	fileWriter.println(getStatusHeader() );
+	//fileWriter = new PrintWriter(filename, "UTF-8");
+	//fileWriter.println(getStatusHeader() );
     }
     
     public void setStorageId(int id){
@@ -136,8 +136,8 @@ class PushParSpaceShared extends AllocPolicy
             if (ev.get_tag() == GridSimTags.END_OF_SIMULATION ||
                 super.isEndSimulation())
             {
-    	        fileWriter.println(getStatusString());
-    	        fileWriter.close();
+    	        //fileWriter.println(getStatusString());
+    	        //fileWriter.close();
                 break;
             }
 
@@ -223,7 +223,7 @@ class PushParSpaceShared extends AllocPolicy
                           gl.getGridletID(), gl.getUserID()
             );
         }
-        fileWriter.println(getStatusString() );
+        //fileWriter.println(getStatusString() );
         //for global cpu monitoring
         NodeStatRecorder.updateCpuUsage(resId_, resource_.getNumBusyPE());
     }
@@ -785,7 +785,7 @@ class PushParSpaceShared extends AllocPolicy
         allocateQueueGridlet();   // move Queued Gridlet into exec list
         //for global cpu monitoring
         NodeStatRecorder.updateCpuUsage(resId_, resource_.getNumBusyPE());
-        fileWriter.println(getStatusString() );
+        //fileWriter.println(getStatusString() );
     }
 
     /**

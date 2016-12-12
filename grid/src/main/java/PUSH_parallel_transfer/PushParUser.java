@@ -58,7 +58,7 @@ public class PushParUser extends GridUser {
     boolean continueDataProduction;
     private int updateCounter = 0;
     //writing statistics to a file
-    private PrintWriter fileWriter; 
+    //private PrintWriter fileWriter; 
     private int storageId;
     
 
@@ -272,6 +272,7 @@ public class PushParUser extends GridUser {
 	}
 	finishTime = GridSim.clock();
 
+	/**
 	////////////print statistics
 	//printGridletList(receiveList_, name_);
 	for (i = 0; i < gridlets.size(); i += gridlets.size() / 5){
@@ -279,6 +280,7 @@ public class PushParUser extends GridUser {
 	    printGridletHist(gl);
 	}
 
+	
 	////print transfer times 
 	write("-------------gridlet log--------------");
 	write("getGridletID getResourceID getGridletLength 	getGridletFileSize	 getGridletOutputSize	 	inTransfer	 		outTransfer		 getWallClockTime		totalTime 			slowdown");
@@ -380,6 +382,7 @@ public class PushParUser extends GridUser {
 
 	}
 
+        **/
 	/////////////////////////////
 	//print overall statistics
 	write("---------------summary------------------");
@@ -396,15 +399,20 @@ public class PushParUser extends GridUser {
 	write(" Saturated interval: " + (saturationFinish - saturationStart));
 	write(" Saturated time ratio: " + (saturationFinish - saturationStart) / (finishTime - startTime));
 	write("------------------------------------------");
-
 	
+	
+	double makespan = finishTime - startTime;
+	
+	//write("Finished " + "PUSH_par " + ParameterReader.resourceFilename + " " + ParameterReader.networkFilename + " " 
+	     //   +  DataUnits.getPrefix() + " Makespan: " + makespan);
+	write("RESULTS_OF_SIMULATION (PUSHpar) " + ParameterReader.description + " Makespan: " + makespan);
 	finish();
     }
     
     private void finish(){	
 
         //ping resources
-        pingAllRes(resourceID);
+        //pingAllRes(resourceID);
 
 	
         ////////////////////////////////////////////////////////

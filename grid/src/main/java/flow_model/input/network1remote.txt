@@ -1,2 +1,0 @@
-#node1 node2 baud_rate(Gbps)
-RCF KISTI 0.4

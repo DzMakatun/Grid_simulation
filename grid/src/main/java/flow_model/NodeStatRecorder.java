@@ -8,6 +8,7 @@ import java.io.UnsupportedEncodingException;
 import java.util.LinkedList;
 
 public class NodeStatRecorder {
+    private static boolean trace = false;
     private static LinkedList<NodeStatistics> nodes = new LinkedList<NodeStatistics>();
     private static int totalCPUs = 0;
     private static PrintWriter fileWriter; 
@@ -18,18 +19,19 @@ public class NodeStatRecorder {
      */
     public static void start(String filename){
 	System.out.println("Initializing NodeStatRecorder with " + nodes.size() + " nodes");
-	try {
-	    fileWriter = new PrintWriter(filename, "UTF-8");
-	    fileWriter.println( getHeader());
-	    System.out.println("NodeStatRecorder initialized"); 
-	} catch (FileNotFoundException e) {
-	    // TODO Auto-generated catch block
-	    e.printStackTrace();
-	} catch (UnsupportedEncodingException e) {
-	    // TODO Auto-generated catch block
-	    e.printStackTrace();
+	if (trace){
+        	try {
+        	    fileWriter = new PrintWriter(filename, "UTF-8");
+        	    fileWriter.println( getHeader());
+        	    System.out.println("NodeStatRecorder initialized"); 
+        	} catch (FileNotFoundException e) {
+        	    // TODO Auto-generated catch block
+        	    e.printStackTrace();
+        	} catch (UnsupportedEncodingException e) {
+        	    // TODO Auto-generated catch block
+        	    e.printStackTrace();
+        	}
 	}
-	
     }
     
     public static void close(){
@@ -84,8 +86,14 @@ public class NodeStatRecorder {
 
     public static void updateCpuUsage(int id, int busyCPUs){
 	NodeStatistics node = findNode(id);
+	if (node == null){
+	    return;
+	}
 	node.setBusyCPUs(busyCPUs);
-	fileWriter.println( getStatusString());
+	if (trace) {
+	    fileWriter.println( getStatusString());
+	}
+
     }
     
     public static int getregisteredNodesNum(){

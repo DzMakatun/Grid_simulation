@@ -37,6 +37,7 @@ import gridsim.*;
  */
 public class FastSpaceShared extends AllocPolicy
 {
+    private boolean writeToFile = false;
     protected ResGridletList gridletQueueList_;     // Queue list
     protected ResGridletList gridletInExecList_;    // Execution list
     private ResGridletList gridletPausedList_;    // Pause list
@@ -76,9 +77,11 @@ public class FastSpaceShared extends AllocPolicy
         this.gridletQueueList_  = new ResGridletList();
         this.lastUpdateTime_ = 0.0;
         this.machineRating_ = null;
-        String filename = getStatFilename();
-	fileWriter = new PrintWriter(filename, "UTF-8");
-	fileWriter.println(getStatusHeader() );
+        if (this.writeToFile){
+            String filename = getStatFilename();
+            fileWriter = new PrintWriter(filename, "UTF-8");
+            fileWriter.println(getStatusHeader() );
+        }
     }
     
     public String getStatFilename(){
@@ -140,8 +143,10 @@ public class FastSpaceShared extends AllocPolicy
             if (ev.get_tag() == GridSimTags.END_OF_SIMULATION ||
                 super.isEndSimulation())
             {
-    	        fileWriter.println(getStatusString());
-    	        fileWriter.close();
+                if (this.writeToFile){
+                    fileWriter.println(getStatusString());
+                    fileWriter.close();
+                }
                 break;
             }
 
@@ -228,7 +233,9 @@ public class FastSpaceShared extends AllocPolicy
                           gl.getGridletID(), gl.getUserID()
             );
         }
-        fileWriter.println(getStatusString() );
+        if (this.writeToFile){
+            fileWriter.println(getStatusString() );
+        }        
       //for global cpu monitoring
         NodeStatRecorder.updateCpuUsage(resId_, resource_.getNumBusyPE());
     }
@@ -784,7 +791,9 @@ public class FastSpaceShared extends AllocPolicy
 	sendFinishGridlet( rgl.getGridlet() );
 
         allocateQueueGridlet();   // move Queued Gridlet into exec list
-        fileWriter.println(getStatusString() );
+        if (this.writeToFile){
+            fileWriter.println(getStatusString() );
+        }
         //for global cpu monitoring
         NodeStatRecorder.updateCpuUsage(resId_, resource_.getNumBusyPE());
     }

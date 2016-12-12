@@ -33,7 +33,8 @@ public class ParameterReader {
     public static double alpha;
     public static double beta;
     public static String simulationLogFilename;
-
+    public static String description;
+    
     public static void read(String filename) {
         try {
             FileReader fRead = new FileReader(filename);
@@ -72,7 +73,8 @@ public class ParameterReader {
                 	gridletsFilename = value;
                     } else if (name.equals("maxGridlets")) {
                 	maxGridlets = Integer.valueOf(value);
-                	
+                    } else if (name.equals("description")) {
+                        description = value;
                 	
                     } else {
                         System.out.println("Unknown parameter " + name);

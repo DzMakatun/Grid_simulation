@@ -1,7 +1,0 @@
-#user_name router_name rc_name baud_rate (bits/s) list_of_grid_tasks
-#grid tasks can be: 
-#get filename
-#attribute filename
-#replicate filename resource
-#delete filename resource
-Planer RCF_router RCF 10000000000

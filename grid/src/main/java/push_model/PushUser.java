@@ -62,7 +62,7 @@ public class PushUser extends GridUser {
     boolean continueDataProduction;
     private int updateCounter = 0;
     //writing statistics to a file
-    private PrintWriter fileWriter; 
+    //private PrintWriter fileWriter; 
     private int storageId;
     
 
@@ -276,6 +276,7 @@ public class PushUser extends GridUser {
 	finishTime = GridSim.clock();
 
 
+	
 	/////////////////////////////
 	//print overall statistics
 	write("---------------summary------------------");
@@ -293,7 +294,8 @@ public class PushUser extends GridUser {
 	write(" Saturated time ratio: " + (saturationFinish - saturationStart) / (finishTime - startTime));
 	write("------------------------------------------");
 
-	
+	double makespan = finishTime - startTime;
+	write("RESULTS_OF_SIMULATION (PUSHseq) " + ParameterReader.description + " Makespan: " + makespan);
 	finish();
     }
     
