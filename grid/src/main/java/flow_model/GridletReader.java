@@ -1,15 +1,16 @@
 package flow_model;
 
+import gridsim.GridletList;
+
 import java.io.BufferedReader;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 
-import org.joda.time.*;
+import org.joda.time.DateTime;
+import org.joda.time.Interval;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
-
-import gridsim.GridletList;
  
 public class GridletReader {
  
@@ -69,6 +70,9 @@ private static DPGridlet readGridlet(String line) {
 	long outputFileSize;
 	String InputFileName;
 	
+	double realTimePerEvent;
+	double nEvents;
+	
 	Interval interval;
 	double duration = 0;
 	DateTime jobStart;
@@ -86,20 +90,26 @@ private static DPGridlet readGridlet(String line) {
 		//read the parameters
 		id = Integer.parseInt(jobData[0]);
 		InputFileName = jobData[9].replace("\"", "");
-		inputFileSize = Long.parseLong(jobData[10]); //in bytes
-		outputFileSize = Long.parseLong(jobData[31]);  //in bytes
+		inputFileSize = (Long) Long.parseLong(jobData[10]) / DataUnits.getSize(); //in units
+		outputFileSize = (Long) Long.parseLong(jobData[31]) / DataUnits.getSize() ;  //in units
+		realTimePerEvent = Double.parseDouble(jobData[28]); //s
+		nEvents = Double.parseDouble(jobData[29]); 
 		
-		
+		/* old method
 		
 		jobStart = formatter.parseDateTime(jobData[16].replace("\"", ""));
 		jobFinish = formatter.parseDateTime(jobData[17].replace("\"", ""));
 		interval = new Interval(jobStart,jobFinish); //interval in milliseconds
+		
 		duration = interval.toDurationMillis() / 1000; //duration in seconds
+		*/
+		duration = realTimePerEvent * nEvents;
 		
 		if (duration > 0 && inputFileSize > 0 && outputFileSize > 0 ){// filterring good log records here
 			//we create gridlets only from jobs that passed requirements
 			//gridlet = new Gridlet(id, duration , inputFileSize, outputFileSize);
 			gridlet = new DPGridlet(id, duration, inputFileSize, outputFileSize, true); //do  track this
+			gridlet.setGridletFinishedSoFar(0);			
 			//gridlet.setUserID(userId);
 		}else{
 			System.out.println("Gridlet filtered:\n" + line);

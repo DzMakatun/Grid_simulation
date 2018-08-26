@@ -31,13 +31,30 @@ public class RiftTags {
   public static final int OUTPUT = BASE + 5;
   
   /** Remote node confirms that the input file was received*/
-  public static final int CONFIRMATION_INPUT = BASE + 6;
+  public static final int INPUT_TRANSFER_ACK = BASE + 6;
   
   /** Remote node confirms that the output file was received*/
-  public static final int CONFIRMATION_OUTPUT = BASE + 7;
+  public static final int OUTPUT_TRANSFER_ACK = BASE + 7;
   
-  /**COEFICIENT for bytes -> MB translation 
-   * (or other units)
-   */
-  public static final int SIZE_UNITS = 1024 * 1024;
+  /** Remote node failed to accommodate input file*/
+  public static final int INPUT_TRANSFER_FAIL = BASE + 8;
+  
+  /** Remote node failed to accommodate output file*/
+  public static final int OUTPUT_TRANSFER_FAIL = BASE + 9;
+  
+  /** PULL mode: request storage for input files **/
+  public static final int JOB_REQUEST = BASE + 10;
+  
+  /** PULL mode: storage can't provide input files **/
+  public static final int JOB_REQUEST_DECLINE = BASE + 11;
+  
+  /** PULL mode: user signal resources to start simulation **/
+  public static final int START = BASE + 12;
+  
+  /** PULL mode: user signal resources to initialize simulation **/
+  public static final int INIT = BASE + 13;
+  
+  /** PULL mode: resource signal user that it has no more work to do **/
+  public static final int NO_WORK_LEFT = BASE + 14;
+  
 }

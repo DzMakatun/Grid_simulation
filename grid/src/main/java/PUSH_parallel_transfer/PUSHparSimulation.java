@@ -1,17 +1,21 @@
-package flow_model;
+package PUSH_parallel_transfer;
 
-
+import flow_model.*;
 import gridsim.GridResource;
 import gridsim.GridSim;
 import gridsim.GridSimTags;
 import gridsim.ResourceCharacteristics;
 import gridsim.net.FIFOScheduler;
-import gridsim.net.RIPRouter;  // To use the new flow network package - GridSim 4.2
+import gridsim.net.flow.FlowRouter;  // To use the new flow network package - GridSim 4.2
+import gridsim.util.SimReport;
 
+import java.io.FileWriter;
+import java.io.IOException;
 import java.util.Calendar;
 import java.util.LinkedList;
 
 import org.joda.time.DateTime;
+
 
 /**
  * This is the main class of the simulation package. It reads all the parameters
@@ -19,24 +23,32 @@ import org.joda.time.DateTime;
  * and runs the simulation.
  * @author Uros Cibej and Anthony Sulistio
  */
-public class Simulation {
+public class PUSHparSimulation {
     public static void main(String[] args) {
 	long startTime = System.currentTimeMillis();
-        System.out.println("Starting simulation ....");
+	//String path = "F:/git/Grid_simulation/grid/src/main/java/flow_model/input/";
+	//String path = "input/";
+	//String gridletFileName = path + "KISTI_7000_filtered.csv";
+	//int gridletNumber = 7000;
+	
+        System.out.println("Starting PUSH simulation ....");
 
         try {
+
             if (args.length != 4) {
                 System.out.println("Usage: java Main parameter_file traceflag prefix background_traffic_level");
                 return;
             }
              
             //set prefix for all log files
-            DataUnits.setPrefix(args[2]); 
+            DataUnits.setPrefix(args[2]);             
+            
+
             //reads parameters
             System.out.println( "Parameters file: " + args[0]);
-            ParameterReader.read(args[0]);
-            
-            Logger.openFile("output/" + DataUnits.getPrefix() + "_PLANNER_sim.log");
+            ParameterReader.read(args[0]);            
+            Logger.openFile("output/" + DataUnits.getPrefix() + "_PUSHpar_sim.log");
+            write( "Log file: output/" + DataUnits.getPrefix() + "_PUSHpar_sim.log");
             write( "Parameters file: " + args[0]);
             double backgroundFlow = Double.parseDouble(args[3]);
             int num_user = 1; // number of grid users
@@ -49,7 +61,7 @@ public class Simulation {
 
            
             //uses flow extension
-            GridSim.initNetworkType(GridSimTags.NET_PACKET_LEVEL);
+            GridSim.initNetworkType(GridSimTags.NET_FLOW_LEVEL);
             //Initializes the GridSim package
             write("Initializing GridSim package");            
             GridSim.init(num_user, calendar, trace_flag);
@@ -64,43 +76,63 @@ public class Simulation {
             
             ///////////
             //CREATEs RESOURCES
-            LinkedList<GridResource> resList = ResourceReader.read(ParameterReader.resourceFilename, ResourceReader.PLANNER);  
+            LinkedList<GridResource> resList = PushParResReader.read(ParameterReader.resourceFilename);  
             //adding routers
-            LinkedList<RIPRouter> routerList = new LinkedList<RIPRouter>();
-            RIPRouter router, plannerRouter = null;
+            LinkedList<FlowRouter> routerList = new LinkedList<FlowRouter>();
+            FlowRouter router, plannerRouter = null;
             
-            DPSpaceShared policy = null;
+            //DPSpaceShared policy = null;
+            ResourceCharacteristics character = null;
+            int storageId = -100500;
             write("RESOURCES: ");
             for(GridResource res: resList){
-        	
             	//adding routers
-            	router = new RIPRouter(res.get_name() + "_router", trace_flag);
+            	router = new FlowRouter(res.get_name() + "_router", trace_flag);
             	router.attachHost(res, new FIFOScheduler(res.get_name()
                         + "_router_scheduler"));            	
             	routerList.add(router);
             	//setup TIER-0s
-            	policy = (DPSpaceShared) res.getAllocationPolicy();
-            	if ( policy.isOutputDestination() ){
+            	//policy = (DPSpaceShared) res.getAllocationPolicy();
+            	character = res.getResourceCharacteristics();
+            	if ( character.getNumFreePE() == 1 ){
             	  plannerRouter = router; //select the router where to attach a planer
-            	  //collect all available gridlets here            	    
-            	}            	
-            	write( policy.paramentersToString());            	
+            	  storageId = res.get_id();
+            	  //collect all available gridlets here
+            	    
+            	}
+            	
+            	write(gridResourceToString(res));            	
+            }
+            
+            //set centrtal storage id
+            PushParSpaceShared policy;
+            for(GridResource res: resList){
+        	policy = (PushParSpaceShared) res.getAllocationPolicy();
+        	policy.setStorageId(storageId);
             }
 
             //READ NETWORK
-            write("ROUTERS:");
-            for (RIPRouter r:routerList){
-        	write(DPNetworkReader.routerToString(r));
+            System.out.println("ROUTERS:");
+            for (FlowRouter r:routerList){
+        	System.out.println(PushParNetReader.routerToString(r));
             }
             
-            DPNetworkReader.createNetwork(routerList, ParameterReader.networkFilename);
-            write(DPNetworkReader.getLinksString() );
+            PushParNetReader.createNetwork(routerList, ParameterReader.networkFilename);
+            PushParNetReader.printLinks();
                  
             
             //CREATE USER RUNING PLANER
-            User Planer = new User("Planer",
-                    Double.MAX_VALUE, 0.001, Integer.MAX_VALUE);            
-            plannerRouter.attachHost(Planer, new FIFOScheduler("Planer"+"_router_scheduler"));     
+            PushParUser pusher = new PushParUser("PUSHpar",
+                    Double.MAX_VALUE, 0.001, Integer.MAX_VALUE);   
+            
+            //CHOSE 2 OPTIONS
+            //use this for normal filesize
+            pusher.setGridletList(GridletReader.getGridletList(ParameterReader.gridletsFilename, ParameterReader.maxGridlets));
+            pusher.setStorageId(storageId);
+            
+            //use this for 0 filesize (disables network delays)
+            //pusher.setGridletListZeroFileSize(GridletReader.getGridletList(gridletFileName, gridletNumber));
+            plannerRouter.attachHost(pusher, new FIFOScheduler("Pusher"+"_router_scheduler"));     
            
             //check network type
             write( "Network type: " + GridSim.getNetworkType()  );
@@ -109,7 +141,6 @@ public class Simulation {
             //create network monitor
             NetworkMonitor netMon= new NetworkMonitor("NetworkMonitor");
             plannerRouter.attachHost(netMon, new FIFOScheduler("NetworkMonitor"+"_router_scheduler"));  
-
             
             //setup background traffic
             if (backgroundFlow != 0){
@@ -117,13 +148,13 @@ public class Simulation {
             }else{
         	write("Background traffic DISABLED");
             }
-            
-            
-            
+
             GridSim.startGridSimulation();
             
+            
+            //write(BackgroundTraficSetter.getBackgroundSetupString());
             //write("ROUTERS:");
-            //for (RIPRouter r : routerList){
+            //for (FlowRouter r : routerList){
         	//r.printRoutingTable();
             //}
             
@@ -133,7 +164,7 @@ public class Simulation {
         	write("Background traffic was DISABLED");
             }
             
-            write("Finish data grid simulation ...");
+            write("\nFinish data grid simulation ...");
             long stopTime = System.currentTimeMillis();
             long elapsedTime = stopTime - startTime;
             write("runtime: " + elapsedTime/1000 + " (s)");
@@ -146,7 +177,7 @@ public class Simulation {
     
     private static void write(String msg){
 	DateTime now = DateTime.now();
-        System.out.println(now.toString() + " Simulation: " + msg);        
+        System.out.println(now.toString() +" Simulation: " + msg);        
         Logger.write(now.toString() + " Simulation: " + msg);
     }
     
@@ -156,11 +187,12 @@ public class Simulation {
 	br.append("name: " + gr.get_name() + ", ");
 	br.append("id: " + gr.get_id() + ", ");
 	br.append("PEs: " + characteristics.getMachineList().getNumPE() + ", ");
-	br.append("storage: " + ( (DPSpaceShared) gr.getAllocationPolicy() ).getStorageSize() + "(MB), ");	
+	//br.append("storage: " + ( (DPSpaceShared) gr.getAllocationPolicy() ).getStorageSize() + "(MB), ");	
 	br.append("MIPS: " +characteristics.getMIPSRatingOfOnePE()  + ", ");
 	//br.append("processingRate: " +characteristics.  + ", ");	
 	br.append("link bandwidth: " + gr.getLink().getBaudRate()  + "(bit/s), ");
-	//br.append("stat: " + gr.get_stat().toString());	
+	//br.append("stat: " + gr.get_stat().toString());
+	
 	return br.toString();
 	
     }

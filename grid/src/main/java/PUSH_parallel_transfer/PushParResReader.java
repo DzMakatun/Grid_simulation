@@ -1,4 +1,4 @@
-package flow_model;
+package PUSH_parallel_transfer;
 
 /*
  * Title:        GridSim Toolkit
@@ -7,16 +7,15 @@ package flow_model;
  * License:      GPL - http://www.gnu.org/copyleft/gpl.html
  */
 
-import pullModel.PullSpaceShared;
 import gridsim.GridResource;
-import gridsim.AllocPolicy;
 import gridsim.Gridlet;
 import gridsim.GridletList;
 import gridsim.Machine;
 import gridsim.MachineList;
 import gridsim.ResourceCalendar;
 import gridsim.ResourceCharacteristics;
-import gridsim.net.SimpleLink;
+import gridsim.net.flow.FlowLink;
+
 
 import java.io.BufferedReader;
 import java.io.FileReader;
@@ -31,13 +30,7 @@ import networkflows.planner.CompNode;
 /**
  * Creates one or more GridResources 
  */
-public class ResourceReader {
-    /** create resources with DPSpaceShared allocation policy*/
-    public static final int PLANNER = 1;
-    
-    /** create resources with PullSpaceShared allocation policy*/
-    public static final int PULL = 2;
-    
+public class PushParResReader {
     public static LinkedList<CompNode> planerNodes = new LinkedList<CompNode>();
 
     /**
@@ -49,14 +42,14 @@ public class ResourceReader {
      * @return the list of resources which have been read from the file
      * @throws Exception
      */
-    public static LinkedList<GridResource> read(String filename, int resType) 
+    public static LinkedList<GridResource> read(String filename) 
 	    throws Exception {
         LinkedList<GridResource> resourceList = null;
 
         try {
             FileReader fRead = new FileReader(filename);
             BufferedReader b = new BufferedReader(fRead);
-            resourceList = createResources(b, resType);
+            resourceList = createResources(b);
         } catch (IOException exp) {
             System.out.println("File not found");
         }
@@ -71,7 +64,7 @@ public class ResourceReader {
      * @return a list of created DataGridResources
      * @throws Exception
      */
-    private static LinkedList<GridResource> createResources(BufferedReader buf, int resType) throws Exception {
+    private static LinkedList<GridResource> createResources(BufferedReader buf) throws Exception {
         String line;
         String resourceName;
         int PEs;
@@ -90,7 +83,7 @@ public class ResourceReader {
         GridResource r1;
         LinkedList<GridResource>  resourceList = new LinkedList();
         StringTokenizer str;
-        AllocPolicy policy;
+        //SpaceShared policy;
 
         while ((line = buf.readLine()) != null) {
             str = new StringTokenizer(line);
@@ -105,43 +98,33 @@ public class ResourceReader {
                 isInputDestination = Boolean.parseBoolean(str.nextToken() );
                 isOutputSource = Boolean.parseBoolean(str.nextToken());
 
-                r1 = createStandardResource(resType, resourceName, PEs, MIPSrate, storage_size,
+                r1 = createStandardResource(resourceName, PEs, MIPSrate, storage_size,
                         isInputSource, isOutputDestination, isInputDestination, isOutputSource);
                 
                 //if it is an input source, add initial gridlets to the storage
-                if (isInputSource) {
+                /*if (isInputSource) {
                     maxGridlets = Integer.parseInt(str.nextToken());
                     gridletFilename = str.nextToken();
                     GridletList gridletList = GridletReader.getGridletList(gridletFilename ,maxGridlets);
-                    policy = r1.getAllocationPolicy(); 
-                    //set initial input files
-                    switch (resType)
-                    {
-                        case PLANNER: //use DPSpaceShared allocation policy
-                            ( (DPSpaceShared) policy ).addInitialInputFiles(gridletList);
-	                    break;    
-                        case PULL: //use DPSpaceShared allocation policy
-                            ( (PullSpaceShared) policy ).addInitialInputFiles(gridletList);
-	                    break;        
-	                default:
-	                    System.out.println("Unknown allocation policy type " + resType + " failed to add input files");
-	                    break;
-	            }      
+                    policy = (DPSpaceShared) r1.getAllocationPolicy();                    	
+                    policy.addInitialInputFiles(gridletList);       
                     
                     //Print Gridlet list
-                    System.out.println(gridletList.size() + " GRIDLETS at " + r1.get_id() + ":" + r1.get_name());
-                    //DPGridlet gridlet;                    
-                    //for (Gridlet gl : gridletList){
-                	//gridlet = (DPGridlet) gl;
-                	//System.out.println(gridlet.toStringShort());
-                    //}
-                }
+                    System.out.println("GRIDLETS at " + r1.get_id() + ":" + r1.get_name());
+                    DPGridlet gridlet;
+                    
+                    for (Gridlet gl : gridletList){
+                	gridlet = (DPGridlet) gl;
+                	System.out.println(gridlet.toStringShort());
+                    }
+                } */
                 
                // add resource to the list
                 resourceList.add(r1);
                 
                 //WARNING CHECK THIS
                //create a CompNodeEntity for planner
+                /*
                 planerNode = new CompNode(r1.get_id(), r1.get_name(), 
                 	false,  //is Dummy
                 	isInputSource, isOutputDestination,
@@ -151,8 +134,8 @@ public class ResourceReader {
                 	0, 0, 0, 0, 0
                 	);
                 
-                planerNodes.add(planerNode);
-            }
+                planerNodes.add(planerNode); */
+            } 
         }
 
         return resourceList;
@@ -163,9 +146,8 @@ public class ResourceReader {
     /**
      * Creates one Grid resource for Data Production simulations
      * CPUs).
-     * @param resType 
      */
-    private static GridResource createStandardResource(int resType, String name, int PEs, int processingMIPSRate,
+    private static GridResource createStandardResource(String name, int PEs, int processingMIPSRate,
         double storage_size, boolean isInputSource, boolean isOutputDestination,
         boolean isInputDestination, boolean isOutputSource) {
         // 1. We need to create an object of MachineList to store one or more
@@ -216,30 +198,15 @@ public class ResourceReader {
             //        storage_size);
            
             // our logic is placed in handler
-            AllocPolicy handler = null;
-            switch (resType)
-            {
-                case PLANNER: //use DPSpaceShared allocation policy
-                    handler = new DPSpaceShared(name, name + "_handler", storage_size,
-                	    isInputSource, isOutputDestination, isInputDestination, isOutputSource);
-                    break;    
-                case PULL: //use DPSpaceShared allocation policy
-                    handler = new PullSpaceShared(name, name + "_handler", storage_size,
-                	    isInputSource, isOutputDestination, isInputDestination, isOutputSource);
-                    break;        
-                default:
-                    System.out.println("Unknown allocation policy type " + resType + " failed to create handler");
-                    //this will crush later, when the simulation starts
-                    break;
-            }   
-            
-
+            //DPSpaceShared handler = new DPSpaceShared(name, name + "_handler", storage_size,
+        	//    isInputSource, isOutputDestination, isInputDestination, isOutputSource);
             //link which connects the resource to it's router, the bandwith is
             // defined as bit/s 
+            PushParSpaceShared policy = new PushParSpaceShared(name, name + "_policy");
             double bandwidth = Double.MAX_VALUE;
-            SimpleLink link = new SimpleLink(name + "_internal_link", bandwidth, 0.1, Integer.MAX_VALUE);
+            FlowLink link = new FlowLink(name + "_internal_link", bandwidth, 0.01, Integer.MAX_VALUE);
             
-            gridRes = new GridResource(name, link, resConfig, cal, handler);
+            gridRes = new GridResource(name, link, resConfig, cal, policy);
             
         } catch (Exception e) {
             e.printStackTrace();
